@@ -1,0 +1,6 @@
+# def read_all_json_objs_by_spark(json_data_path: str):
+#     spark = SparkSession.builder \
+#         .appName("data") \
+#         .master("local[*]") \
+#         .getOrCreate()
+#     return [json.loads(s) for s in spark.read.json(json_data_path).collect()]
