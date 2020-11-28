@@ -2,10 +2,12 @@ import copy
 import sys
 from collections import defaultdict
 from collections.abc import Mapping
+from functools import partial
 from itertools import chain
-from typing import Dict, Any, List, Iterator, Counter, Callable, Tuple
-
-from utilx.general import FieldsRepr, Accumulative, get_fields, JSerializable, list__
+from typing import Dict, Any, List, Iterator, Counter, Callable, Tuple, Union
+from itertools import islice
+from utix.general import FieldsRepr, Accumulative, get_fields, JSerializable, nonstr_iterable, iterable_merge
+from tqdm import tqdm
 
 # region frozen & hybrid dict
 
@@ -63,7 +65,7 @@ class _FrozenDict(Mapping, FieldsRepr, JSerializable):
         return self.__class__(d=self, repr_fields=self._repr_fields, deepcopy=True)
 
     def __to_dict__(self) -> dict:
-        return JSerializable.__to_dict__(self, type_str='utilx.dict_ext.fdict')
+        return JSerializable.__to_dict__(self, type_str='utix.dictex.fdict')
 
     @classmethod
     def __from_dict__(cls, d: dict):
@@ -140,13 +142,9 @@ def FrozenDict(__init=None, repr_fields: Iterator[str] = None, deepcopy: bool = 
     return t(d=__init, repr_fields=repr_fields, deepcopy=deepcopy)
 
 
-# d = FrozenDict(a=1,b=2,c=3,d=4)
-# import  json
-# s = json.dumps(d)
-
 def AccumulativeFrozenDict(__init=None, repr_fields=None, accu_fields=None, deepcopy=False, **kwargs):
     """
-    The same as `FrozenDict`, and in addiction the frozen dict is made accumulative (i.e. works with operators like '+=', '/=', etc., see :class:`utilx.general_ext.Accumulative`).
+    The same as `FrozenDict`, and in addiction the frozen dict is made accumulative (i.e. works with operators like '+=', '/=', etc., see :class:`utix.general.Accumulative`).
     """
     if kwargs:
         if __init:
@@ -159,20 +157,60 @@ def AccumulativeFrozenDict(__init=None, repr_fields=None, accu_fields=None, deep
     return t(d=__init, repr_fields=repr_fields, accu_fields=accu_fields, deepcopy=deepcopy)
 
 
-def HybridDict(__init=None, repr_fields: Iterator[str] = None, deepcopy: bool = False, extra_keys: Iterator[str] = None, **kwargs):
+def HybridDict(_init=None, repr_fields: Iterator[str] = None, deepcopy: bool = False, extra_keys: Iterator[str] = None, **kwargs):
+    """
+    Creates a hybrid dictionary. The key/value pairs in `_init` is saved in slots, while new key/value pairs are saved in a dictionary.
+    This is used for the case when the dictionary is mostly fixed (so that we can save them in slots rather than a dynamic dictionary), but still we want to offer the flexibility of add new key/values.
+    Please use the alias `hdict` for convenience.
+
+    General Usage.
+    --------------
+    >>> from utix.dictex import hdict
+    >>> d = hdict({'a':1, 'b':2})
+    >>> print(d) # {'a': 1, 'b': 2}
+    >>> print(d.__slots__) # `('a', 'b', '_repr_fields')`
+    >>> d['c'] = 3
+    >>> d['d'] = 4
+    >>> print(d) # {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+    >>> print(d.__slots__) # this is still `('a', 'b', '_repr_fields')`, the same as before adding the key/values.
+    >>> print(d.__dict__) # new key/values are saved in the `__dict__`, so it prints out {'c': 3, 'd': 4}.
+
+    Use named parameters for initial key/value pairs.
+    -------------------------------------------------
+    >>> d = hdict(a=1, b=2, c=3)
+    >>> print(d) # {'a': 1, 'b': 2, 'c': 3}
+
+    Use `repr_fields`.
+    ------------------
+    >>> d = hdict({'a':1, 'b':2, 'c':3}, repr_fields=('b', 'c'))
+    >>> print(d) # {'b': 2, 'c': 3}
+
+    Use `extra_keys`.
+    -----------------
+    >>> d = hdict({'a':1, 'b':2, 'c':3}, extra_keys=('d', 'e', 'f'))
+    >>> print(d) # {'a': 1, 'b': 2, 'c': 3, 'd': None, 'e': None, 'f': None}
+    >>> print(d.__slots__) # `('a', 'b', 'c', 'd', 'e', 'f', '_repr_fields')`
+
+    :param _init: the initial key/value pairs; the key/value pairs in this `_init` and the `kwargs` will be saved in the slots.
+    :param repr_fields: specified some keys; those keys and their values will be used to construct the string representation of this dictionary.
+    :param deepcopy:`True` if deepcopying values in `_init` to the hybrid dict; otherwise making shallow copies.
+    :param extra_keys: specify extra keys whose values should be saved in the slots; their initial values is `None`.
+    :param kwargs: allows specifying initial key/value pairs by named parameters.
+    :return: a hybrid dictionary with initial key/value pairs saved in slots to save memory, but still allows adding new key/value pairs.
+    """
     if kwargs:
-        if __init:
+        if _init:
             try:
-                kwargs.update(__init)
+                kwargs.update(_init)
             except:
-                raise ValueError(f"the provided frozen dict init object of type {type(__init)} is not compatible with `dict.update` method in order to incorporate updates in `kwargs`")
-        __init = kwargs
+                raise ValueError(f"the provided frozen dict init object of type {type(_init)} is not compatible with `dict.update` method in order to incorporate updates in `kwargs`")
+        _init = kwargs
     if extra_keys is not None:
         for key in extra_keys:
-            __init[key] = None
+            _init[key] = None
 
-    t = _frozen_dict_type(__init, _HybridDict, extra_slots=('_repr_fields',))
-    return t(d=__init, repr_fields=repr_fields, deepcopy=deepcopy)
+    t = _frozen_dict_type(_init, _HybridDict, extra_slots=('_repr_fields',))
+    return t(d=_init, repr_fields=repr_fields, deepcopy=deepcopy)
 
 
 def AccumulativeHybridDict(__init=None, repr_fields=None, accu_fields=None, deepcopy=False, extra_keys: Iterator[str] = None, **kwargs):
@@ -213,6 +251,7 @@ def is_dict__(obj):
 fdict = FrozenDict
 xfdict = AccumulativeFrozenDict
 hdict = HybridDict
+hdict.__doc__ = 'An alias for class HybridDict'
 xhdict = AccumulativeHybridDict
 is_fdict = is_frozen_dict
 is_xfdict = is_accumulative_frozen_dict
@@ -338,7 +377,7 @@ def dict_wrap(_obj):
     The short name for this wrap is `dwrap`.
 
     For example,
-    >>> from utilx.dict_ext import dwrap
+    >>> from utix.dictex import dwrap
     >>> @dwrap
     >>> class A:
     >>>     __slots__ = ('field_a', 'field_b', 'field_c')
@@ -440,7 +479,7 @@ class ListDict(defaultdict):
     A dictionary of lists. Implements the `+` operator for convenience to merge two or more list dictionaries.
     NOTE this class is not intended to be used as a `defaultdict(list)`.
 
-    >>> from utilx.dict_ext import ListDict
+    >>> from utix.dictex import ListDict
     >>> d = ListDict()
     >>> d += { 'a': 1, 'b': 2, 'c': 3 }
     >>> d += { 'a': 4, 'b': 5, 'c': 6 }
@@ -473,7 +512,7 @@ class PaddedListDict(defaultdict):
     A dictionary of lists. Implements the `+` operator for convenience to merge two or more list dictionaries.
     The same as `ListDict`, except for it uses a placeholder like `None` to keep track of missing values.
 
-    >>> from utilx.dict_ext import PaddedListDict
+    >>> from utix.dictex import PaddedListDict
     >>> d = PaddedListDict()
     >>> d += { 'b': 2, 'c': 3 }
     >>> d += { 'a': 4, 'c': 6 }
@@ -557,9 +596,12 @@ class TupleDict(dict):
 class IndexDict:
     __slots__ = ('_d', '_r')
 
-    def __init__(self, reverse_lookup=False):
-        self._d = defaultdict(lambda: len(self._d))
-        self._r = {} if reverse_lookup else None
+    def __len__(self):
+        return len(self._d)
+
+    def __init__(self, reverse_lookup=False, d=None, r=None):
+        self._d = d or defaultdict(lambda: len(self._d))
+        self._r = r or ({} if reverse_lookup else None)
 
     def index(self, x):
         if self._r is None:
@@ -586,11 +628,11 @@ class IndexDict:
 
     def add(self, x):
         if self._r is None:
-            if x not in self._d:
-                self._d[x] = len(self._d)
+            return self._d[x]
         else:
             idx = self._d[x]
             self._r[idx] = x
+            return idx
 
     def add_all(self, it: Iterator):
         if self._r is None:
@@ -611,16 +653,48 @@ class IndexDict:
     def get(self, index: int):
         return self._r.get(index, None) if self._r is not None else None
 
+    def to_dicts(self):
+        return self._d, self._r
+
 
 # endregion
 
 
 # region dict merge
+
+def simple_merge_mappings(mappings: Union[Mapping, Iterator[Mapping]], merge_func: Callable = None):
+    """
+    A simple mapping merge function assuming all mappings to merge have the same keys and structure.
+    :param mappings: the mappings to merge.
+    :param merge_func: provides a function to merge values associated with the same key; assign `None` to use the default merge function.
+    :return: a merged dictionary from the mappings.
+
+    >>> import utix.dictex as dictex
+    >>> mappings = [{'a': 1, 'b': 2, 'c': [1, 2]}] * 3
+    >>> dictex.simple_merge_mappings(mappings)
+    {'a': (1, 1, 1), 'b': (2, 2, 2), 'c': [1, 2, 1, 2, 1, 2]}
+
+    """
+    if isinstance(mappings, Mapping):
+        return mappings
+
+    if merge_func is None:
+        merge_func = iterable_merge
+    out = {}
+    first_mapping = next(iter(mappings))
+    for k, v in first_mapping.items():
+        if isinstance(v, Mapping):
+            out[k] = simple_merge_mappings(tuple(d[k] for d in mappings), merge_func=merge_func)
+        else:
+            out[k] = merge_func(tuple(d[k] for d in mappings))
+    return out
+
+
 def tup2dict(_tups) -> dict:
     """
     Converts a sequence of tuples into a dictionary.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> print(dx.tup2dict((('a', 1), ('b', 2), ('c', 3))) == {'a': 1, 'b': 2, 'c': 3})
 
     :param _tups: an iterable of tuples.
@@ -652,12 +726,13 @@ def tup2setdict(_tups, dual=False) -> defaultdict:
             d[v].add(k)
     return d
 
+
 def tup2dict__(tuples, key_prefix=None, _key_connector='_') -> dict:
     """
     The same as `tup2dict`, with an option for key prefix.
     If the key prefix is specified, then the prefix adds to the start of each key unless the key already starts with the prefix.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> print(dx.tup2dict__((('a', 1), ('b', 2), ('prefix_c', 3)), key_prefix='prefix_') == {'prefix_a': 1, 'prefix_b': 2, 'prefix_c': 3})
 
     :param tuples: a sequence of tuples to convert to a dictionary.
@@ -698,6 +773,19 @@ def tup2dict__(tuples, key_prefix=None, _key_connector='_') -> dict:
             else:
                 output[k] = v
     return output
+
+
+def merge_dicts(dicts: Iterator[Dict[Any, List]], in_place: bool = False, use_tqdm=False):
+    dicts = iter(dicts)
+    if use_tqdm:
+        dicts = tqdm(dicts)
+    d = next(dicts)
+
+    if not in_place:
+        d = dict(d)
+    for _d in dicts:
+        d.update(_d)
+    return d
 
 
 def merge_list_dicts(dicts: Iterator[Dict[Any, List]], in_place: bool = False):
@@ -769,7 +857,7 @@ def iter_leaves(tree: Mapping, init_key=(), yield_combo_key=False, key_filter: C
         and the second value is 1) a combo-key consisting of keys form the root to the leaf if `yield_combo_key` is `True`,
                              or 2) the key of the leaf if `yield_combo_key` is `False`.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> tree = {
     >>>     'a': 1,
     >>>     'b': {'b1': 2,
@@ -800,7 +888,7 @@ def iter_leaves(tree: Mapping, init_key=(), yield_combo_key=False, key_filter: C
     >>> #   ('d', 'd2')
     >>> #   ('d', 'd4', 'd41')
     >>> #   ('d', 'd4', 'd42')
-    >>> for p, k in dx.iter_leaves(tree, yield_combo_key=True): # `k` here will consist of all keys from the root to the leaf
+    >>> for p, k in dx.iter_leaves(tree, yield_combo_key=True): # `k` will have all keys from the root to the leaf
     >>>     print(k)
     >>>     p[k[-1]] *= 2
     >>> print(tree == {'a': 1.0, 'b': {'b1': 2.0, 'b2': {'b21': 3.0, 'b22': 4.0, 'b23': {'b231': 5.0}}}, 'c': 6.0, 'd': {'d1': 7.0, 'd2': 8.0, 'd3': {}, 'd4': {'d41': 9.0, 'd42': 10.0}}})
@@ -848,7 +936,7 @@ def iter_leaves_combo_key(tree: Mapping, init_key: str = None, combo_key_joint: 
     NOTE: this function only applies to a mapping whose keys are string-friendly, because the combo-key is a string; if not, use `iter_leaves_combo_key__` instead, whose combo-key is a tuple of all keys from the root.
     This function can be applied to flatten a tree.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> tree = {
     >>>     'a': 1,
     >>>     'b': {'b1': 2,
@@ -895,7 +983,7 @@ def iter_leaves_combo_key__(tree: Mapping, init_key=(), key_filter: Callable[[tu
     The same as `iter_leaves_combo_key`; the difference is that the combo-key is now a tuple of keys from the root to the leaf, rather than a string joint of the keys.
     The `key_filter` will now accept a tuple as the input.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> tree = {
     >>>     'a': 1,
     >>>     'b': {'b1': 2,
@@ -937,7 +1025,7 @@ def iter_leaves_with_another(tree: Mapping, iter_with: Mapping, ttype: Callable 
     This method can be applied to construct a dictionary with the same structure as the `tree`, with some transformations on the values.
 
     For example,
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
 
     >>> tree = {'a': 1,
     >>>         'b': {'b1': 2,
@@ -1020,7 +1108,9 @@ def iter_leaves_with_another(tree: Mapping, iter_with: Mapping, ttype: Callable 
     >>>                                              ('d', 'd4', 'd42'): 10}}})
 
     :param tree: represented by a nested mapping.
-    :param iter_with: iterate through the leaves of the `tree` together with this mapping.
+    :param iter_with: iterate through the leaves of the `tree` together with this mapping;
+                        this mapping does not need to have the same keys as the `tree`, and an empty mapping is created by `ttype` if a key does not exist;
+                        therefore even an empty mapping can be used for this `iter_with` for the purpose of reconstruction.
     :param ttype: when the key is not found in the `iter_with`, this function is called to generate a new mapping object which is then assigned to the key.
     :param skip_empty_branches: `True` if to skip an empty branch in the input tree (i.e. the ouptut tree will not have that empty branch); otherwise `False`.
     :param yield_combo_key: `True` if this iterator should yield a tuple combo-key consisting of all keys from the root to the leave; `False` if it only yields the key of the leaf.
@@ -1064,7 +1154,7 @@ def merge_tree_leaves_padded(trees, padding=None, ttype=None, leaf_filter: Calla
     Missing values will be filled by the `padding`.
     This function can be applied to turn a sequence of keyed data entries into a batch.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> trees = (
     >>>         [{'a': 1, 'b': {'b1': 2, 'b2': 3, 'b3': {'b31': 4, 'b32': 5}}, 'b4': {'b5': {}}}] * 2  # missing 'b33'; 'b4' branch is empty
     >>>         + [{'a': 1, 'b': {'b1': 2, 'b3': {'b31': 4, 'b33': 6}}, 'b4': {'b5': {}}}] * 2  # missing 'b2', 'b32'
@@ -1140,7 +1230,7 @@ def merge_tree_leaves(trees, ttype=None, leaf_filter: Callable[[Tuple, Any], Tup
     This function can be applied to aggregate data from multiple dictionaries.
     If missing values need to be filled, use `merge_tree_leaves_padded` instead.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
 
     >>> trees = (
     >>>         [{'a': 1, 'b': {'b1': 2, 'b2': 3, 'b3': {'b31': 4, 'b32': 5}}, 'b4': {'b5': {}}}] * 2  # missing 'b33'; 'b4' branch is empty
@@ -1191,14 +1281,13 @@ def merge_tree_leaves_flat_padded(trees, padding=None, ttype=None, leaf_filter: 
     Merges the leaves of several trees into a single flattened mapping, where each key/value pair of the merged mapping is a list of the values from the corresponding leaves of the original trees.
     This function can be applied to turn a sequence of keyed data entries into a batch, with missing values being filled by the `padding`.
 
-    >>> import utilx.dict_ext as dx
+    >>> import utix.dictex as dx
     >>> trees = (
-    >>>         [{'a': 1, 'b': {'b1': 2, 'b2': 3, 'b3': {'b31': 4, 'b32': 5}}, 'b4': {'b5': {}}}] * 2  # missing 'b33'; 'b4' branch is empty
+    >>>         [{'b': {'b1': 2, 'b2': 3, 'b3': {'b31': 4, 'b32': 5}}, 'b4': {'b5': {}}}] * 2  # missing 'b33'; 'b4' branch is empty
     >>>         + [{'a': 1, 'b': {'b1': 2, 'b3': {'b31': 4, 'b33': 6}}, 'b4': {'b5': {}}}] * 2  # missing 'b2', 'b32'
     >>>         + [{'a': 1, 'c': 7}] * 2  # missing entire 'b' branch
     >>> )
-
-    >>> print(dx.merge_tree_leaves_flat_padded(trees) == {'a': [1, 1, 1, 1, 1, 1],
+    >>> print(dx.merge_tree_leaves_flat_padded(trees) == {'a': [None, None, 1, 1, 1, 1],
     >>>                                                   'b-b1': [2, 2, 2, 2, None, None],
     >>>                                                   'b-b2': [3, 3, None, None, None, None],
     >>>                                                   'b-b3-b31': [4, 4, 4, 4, None, None],
@@ -1211,23 +1300,24 @@ def merge_tree_leaves_flat_padded(trees, padding=None, ttype=None, leaf_filter: 
     >>>     trees=trees,
     >>>     padding=0,
     >>>     combo_key_joint='>',
-    >>>     key_filter=lambda k: 'b3' not in k) == {'a': [1, 1, 1, 1, 1, 1],
+    >>>     key_filter=lambda k: 'b3' not in k) == {'a': [0, 0, 1, 1, 1, 1],
     >>>                                             'b>b1': [2, 2, 2, 2, 0, 0],
     >>>                                             'b>b2': [3, 3, 0, 0, 0, 0],
     >>>                                             'c': [0, 0, 0, 0, 7, 7]})
-    
+
     >>> # `leaf_filter` overwrites the key format (in this case the `combo_key_joint` is now ignored), and can change the values
     >>> print(dx.merge_tree_leaves_flat_padded(
     >>>     trees=trees,
     >>>     padding=0,
     >>>     combo_key_joint='>',
     >>>     key_filter=lambda k: 'b2' not in k,
-    >>>     leaf_filter=lambda k, v: ('|'.join(k), v + 1)) == {'a': [2, 2, 2, 2, 2, 2],
+    >>>     leaf_filter=lambda k, v: ('|'.join(k), v + 1)) == {'a': [0, 0, 2, 2, 2, 2],
     >>>                                                        'b|b1': [3, 3, 3, 3, 0, 0],
     >>>                                                        'b|b3|b31': [5, 5, 5, 5, 0, 0],
     >>>                                                        'b|b3|b32': [6, 6, 0, 0, 0, 0],
     >>>                                                        'b|b3|b33': [0, 0, 7, 7, 0, 0],
     >>>                                                        'c': [0, 0, 0, 0, 8, 8]})
+
 
     :param trees: the input trees.
     :param padding: the padding for missing values.
@@ -1286,8 +1376,8 @@ def merge_tree_leaves_flat(trees, ttype=None, leaf_filter: Callable[[Tuple, Any]
     This function can be applied to aggregate data from multiple dictionaries.
     If missing values need to be filled, use `merge_tree_leaves_flat_padded` instead.
 
-    >>> import utilx.dict_ext as dx
-    >>> 
+    >>> import utix.dictex as dx
+    >>>
     >>> trees = (
     >>>         [{'a': 1, 'b': {'b1': 2, 'b2': 3, 'b3': {'b31': 4, 'b32': 5}}, 'b4': {'b5': {}}}] * 2  # missing 'b33'; 'b4' branch is empty
     >>>         + [{'a': 1, 'b': {'b1': 2, 'b3': {'b31': 4, 'b33': 6}}, 'b4': {'b5': {}}}] * 2  # missing 'b2', 'b32'
@@ -1352,6 +1442,12 @@ def merge_tree_leaves_flat(trees, ttype=None, leaf_filter: Callable[[Tuple, Any]
 
 
 def recursive_getitem(tree, keys):
+    """
+    Retrieves a value from a tree by a sequence of keys.
+    :param tree: the tree.
+    :param keys: a sequence of keys.
+    :return: a value retrieved from the tree.
+    """
     for key in keys:
         tree = tree[key]
     return tree
@@ -1392,8 +1488,25 @@ def select_by_keys(d: dict, keys):
     return {k: d[k] for k in keys if k in d}
 
 
-def select_values_by_keys(d: dict, keys):
-    return [d[k] for k in keys if k in d]
+def select_values_by_keys(d: dict, keys, use_default=False, default=None, ignore_key_not_exist=True):
+    if use_default is True:
+        return [d.get(k, default) for k in keys]
+    elif isinstance(use_default, (tuple, list, set)):
+        if ignore_key_not_exist:
+            out = []
+            for k in keys:
+                if k in use_default:
+                    out.append(d.get(k, default))
+                elif k in keys:
+                    out.append(d[k])
+            return out
+        else:
+            return [d.get(k, default) if k in use_default else d[k] for k in keys]
+    else:
+        if ignore_key_not_exist:
+            return [d[k] for k in keys if k in d]
+        else:
+            return [d[k] for k in keys]
 
 
 def prioritize_keys(d: dict, keys_to_promote, in_place=True):
@@ -1421,11 +1534,39 @@ def prioritize_keys(d: dict, keys_to_promote, in_place=True):
 
 # region misc
 
+class MultipleMaps(Mapping):
+    def __init__(self, *maps):
+        self._maps = maps
+
+    def __getitem__(self, item):
+        for map in self._maps:
+            if item in map:
+                return map[item]
+        raise KeyError(item)
+
+    def __len__(self) -> int:
+        return sum(len(x) for x in self._maps)
+
+    def __iter__(self):
+        for map in self._maps:
+            yield from map
+
+    def to_dict(self):
+        return {key: self[key] for key in set(self)}
+
+
+mmap = MultipleMaps
+
+
+def kvswap(d):
+    return {v: k for k, v in d.items()}
+
+
 def same_key_same_type(*mappings):
     """
     Checks if every mapping has the same keys, and the objects associated with the same key are of the same type.
 
-    >>> from utilx.dict_ext import same_key_same_type, fdict
+    >>> from utix.dictex import same_key_same_type, fdict
     >>> d1 = {'a': 1, 'b':2, 'c':3}
     >>> d2 = fdict(a=1,b=2,c=3)
     >>> d3 = {'a': 1, 'b': True, 'c': 3 }
@@ -1449,6 +1590,26 @@ def dict_try_div(d: dict, divisor):
     return d
 
 
+def dict_try_div_with_exclusion(d: dict, divisor, excludes=None):
+    if excludes is None:
+        return dict_try_div(d, divisor)
+    if isinstance(excludes, (set, list, tuple)):
+        for k in d:
+            if k not in excludes:
+                try:
+                    d[k] /= divisor
+                except:
+                    continue
+    else:
+        for k in d:
+            if k != excludes:
+                try:
+                    d[k] /= divisor
+                except:
+                    continue
+    return d
+
+
 def dict_try_floor_div(d: dict, divisor):
     for k in d:
         try:
@@ -1457,4 +1618,226 @@ def dict_try_floor_div(d: dict, divisor):
             continue
     return d
 
+
 # endregion
+
+# region improved counter
+
+def count_or_accumulate(count_dict: dict, items: Union[dict, Iterator[Any], Any]):
+    if items is not None:
+        if isinstance(items, dict):
+            for k, v in items.items():
+                if k in count_dict:
+                    if hasattr(v, '__add__') or hasattr(v, '__iadd__'):
+                        count_dict[k] += v
+                    elif hasattr(v, '__or__') or hasattr(v, '__ior__'):
+                        count_dict[k] |= v
+                    elif isinstance(v, dict):
+                        count_or_accumulate(count_dict[k], v)
+                else:
+                    count_dict[k] = copy.deepcopy(v)  # ! have to make deep copy here to avoid the potential error caused by a `v` being used in two countings
+        elif nonstr_iterable(items):
+            for item in items:
+                if item in count_dict:
+                    count_dict[item] += 1
+                else:
+                    count_dict[item] = 1
+        elif items in count_dict:
+            count_dict[items] += 1
+        else:
+            count_dict[items] = 1
+    return count_dict
+
+
+def sum_dicts(count_dicts, in_place=False):
+    if isinstance(count_dicts, dict):
+        return count_dicts
+    if len(count_dicts) == 1:
+        return count_dicts[0]
+    base_count_dict = count_dicts[0] if in_place else dict(count_dicts[0])
+    for i in range(1, len(count_dicts)):
+        count_or_accumulate(base_count_dict, count_dicts[i])
+
+    return base_count_dict
+
+
+def count_reduce(count_dict, items: Union[dict, Iterator[Any], Any]):
+    if isinstance(items, dict):
+        for k, v in items.items():
+            if k in count_dict:
+                count_dict[k] -= v
+    elif nonstr_iterable(items):
+        for item in items:
+            if item in count_dict:
+                count_dict[item] -= 1
+    elif items in count_dict:
+        count_dict[items] -= 1
+
+    return count_dict
+
+
+def iter_items_as_dicts(d: Mapping):
+    for k, v in d.items():
+        yield {k: v}
+
+
+def top_keys(d: Mapping, top: int, reverse=False):
+    return sorted(d.keys(), key=lambda k: d[k], reverse=reverse)[:top]
+
+
+def sort_by_values(d: Mapping, value_key=None, reverse=False):
+    if value_key is not None:
+        return dict(sorted(d.items(), key=lambda kv: kv[1][value_key], reverse=reverse))
+    else:
+        return dict(sorted(d.items(), key=lambda kv: kv[1], reverse=reverse))
+
+
+def top_items(d: Mapping, top: int, reverse=False):
+    return dict(sorted(d.items(), key=lambda kv: kv[1], reverse=reverse)[:top])
+
+
+def first_key(d: Mapping):
+    return next(iter(d.keys()))
+
+
+def first_value(d: Mapping):
+    return next(iter(d.values()))
+
+
+def first_keys(d: Mapping, first: int):
+    return tuple(islice(d, first))
+
+
+def first_items(d: Mapping, first: int):
+    return tuple(islice(d.items(), first))
+
+
+def first_item(d: Mapping):
+    """
+    Gets the first key-value pair in the mapping.
+    """
+    return next(iter(d.items()))
+
+
+def get__(d: Mapping, *keys):
+    for key in keys:
+        if key in d:
+            return d[key]
+
+
+class XCounter(defaultdict):
+    """
+    A subclass of :class:`dict` designed for counting/accumulating items.
+    It is similar to :class:`~collections.Counter`, while designed to be compatible with tuples, lists, sets and dictionaries.
+    This class also runs faster than the build-in counter class.
+    """
+
+    def __init__(self, default_factory=int, init: dict = None, **kwargs):
+        super(XCounter, self).__init__(default_factory, **kwargs)
+        if init is not None:
+            self.update(init)
+
+    def __abs__(self):
+        """
+        Makes every value in this counter be their absolute values if possible. Error will not be thrown if the absolute value is not valid for some values in this counter.
+        :return: the current counter.
+        """
+        for k, v in self.items():
+            if hasattr(v, '__abs__'):
+                self[k] = abs(v)
+        return self
+
+    def __add__(self, other: Union[dict, Iterator[Any], Any]):
+        """
+        If `other` is a dictionary, then merges the `other` dictionary into this counter.
+        For each key in the dictionary `other` to add,
+        if the key exists in this counter,
+        then the value associated with the key in the other dictionary is first added to this counter's value of the same key,
+        by trying to invoke the `+=` operator, or the `|=` operator.
+        Error will be thrown if `+=` operator and `|=` operators are both not valid for a value.
+
+        Otherwise, if `other` is a non-string iterable, then treat all items in this iterable as keys, and adds count 1 for each item in this iterable.
+
+        Otherwise, treat `other` as a key, and adds count 1 for `other` if it is in this counter.
+
+        :param other: another dictionary, whose values are to be merged into this counter; or an iterable of keys to count; or just the key to count.
+        :return: the current counter.
+        """
+        return count_or_accumulate(self.copy(), other)
+
+    def __iadd__(self, other):
+        return count_or_accumulate(self, other)
+
+    def __sub__(self, other: Union[dict, Iterator[Any], Any]):
+        """
+        If `other` is a dictionary, then subtracts this counter by the `other` dictionary.
+        For each key in the dictionary `other` to subtract,
+        if the key exists in this counter,
+        then the value associated with the key in this counter is subtracted by the corresponding value in the other dictionary of the same key,
+        by trying to invoke the `-=` operator. Error will be thrown if `-=` operator is not valid for a value.
+
+        Otherwise, if `other` is a non-string iterable, then treat all items in this iterable as keys, and reduces count 1 for each item in this iterable; the count after eduction can be negative.
+
+        Otherwise, treat `other` as a key, and reduces count 1 for `other` if it is in this counter.
+
+        :return: the current counter.
+        """
+        return count_reduce(self.copy(), other)
+
+    def __isub__(self, other):
+        return count_reduce(self, other)
+
+    def __truediv__(self, divisor):
+        """
+        Tries to fields_div each value in this counter by the provided divisor by invoking the `/=` operator. Error will not be thrown if this operator is not valid.
+        :param divisor: the divisor.
+        :return: the current counter.
+        """
+        return dict_try_div(self.copy(), divisor)
+
+    def __itruediv__(self, divisor):
+        return dict_try_div(self, divisor)
+
+    def __floordiv__(self, divisor):
+        """
+        Tries to floor-fields_div each value in this counter by the provided divisor by invoking the `//=` operator. Error will not be thrown if this operator is not valid.
+        :param divisor: the divisor.
+        :return: the current counter.
+        """
+        return dict_try_floor_div(self.copy(), divisor)
+
+    def __ifloordiv__(self, divisor):
+        return dict_try_floor_div(self, divisor)
+
+    def div_with_exclusion(self, divisor, excludes):
+        dict_try_div_with_exclusion(d=self, divisor=divisor, excludes=excludes)
+
+    def normalize(self, *divisor_keys):
+        if len(divisor_keys) == 1:
+            divisor_key = divisor_keys[0]
+            dict_try_div_with_exclusion(d=self, divisor=self[divisor_key], excludes=divisor_key)
+        else:
+            dict_try_div_with_exclusion(d=self, divisor=sum(self[divisor_key] for divisor_key in divisor_keys), excludes=divisor_keys)
+
+
+# endregion
+
+def _sort_dict_key_func(x, keys):
+    return tuple(-x[key] if reverse else x[key] for key, reverse in keys)
+
+
+def sort_dict_objs(dict_objs, sorting_key, ascending_sort_prefix='-'):
+    if isinstance(sorting_key, str):
+        if sorting_key[0] == ascending_sort_prefix:
+            sorting_key, reverse = sorting_key[1:], False
+        else:
+            reverse = True
+
+        return sorted(dict_objs, key=lambda x: x[sorting_key], reverse=reverse)
+    else:
+        sorting_key = ((key, True) if key[0] != ascending_sort_prefix else (key[1:], False) for key in sorting_key)
+        return sorted(dict_objs, key=partial(_sort_dict_key_func, keys=sorting_key))
+
+
+def iter_dict_iterable_values(d):
+    return (dict(zip(d.keys(), vals)) for vals in zip(*d.values()))

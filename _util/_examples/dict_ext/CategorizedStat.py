@@ -1,4 +1,4 @@
-from _util.stat_util import CategorizedStat
+from utix._util.stat_util import CategorizedStat
 
 stat = CategorizedStat()
 stat.count(category='music', stat_name='buy', value=3)

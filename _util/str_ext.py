@@ -8,9 +8,9 @@ import ast
 # region misc
 from typing import Tuple, Callable, Dict
 
-from utilx.general import is_str, try____, str2bool, str2bool__, str2num, str2val__
-from utilx.listex import iter__
-from utilx.external.parse import parse
+from utix.general import is_str, try____, str2bool, str2bool__, str2num, str2val__
+from utix.general import iter__
+from utix.external.parse import parse
 
 
 def find_nth(_s: str, sub: str, n: int, start: int = None, end: int = None):
@@ -91,7 +91,7 @@ def split__(s: str, sep: str = None, maxsplit: int = -1, n: int = None, pad=None
     """
     String split with rich options.
 
-    >>> from utilx.str_ext import split__
+    >>> from utix.strex import split__
 
     Use the `n` parameter to enforce the return has the specified size.
     -------------------------------------------------------------------
@@ -336,10 +336,10 @@ def remove_punctuation_except_for_hyphen(text: str) -> str:
     return re.sub(pattern=r'\s+', repl=' ', string=text).strip()
 
 
-def _remove_punctuations_by_translate(text: str):
-    translate_table = dict((ord(char), None) for char in string.punctuation)
+def remove_punctuation_except_for_hyphen2(text: str):
+    translate_table = {ord(char): None for char in string.punctuation if char != '-'}
     text = text.translate(translate_table)
-    return text.replace('  ', ' ').lstrip()
+    return ' '.join(text.split())
 
 
 def re_clip_left(string: str, pattern: str, include_match: True):

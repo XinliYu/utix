@@ -97,3 +97,30 @@ def time_fun(funcs_to_compare: List[Callable], epochs=3, iterations=100000):
 
 def timestamp(scale=100) -> str:
     return str(int(time() * scale))
+
+
+
+# def date_ranges(day_range_expr, date_delta, year_month_day_patterns, sub_expr_delimiter=';', year=None):
+#     if year is None:
+#         year = datetime.datetime.today().year
+#
+#     for date_tup in map(lambda x: x.split('/'), day_range_expr.split(';')):
+#         if len(d)
+# #
+#
+#     out_input_paths, start_end_dates = [], []
+#     input_pattern_has_hours = '{hours}' in path_pattern
+#     if input_pattern_has_hours:
+#         if hours_expr is None:
+#             hours_expr = '*'
+#         else:
+#             hours_expr = _parse_hours(hours_expr)
+#     for month, days_expr in map(lambda x: x.split('/'), months_days_expr.split(';')):
+#         month = int(month)
+#         parsed_month = '{:02}'.format(month)
+#         parsed_days_path_parts, days_splits = _parse_days(year=year, month=month, days_expr=days_expr, days_chunk_size=days_chunk_size)
+#         for days_path_part, days_split in zip(parsed_days_path_parts, days_splits):
+#             out_input_paths.append(path_pattern.format(year=year, month=parsed_month, days=days_path_part, hours=hours_expr) if input_pattern_has_hours else path_pattern.format(year=year, month=parsed_month, days=days_path_part))
+#             end_day = datetime.datetime(year=year, month=month, day=int(days_split[-1])) + datetime.timedelta(days=1)
+#             start_end_dates.append(('{}-{}-{}'.format(year, parsed_month, days_split[0]), '{}-{}-{}'.format(year, '{:02}'.format(end_day.month), '{:02}'.format(end_day.day))))
+#     return out_input_paths, start_end_dates

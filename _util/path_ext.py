@@ -10,16 +10,67 @@ from pathlib import Path
 from sys import argv
 from typing import List, Union, Iterator, Tuple
 
-from _util.general_ext import hprint_pairs, hprint_message, eprint_message, hprint
-from _util.msg_ext import msg_create_dir, msg_arg_not_a_dir, msg_clear_dir
-from _util.time_ext import timestamp
+from utix.general import hprint_pairs, hprint_message, eprint_message, hprint, is_str
+from utix.msgex import msg_create_dir, msg_arg_not_a_dir, msg_clear_dir, msg_arg_multi_path_not_exist
+from utix.timex import timestamp
 import platform
+import glob
+import re
 
 REG_PATTERN_URL_OR_WINDOWS_ABS_PATH_PREFIX = r'^[a-zA-Z]+\:((\/\/)|\\)'
 DEFAULT_MULTI_PATH_DELIMITER = ':'
 
 
 # region basic path operations
+
+def sort_paths(paths, sort, sort_by_basename=False):
+    if sort_by_basename:
+        if sort is True or sort == 'alphabetic':
+            return sorted(paths, key=lambda x: path.basename(x))
+        elif sort == 'index':
+            return sorted(paths, key=lambda x: int(re.search(r'[0-9]+', path.basename(x)).group()))
+        return paths
+    else:
+        if sort is True or sort == 'alphabetic':
+            return sorted(paths)
+        elif sort == 'index':
+            return sorted(paths, key=lambda x: int(re.search(r'[0-9]+', x).group()))
+        return paths
+
+
+def make_ext_name(ext_name: str):
+    """
+    Ensures the extension name `ext_name` starts with a dot.
+    If `ext_name` is None or empty, then `None` is returned.
+    """
+    if ext_name:
+        return '.' + ext_name if ext_name[0] != '.' else ext_name
+
+
+def make_file_name(s: str, special_chr_rep='', space_rep='_'):
+    """
+    Makes a valid file name out of any given string.
+
+    >>> s = "what's on my costo list"
+    >>> make_file_name(s)
+    'whats_on_my_costo_list'
+
+    >>> make_file_name(s, special_chr_rep='_')
+    'what_s_on_my_costo_list'
+
+    >>> make_file_name(s, special_chr_rep='', space_rep='')
+    'whatsonmycostolist'
+
+    """
+    if special_chr_rep == space_rep:
+        return re.sub(r'[^a-zA-Z0-9_\-\.]+', special_chr_rep, s)
+    else:
+        return re.sub(r'\s+', space_rep, re.sub(r'[^a-zA-Z0-9_\-\.\s]+', special_chr_rep, s))
+
+
+def abspath__(pathstr):
+    return path.expanduser(pathstr) if pathstr[0] == '~' else path.abspath(pathstr)
+
 
 def get_main_name(path_str: str) -> str:
     """
@@ -28,6 +79,10 @@ def get_main_name(path_str: str) -> str:
     :return: the main name of the specified path.
     """
     return path.splitext(path.basename(path_str))[0]
+
+
+def get_ext_name(path_str: str) -> str:
+    return path.splitext(path.basename(path_str))[1]
 
 
 def get_main_name_ext_name(path_str: str) -> Tuple[str, str]:
@@ -49,11 +104,35 @@ def abs_path_wrt_file(file_path: str, rel_path: str):
         return path.abspath(path.join(path.dirname(file_path), rel_path))
 
 
-def path_or_name_with_timestamp(main_name_or_path: str, extension_name: str = None, timestamp_scale=100):
-    if main_name_or_path[-1] in (path.sep, path.altsep):
-        return f'{main_name_or_path}{timestamp(scale=timestamp_scale)}.{extension_name}' if extension_name else f'{main_name_or_path}{timestamp(scale=timestamp_scale)}'
+def path_or_name_with_timestamp(path_or_name: str, extname: str = None, timestamp_scale=100, timestampe_sep='_', extname_sep='.'):
+    """
+    Appends a timestamp to the end of a path or name.
+
+    >>> import utix.pathex as paex
+    >>> paex.path_or_name_with_timestamp('a/b/c/d') # get something like 'a/b/c/d_158886811034'
+    >>> paex.path_or_name_with_timestamp('a/b/c/d/') # get something like 'a/b/c/d/158886811034'
+
+    :param path_or_name: the path or name to attach the timestamp;
+                            if this ends with either `path.sep` or `path.altsep` (i.e. usually '/' or '\'), then it will be treated as you want to get a name under a directory, and an underscore `timestampe_sep` will be placed in the front of the timestamp.
+    :param extname: the extension name, if necessary.
+    :param timestamp_scale: a timestamp is `time() * timestamp_scale`.
+    :param timestampe_sep: the separator between the name and the timestamp.
+    :param extname_sep: the separator for the extension name.
+    :return: the name or path with timestamp attached.
+    """
+
+    if extname:
+        if extname[0] == extname_sep:
+            extname = extname[1:]
+        if path_or_name[-1] in (path.sep, path.altsep):
+            return f'{path_or_name}{timestamp(scale=timestamp_scale)}{extname_sep}{extname}'
+        else:
+            return f'{path_or_name}{timestampe_sep}{timestamp(scale=timestamp_scale)}{extname_sep}{extname}'
     else:
-        return f'{main_name_or_path}_{timestamp(scale=timestamp_scale)}.{extension_name}' if extension_name else f'{main_name_or_path}_{timestamp(scale=timestamp_scale)}'
+        if path_or_name[-1] in (path.sep, path.altsep):
+            return f'{path_or_name}{timestamp(scale=timestamp_scale)}'
+        else:
+            return f'{path_or_name}{timestampe_sep}{timestamp(scale=timestamp_scale)}'
 
 
 def append_timestamp(path_str: str, timestamp_scale=100):
@@ -69,11 +148,20 @@ def append_to_main_name(path_str: str, main_name_suffix: str):
     :return: a new path string with the suffix appended to the main name.
     """
     path_splits = path.splitext(path_str)
-    return path_splits[0] + main_name_suffix + path_splits[1]
+    return path_splits[0] + str(main_name_suffix) + path_splits[1]
+
+
+def add_to_main_name(path_str: str, prefix: str = '', suffix: str = ''):
+    dir_name = path.dirname(path_str)
+    base_name = path.basename(path_str)
+    path_splits = path.splitext(base_name)
+    return path.join(dir_name, str(prefix) + path_splits[0] + str(suffix) + path_splits[1])
 
 
 def replace_ext(file_path: str, new_ext: str, main_name_suffix=''):
-    return path.splitext(file_path)[0] + main_name_suffix + '.' + new_ext
+    if new_ext[0] != '.':
+        new_ext = '.' + new_ext
+    return path.splitext(file_path)[0] + main_name_suffix + new_ext
 
 
 def replace_dir(file_path: str, new_dir_path: str):
@@ -90,11 +178,16 @@ def check_path_existence(*path_or_paths):
         hprint_message("Path existence check passed!")
 
 
+def ensure_parent_dir_existence(*dir_path_or_paths, clear_dir=False, verbose=__debug__):
+    ensure_dir_existence(*(path.dirname(p) for p in dir_path_or_paths), clear_dir=clear_dir, verbose=verbose)
+    return dir_path_or_paths[0] if len(dir_path_or_paths) == 1 else dir_path_or_paths
+
+
 def ensure_dir_existence(*dir_path_or_paths, clear_dir=False, verbose=__debug__):
     """
     Creates a directory if the path does not exist. Optionally, set `clear_dir` to `True` to clear an existing directory.
 
-    >>> import utilx.path_ext as pathx
+    >>> import utix.pathex as pathx
     >>> import os
     >>> path1, path2 = 'test/_dir1', 'test/_dir2'
     >>> pathx.print_basic_path_info(path1)
@@ -132,11 +225,15 @@ def ensure_dir_existence(*dir_path_or_paths, clear_dir=False, verbose=__debug__)
             os.makedirs(dir_path)
         elif not path.isdir(dir_path):
             raise ValueError(msg_arg_not_a_dir(path_str=dir_path, arg_name='dir_path_or_paths'))
-        elif clear_dir:
+        elif clear_dir is True:
             if verbose:
                 hprint(msg_clear_dir(dir_path))
             shutil.rmtree(dir_path)
             os.makedirs(dir_path)
+        elif is_str(clear_dir) and bool(clear_dir):
+            for file in iter_files_by_pattern(dir_or_dirs=dir_path, pattern=clear_dir, recursive=False):
+                os.remove(file)
+
         if verbose:
             print_basic_path_info(dir_path)
 
@@ -176,15 +273,15 @@ def get_all_sub_dirs(dir_path: str) -> List[str]:
     return [x[0] for x in os.walk(dir_path)]
 
 
-def iter_all_immediate_sub_dirs(dir_path: str):
+def iter_all_immediate_sub_dirs(dir_path: str, full_path=False):
     for name in os.listdir(dir_path):
-        full_path = os.path.join(dir_path, name)
-        if os.path.isdir(full_path):
-            yield full_path
+        _full_path = os.path.join(dir_path, name)
+        if os.path.isdir(_full_path):
+            yield _full_path if full_path else name
 
 
-def iter_paired_files(dir_path, main_file_reg_pattern, paired_file_format_pattern):
-    for file_name in iter_files(dir_path=dir_path, full_path=False):
+def iter_paired_files(dir_path, main_file_reg_pattern, paired_file_format_pattern, sort=True):
+    for file_name in iter_files(dir_path=dir_path, full_path=False, sort=sort):
         match = re.search(main_file_reg_pattern, file_name)
         if match is not None and match.group(0) == file_name:
             yield path.join(dir_path, file_name), path.join(dir_path, paired_file_format_pattern.format(match.group(1)))
@@ -197,22 +294,35 @@ class FullPathMode(IntEnum):
     FullPathRelativePathTuple = 3
 
 
-def iter_files(dir_path: str, full_path: bool = True):
+def iter_files(dir_path: str, full_path: bool = True, sort=True):
     """
     Iterate through the paths or file names of all files in a folder (NOT including its sub-folders) at path `dir_path`.
     :param dir_path: the path to the folder.
     :param full_path: `True` if the full path to each file should be returned; otherwise, only the file name will be returned.
     :return: an iterator that returns each file in a folder at path `dir_path`, NOT including files in the sub-folders.
     """
-    if full_path is True or full_path == FullPathMode.FullPath:
-        for f in listdir(dir_path):
-            file = path.join(dir_path, f)
-            if path.isfile(file):
-                yield file
+    if sort == 'glob':
+        files = glob.glob(dir_path + '/*')
+        if full_path is True or full_path == FullPathMode.FullPath:
+            yield from (x for x in files if path.isfile(x))
+        else:
+            yield from (path.basename(x) for x in files if path.isfile(x))
     else:
-        for f in listdir(dir_path):
-            if path.isfile(path.join(dir_path, f)):
-                yield f
+        files = sort_paths(listdir(dir_path), sort=sort, sort_by_basename=False)  # NOTE `listdir` already returns basenames; therefore the `use_basename` is set `False` here.
+        if full_path is True or full_path == FullPathMode.FullPath:
+            for f in files:
+                file = path.join(dir_path, f)
+                if path.isfile(file):
+                    yield file
+        else:
+            for f in files:
+                if path.isfile(path.join(dir_path, f)):
+                    yield f
+
+
+def get_latest_file(dir_path: str, pattern: str = '*'):
+    files = glob.glob(path.join(dir_path, pattern))
+    return max(filter(path.isfile, files), key=path.getctime)
 
 
 def iter_files_by_pattern(dir_or_dirs: str, pattern: str = '*', full_path: Union[FullPathMode, bool] = True, recursive=True):
@@ -236,6 +346,7 @@ def iter_files_by_pattern(dir_or_dirs: str, pattern: str = '*', full_path: Union
                     if path.isfile(f):
                         yield str(f)
             elif full_path is False or full_path == FullPathMode.BaseName:
+                p = Path(path.abspath(dir_path))
                 for f in p.glob(pattern):
                     if path.isfile(f):
                         yield path.basename(f)
@@ -263,7 +374,7 @@ def iter_files_by_pattern(dir_or_dirs: str, pattern: str = '*', full_path: Union
             yield from _iter_files(dir_path)
 
 
-def get_files_by_pattern(dir_or_dirs: Union[str, Iterator], pattern: str = '*', full_path: Union[FullPathMode, bool] = True, recursive=True, sort=False):
+def get_files_by_pattern(dir_or_dirs: Union[str, Iterator], pattern: str = '*', full_path: Union[FullPathMode, bool] = True, recursive=True, sort=False, sort_use_basename=False):
     """
     Gets the paths or file names of all files in a folder at path(s) specified by `dir_or_dirs` of a specified `pattern`.
     :param dir_or_dirs: the path to one or more folders where this method is going to search for files of the provided pattern.
@@ -304,9 +415,7 @@ def get_files_by_pattern(dir_or_dirs: Union[str, Iterator], pattern: str = '*', 
                 p = Path(dir_path)
                 len_dir_path = len(dir_path)
                 results = [_proc2(f, len_dir_path) for f in p.glob(pattern) if path.isfile(f)]
-            if sort:
-                results.sort()
-            return results
+            return sort_paths(results, sort=sort, sort_by_basename=sort_use_basename)
 
     return _get_files(dir_or_dirs) if isinstance(dir_or_dirs, str) else sum([_get_files(dir_path) for dir_path in dir_or_dirs], [])
 
@@ -334,15 +443,31 @@ def get_sorted_files_from_all_sub_dirs(dir_path: str, pattern: str, full_path: b
     return files
 
 
+def get_sorted_files_from_all_sub_dirs__(target_path: str, full_path: bool = True):
+    if path.isfile(target_path):
+        embeds_file_paths = [target_path]
+    elif path.isdir(target_path):
+        embeds_file_paths = get_sorted_files_from_all_sub_dirs(dir_path=target_path, pattern='*', full_path=full_path)
+    else:
+        embeds_file_paths = get_sorted_files_from_all_sub_dirs(dir_path=path.dirname(target_path), pattern=path.basename(target_path), full_path=full_path)
+    return embeds_file_paths
+
+
 def get_files(dir_path: str, full_path: bool = True):
     return list(iter_files(dir_path=dir_path, full_path=full_path))
 
 
-def replace_final_path_segments(path_str: str, replacement: str, seg_sep=sep):
+def replace_path_part(pathstr: str, replacement: str, part_index, sep=path.sep):
+    path_parts = pathstr.split(sep)
+    path_parts[part_index] = replacement
+    return sep.join(path_parts)
+
+
+def replace_path_tail(pathstr: str, replacement: str, seg_sep=sep):
     """
     Replace the final segments in a path.
     For example, if `seg_sep` is '/', `path_str` is `a/b/c/d`, and `replacement` is `e/f` (`/e/f` is also fine), then the returned path is `a/b/e/f`.
-    :param path_str: the path string.
+    :param pathstr: the path string.
     :param replacement: replacement for the final segments.
     :param seg_sep: the path separator.
     :return: a new path string with the final segments replaced.
@@ -350,8 +475,16 @@ def replace_final_path_segments(path_str: str, replacement: str, seg_sep=sep):
     if replacement[0] == seg_sep:
         replacement = replacement[1:]
     rep_parts = replacement.split(seg_sep)
-    path_parts = path_str.split(seg_sep)
+    path_parts = pathstr.split(seg_sep)
     return seg_sep.join(path_parts[:-len(rep_parts)] + rep_parts)
+
+
+def get_path_tail(pathstr: str, num_parts: int, seg_sep=sep):
+    return seg_sep.join(pathstr.split(seg_sep)[-num_parts:])
+
+
+def get_path_head(pathstr: str, num_parts: int, seg_sep=sep):
+    return seg_sep.join(pathstr.split(seg_sep)[:num_parts])
 
 
 def add_subfolder(file_path: str, subfolder: str):
@@ -431,7 +564,7 @@ def _solve_multi_path(multi_path_str, file_pattern=None, multi_path_delimiter=DE
 
     # replace the final segments of the first path to generate all actual subdir/file paths.
     for i in range(1, len(input_paths)):
-        input_paths[i] = replace_final_path_segments(input_paths[0], input_paths[i])
+        input_paths[i] = replace_path_tail(input_paths[0], input_paths[i])
 
     # region STEP2: check the path existence.
     path_exists = [False] * len(input_paths)
@@ -475,30 +608,76 @@ def _solve_multi_path(multi_path_str, file_pattern=None, multi_path_delimiter=DE
     return input_paths, path_exists, has_available_path
 
 
-def solve_multi_path(multi_path_str: Union[str, Iterator[str]], file_pattern=None, multi_path_delimiter=DEFAULT_MULTI_PATH_DELIMITER, sort=True, verbose=__debug__):
+def solve_multi_path(multi_path: Union[str, Iterator[str]], file_pattern=None, multi_path_delimiter=DEFAULT_MULTI_PATH_DELIMITER, sort=True, verbose=__debug__, raise_error_if_none_of_the_paths_exist=False, remove_non_existent_paths=False):
     """
     Solves a multi-path of format like `root_dir/sub_path1:sub_path2:sub_path3:...`. The sub paths can point to either directories or files, and can be mixed like `root_dir/sub_dir1:sub_dir2:sub_file1:sub_file2:sub_dir3:...`.
     If `file_pattern` is not specified, then the returned paths will be `root_dir/sub_dir1`, `root_dir/sub_dir2`, `root_dir/sub_file1`, `root_dir/sub_file2`, `root_dir/dir3`, ...
-    Otherwise, this method will search for files of the specified `file_pattern` in under all directory paths that exist in the file system, and replace these directory paths by paths of all found files.
-    :param multi_path_str: the string(s) for the multi-path.
+    Otherwise, this method will search for files of the specified `file_pattern` in all directory paths that exist in the file system, and replace these directory paths by paths to the found files.
+
+    >>> import os
+    >>> from os import path
+    >>> import shutil
+    >>> import utix.pathex as pathex
+    >>> test_root = path.join('.', 'tmp_root')
+    >>> if os.path.exists(test_root):
+    >>>     shutil.rmtree(test_root)
+    >>> tmp_dir1 = path.join(test_root, 'tmp1')
+    >>> tmp_dir2 = path.join(test_root, 'tmp2')
+    >>> tmp_dir3 = path.join(test_root, 'tmp3')
+    >>> os.makedirs(tmp_dir1)
+    >>> os.makedirs(tmp_dir2)
+    >>> open(path.join(tmp_dir2, '1.json'), 'w').close()
+    >>> open(path.join(tmp_dir2, '2.json'), 'w').close()
+    >>> multi_path = f'{tmp_dir1}:tmp2:tmp3'
+    >>> pathex.solve_multi_path(multi_path=multi_path)
+    solving multi-file paths from input: .\tmp_root\tmp1:tmp2:tmp3
+    path: .\tmp_root\tmp1 exists: True
+    path: .\tmp_root\tmp2 exists: True
+    path: .\tmp_root\tmp3 exists: False
+    >>> pathex.solve_multi_path(multi_path=multi_path, file_pattern='*.json')
+    solving multi-file paths from input: .\tmp_root\tmp1:tmp2:tmp3
+    path: .\tmp_root\tmp1 exists: True
+    path: .\tmp_root\tmp2 exists: True
+    path: .\tmp_root\tmp3 exists: False
+    extending path: .\tmp_root\tmp2 pattern: *.json num found files: 2
+    >>> pathex.solve_multi_path(multi_path=multi_path, file_pattern='*.json', remove_non_existent_paths=True)
+    >>> shutil.rmtree(test_root)
+
+    :param multi_path: the string(s) for the multi-path.
     :param file_pattern: the pattern of the files to search in each directory paths that exist in the file system.
     :param multi_path_delimiter: the character that separates sub paths.
     :param sort: `True` if to sort the returned paths; otherwise `False`.
     :param verbose: `True` if to print out internal message; otherwise `False`.
-    :return: a list of path strings solved from the provided `multi_path_str`.
+    :param raise_error_if_none_of_the_paths_exist: `True` to raise a `Value` error if none of the paths specified by `multi_path_str` exists.
+    :param remove_non_existent_paths: `True` to remove non-existent paths from the return; setting this to `True` also makes this method return only the file paths. 
+    :return: If `remove_non_exist_paths` is `False`, then it returns a three-tuple: 
+                1) a list of path strings solved from the provided `multi_path_str`; 
+                2) a list of Booleans of the same size as the returned paths, indicating if each path exists; 
+                3) a Boolean value indicating if any path is available.
+             If `remove_non_exist_paths` is `True`, then just returns the existent paths; or `None` if no path exsits.
+    
     """
     # A frequent scenario during data pre-processing is that we need different files or different sub directories.
     # This method solves paths like `.../subdir1:subdir2:subdir3` or `.../file1:file2:file3`, so that you could input multiple subdir/file paths at the same time.
 
-    if isinstance(multi_path_str, str):
-        return _solve_multi_path(multi_path_str, file_pattern=file_pattern, multi_path_delimiter=multi_path_delimiter, sort=sort, verbose=verbose)
+    if isinstance(multi_path, str):
+        resolved_paths, path_exists, has_available_path = _solve_multi_path(multi_path, file_pattern=file_pattern, multi_path_delimiter=multi_path_delimiter, sort=sort, verbose=verbose)
     else:
-        input_paths, path_exists, has_available_path = [], [], []
+        resolved_paths, path_exists, has_available_path = [], [], []
 
-        for multi_path_str_ in multi_path_str:
-            input_paths_, path_exists_, has_available_path_ = _solve_multi_path(multi_path_str_, file_pattern=file_pattern, multi_path_delimiter=multi_path_delimiter, sort=sort, verbose=verbose)
-            input_paths.append(input_paths_)
-            path_exists.append(path_exists_)
+        for multi_path_str_ in multi_path:
+            _resolved_paths, _path_exists, _has_available_path = _solve_multi_path(multi_path_str_, file_pattern=file_pattern, multi_path_delimiter=multi_path_delimiter, sort=sort, verbose=verbose)
+            resolved_paths.append(_resolved_paths)
+            path_exists.append(_path_exists)
 
-        return sum(input_paths, []), sum(path_exists, []), any(has_available_path)
+        resolved_paths, path_exists, has_available_path = sum(resolved_paths, []), sum(path_exists, []), any(has_available_path)
+
+    if raise_error_if_none_of_the_paths_exist and not has_available_path:
+        raise ValueError(msg_arg_multi_path_not_exist(multi_path, 'multi_path'))
+
+    if remove_non_existent_paths:
+        return [resolved_path for resolved_path, path_exist in zip(resolved_paths, path_exists) if path_exist] if has_available_path else None
+    else:
+        return resolved_paths, path_exists, has_available_path
+
 # endregion

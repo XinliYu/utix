@@ -1,0 +1,1 @@
+python -c "from sys import argv; from utix.tools import install_bashrc; install_bashrc(*argv[1:])"

@@ -1,22 +1,22 @@
 import codecs
 import pickle as pkl
 from os import path
+from typing import Callable
 from typing import List, Tuple, Dict, Union, Iterable, Any
-
 import numpy as np
 import scipy.sparse as sp
 from numpy.random import binomial, normal, randn, randint, choice
 from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 
-from _util.io_ext import read_all_lines, batch_copy, batch_move
-from _util.iter_ext import random_split_iter_by_ratios
-from _util.list_ext import split_list, split_list_by_ratios
-from _util.msg_ext import ensure_sum_to_one_arg, msg_invalid_arg_value
-from _util.np_ext import nums_to_prob, numpy_local_seed
-import _util.path_ext as paex
-from _util.time_ext import tic, toc
-from typing import Callable
+import utix.general as gx
+import utix.pathex as paex
+from utix.ioex import read_all_lines, batch_copy, batch_move
+from utix.iterex import random_split_iter_by_ratios
+from utix.listex import split_list_by_ratios
+from utix.msgex import ensure_sum_to_one_arg, msg_invalid_arg_value
+from utix.npex import numpy_local_seed
+from utix.timex import tic, toc
 
 
 class SlotObj:
@@ -306,6 +306,22 @@ def train_test_val_split_for_files(file_paths: List,
         toc()
 
 
+def iter_labeled_numpy_batch(dir_path, np_file_pattern: str, label_file_pattern: str, use_tqdm: bool = False, tqdm_msg: str = None, read_embeds=True, read_labels=True, sort=True):
+    paired_file_iter = gx.tqdm_wrap(paex.iter_paired_files(dir_path=dir_path,
+                                                           main_file_reg_pattern=np_file_pattern,
+                                                           paired_file_format_pattern=label_file_pattern,
+                                                           sort=sort),
+                                    use_tqdm=use_tqdm,
+                                    tqdm_msg=tqdm_msg or f"reading numpy vectors and labels from {dir_path}")
+    for np_file, label_file in paired_file_iter:
+        if read_embeds and read_labels:
+            yield np.load(np_file), read_all_lines(label_file, use_tqdm=False, verbose=False)
+        elif read_embeds:
+            yield np.load(np_file)
+        elif read_labels:
+            yield read_all_lines(label_file, use_tqdm=False, verbose=False)
+
+
 def loads_labeled_numpy_vectors(dir_path: str, np_file_pattern: str, label_file_pattern: str, recursive: bool = False, use_tqdm: bool = False, tqdm_msg: str = None, filter=None) -> Dict[str, np.ndarray]:
     """
     Loading labeled numpy vectors from paired files in a directory (and its sub-directories if `recursive` is set `True`).
@@ -331,6 +347,7 @@ def loads_labeled_numpy_vectors(dir_path: str, np_file_pattern: str, label_file_
         paired_file_iter = paex.iter_paired_files(dir_path=dir_path,
                                                   main_file_reg_pattern=np_file_pattern,
                                                   paired_file_format_pattern=label_file_pattern)
+
         if use_tqdm:
             paired_file_iter = tqdm(paired_file_iter)
             if tqdm_msg:

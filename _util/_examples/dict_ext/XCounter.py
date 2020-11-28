@@ -1,4 +1,4 @@
-from _util.stat_util import XCounter
+from utix._util.dict_ext import XCounter
 
 a = XCounter()
 a += {'int': 1, 'float': 0.55, 'list': [1, 2, 3], 'tuple': (1, 2, 3)}

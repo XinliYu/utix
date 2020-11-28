@@ -1,6 +1,6 @@
 # this script shows an example how to use `argx.get_parsed_args` to quickly setup terminal arguments
 
-import utilx.arg_ext as argx
+import utix.arg_ext as argx
 
 # if no default values are needed, we could just specify the names;
 # NOTE that without default values, there is no way to infer the type of each argument, unless it can be recognized as list, a tuple, a set or a dictionary;

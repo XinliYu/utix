@@ -1,4 +1,4 @@
-from utilx.dict_ext import hdict
+from utix.dict_ext import hdict
 
 d = hdict(a=1, b=2, c=3)
 print(d['a'])

@@ -7,17 +7,17 @@ import networkx as nx
 import numpy as np
 import matplotlib.axes
 
-import utilx.jsonx as json
-import utilx.npex as npx
-import utilx.plotex as pltx
-import utilx.rndex as rndx
-from utilx.dictex import tup2dict__, PaddedListDict
-from framework.torch.data_loading.data_entries import make_data_
-from utilx.general import extra_msg
-from utilx.ioex import TYPE_FILENAME_OR_STREAM
-from utilx.msgex import ensure_arg_not_none_or_empty
-from utilx.pathex import get_main_name_ext_name
-from utilx.strex import StringFilter, NamedFieldExtractor, split__
+import utix.jsonx as json
+import utix.npex as npx
+import utix.plotex as pltx
+import utix.rndex as rndx
+from utix.dictex import tup2dict__, PaddedListDict
+from utix.data_entries import make_data_
+from utix.general import extra_msg
+from utix.ioex import TYPE_FILENAME_OR_STREAM
+from utix.msgex import ensure_arg_not_none_or_empty
+from utix.pathex import get_main_name_ext_name
+from utix.strex import StringFilter, NamedFieldExtractor, split__
 
 
 def iter_node_attrs(g: nx.Graph):
@@ -393,10 +393,13 @@ class ReadGraphAdjacencyFile:
                 pass
             elif self._file_format.startswith('simple'):
                 # region simple adjacency/path file with only node ids
-
                 directives: str = self._file_format[7:]
-                if not directives:
+                if not directives or directives == 'tab':
                     sep, com, remm, cut_before, cut_after = '\t', '#', True, ';', None
+                elif directives == 'space':
+                    sep, com, remm, cut_before, cut_after = ' ', '#', True, ';', None
+                elif directives == 'comma':
+                    sep, com, remm, cut_before, cut_after = ',', '#', True, ';', None
                 else:
                     sep, com, remm, cut_before, cut_after = directives[0], directives[1], bool(int(directives[2])), directives[3], directives[4]
 
@@ -464,8 +467,5 @@ class ReadGraphAdjacencyFile:
 
 # region utilities
 def edge_density(com1, com2, edges):
-    ecnt: int = 0
-    for pair in product(com1, com2):
-        ecnt += pair in edges
-    return ecnt / (len(com1) * len(com2) - (len(com1) if com1 is com2 else 0))
+    return sum(pair in edges for pair in product(com1, com2)) / (len(com1) * len(com2) - (len(com1) if com1 is com2 else 0))
 # endregion

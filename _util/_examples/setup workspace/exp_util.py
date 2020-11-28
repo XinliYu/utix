@@ -1,4 +1,4 @@
-from utilx.exp_util import ExperimentBase
+from utix.exp_util import ExperimentBase
 
 
 class Experiment(ExperimentBase):

@@ -6,7 +6,7 @@ from typing import Union
 from IPython.utils.path import ensure_dir_exists
 from numpy import iterable
 
-from _util.general_ext import hprint, eprint, get_pairs_str_for_hprint_and_regular_print, hprint_message, eprint_message
+from utix._util.general_ext import hprint, eprint, get_pairs_str_for_hprint_and_regular_print, hprint_message, eprint_message
 
 
 # region misc
@@ -74,6 +74,10 @@ def msg_clear_dir(path_str):
 @extra_msg_wrap
 def msg_positive_value_expected(arg_val, arg_name):
     return f"the argument/variable `{arg_name}` is expected to be a positive number; got `{arg_val}` instead"
+
+@extra_msg_wrap
+def msg_value_not_in_range(arg_val, arg_name, min_val, max_val):
+    return f"the argument/variable `{arg_name}` is expected to in range from {min_val} to {max_val} (exclusive); got{arg_val} instead"
 
 
 @extra_msg_wrap
@@ -218,6 +222,10 @@ def ensure_positive_arg(arg_val, arg_name, extra_msg: str = None):
     if arg_val is not None and arg_val <= 0:
         raise ValueError(msg_positive_value_expected(arg_val=arg_val, arg_name=arg_name, extra_msg=extra_msg))
 
+
+def ensure_arg_in_range(arg_val, arg_name, min_val, max_val, extra_msg: str = None):
+    if arg_val < min_val or arg_val >= max_val:
+        raise ValueError(msg_value_not_in_range(arg_val=arg_val, arg_name=arg_name, min_val=min_val, max_val=max_val, extra_msg=extra_msg))
 
 def ensure_positive_arg_or_none(arg_val, arg_name, extra_msg: str = None):
     if arg_val is not None and arg_val <= 0:

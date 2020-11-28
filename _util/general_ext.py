@@ -1,18 +1,25 @@
 import code
 import copy
+import importlib
 import inspect
 import sys
 import traceback
+from argparse import Namespace
+from collections import defaultdict
 from functools import partial, reduce
 from itertools import chain
 from os import path
-from typing import Tuple, Callable, Iterator, Union, Iterable, Mapping
+from typing import Tuple, Callable, Iterator, Union, Iterable, Mapping, List
+from collections import Counter, OrderedDict
 import tqdm
 from IPython import get_ipython
 from colorama import Fore
 from colorama import init as colorama_init
 from ast import literal_eval
 import json
+import os
+import random
+from contextlib import contextmanager
 
 """
 This file contains commonly and frequently used utility functions.
@@ -27,7 +34,7 @@ class ref:
     Analogous to a pointer or 'pass by reference' in other programming languages.
     NOTE this wrap supports most arithmetic operations and string related operations, but not all magic functions.
 
-    >>> from utilx.general_ext import ref
+    >>> from utix.general import ref
     >>> a = ref(1)
     >>> print(a + 2 == 3)
     >>> print(a == 1) # `a` is still 1
@@ -265,10 +272,31 @@ class ref:
 # region type utilities
 
 
+@contextmanager
+def add_to_path(p):
+    import sys
+    old_path = sys.path
+    sys.path = sys.path[:]
+    sys.path.insert(0, p)
+    try:
+        yield
+    finally:
+        sys.path = old_path
+
+
+def path_import(absolute_path):
+    '''implementation taken from https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly'''
+    with add_to_path(os.path.dirname(absolute_path)):
+        spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+
 def iterable(_obj) -> bool:
     """
     Check whether or not an object can be iterated over.
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.iterable([1, 2, 3, 4]))
     >>> print(gx.iterable(iter(range(5))))
     >>> print(gx.iterable('123'))
@@ -286,12 +314,144 @@ def iterable__(_obj, atom_types=(str,)):
     A variant of `iterable`. Returns `True` if the type of `obj` is not in the `atom_types`, and it is iterable.
     By default, the `atom_types` has a single type, the string.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.iterable__('123') == False)
     >>> print(gx.iterable__((1, 2 ,3)))
     >>> print(gx.iterable__((1, 2, 3), atom_types=(tuple,str)) == False)
     """
     return not isinstance(_obj, atom_types) and iterable(_obj)
+
+
+def iter__(it: Union[Iterator, Iterable], filter: Callable = None, sentinel: Callable = None, atom_types=(str,)):
+    """
+    A convenient function to create an iterator with rich options.
+    Can apply to a function parameter to allow passing a value as if it is an iterable.
+    Can specify callable `filter` to skip certain elements in `it`.
+    Can specify `sentinel`, either a callable or an object, so that the iteration stops if this `sentinal` returns `True` on an element in the `it`, or it equals an element in `it`; the sentinel will not be yielded.
+
+    Parameter Convenience
+    ----------------------
+    >>> from utix.general import iter__
+    >>> def foo(arr):
+    >>>     for x in iter__(arr):
+    >>>         print(x)
+    >>> foo('a') # treated as if it is `['a']`
+    >>> foo(['a', 'b', 'c'])
+
+    Sentinel
+    --------
+    >>> print(list(iter__(['a', 'b', 'c', 'd'], sentinel='c')) == ['a', 'b'])
+    >>> print(list(iter__([1, 2, 3, 4], sentinel=lambda x: x % 3 == 0)) == [1, 2])
+
+    Filter
+    ------
+    >>> print(list(iter__([1, 2, 3, 4], sentinel=lambda x: x % 3 == 0, filter=lambda x: x % 2 == 1)) == [1])
+
+    :param it: an iterable or iterator; if a non-iterable object (including those of type in `atom_types`) is provided, then that object is treated as a singelton.
+    :param filter: a function that returns `False` to skip an element in `it`.
+    :param sentinel: a sentinal function or object; the iteration stops if this `sentinal` returns `True` on an element in the `it`, or it equals an element in `it`; the sentinel will not be yielded.
+    :param atom_types: an object of of any oft these types will not be treated as an iterable; the default is `(str, )`, meaning the string type is not treated as an iterable.
+    :return: an iterator that wraps around the original iterator `it`.
+    """
+    if iterable__(it, atom_types):
+        if sentinel:
+            if filter:
+                for x in it:
+                    if sentinel(x) if callable(sentinel) else (x == sentinel):
+                        return
+                    elif filter(x):
+                        yield x
+            else:
+                for x in it:
+                    if sentinel(x) if callable(sentinel) else (x == sentinel):
+                        return
+                    yield x
+        elif filter:
+            yield from (x for x in it if filter(x))
+        else:
+            yield from it
+    else:
+        if sentinel:
+            if filter:
+                if sentinel(it) if callable(sentinel) else (it == sentinel):
+                    return
+                elif filter(it):
+                    yield it
+            else:
+                if sentinel(it) if callable(sentinel) else (it == sentinel):
+                    return
+                yield it
+        elif not filter or filter(it):
+            yield it
+
+
+def count(it, sort_by_count_desc=False):
+    d = Counter(it)
+    return OrderedDict(sorted(d.items(), key=lambda x: x[1], reverse=True)) if sort_by_count_desc else d
+
+
+def count_and_rank(it, min_rank=True, make_tuple=True):
+    d = {}
+    if min_rank:
+        for i, key in enumerate(it):
+            rec = d.get(key, None)
+            if rec:
+                rec[0] += 1
+            else:
+                d[key] = [1, i]
+    else:
+        for i, key in enumerate(it):
+            rec = d.get(key, None)
+            if rec:
+                rec[0] += 1
+                rec[1] = i
+            else:
+                d[key] = [1, i]
+
+    if make_tuple:
+        for key in d:
+            d[key] = tuple(d[key])
+
+    return d
+
+
+def distinct(it, sort_by_count_desc=False):
+    d = Counter(it)
+    return sorted(d.keys(), key=lambda x: d[x], reverse=True) if sort_by_count_desc else list(d)
+
+
+def accumulate(it):
+    it = iter(it)
+    x = next(it)
+    yield x
+    for y in it:
+        x += y
+        yield x
+
+
+def accumulate_ranges(it, start=None):
+    if start is None:
+        it = iter(it)
+        start = next(it)
+    for x in it:
+        end = start + x
+        yield start, end
+        start = end
+
+
+def exclude_none(it):
+    return (x for x in it if x is not None)
+
+
+def sampled_iter(it, sample_ratio):
+    r = sample_ratio % 1
+    i = int(sample_ratio - r)
+    for item in it:
+        for i in range(i):
+            yield item
+        if r != 0:
+            if random.uniform(0, 1) < r:
+                yield item
 
 
 def nonstr_iterable(obj) -> bool:
@@ -300,7 +460,7 @@ def nonstr_iterable(obj) -> bool:
     This is a function equivalent to `iterable__` with the default `atom_types`, with a more expressive name and slightly better performance.
 
     >>> from timeit import timeit
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> def target1():
     >>>     gx.iterable__('1234')
     >>> def target2():
@@ -315,7 +475,7 @@ def nonstr_iterable(obj) -> bool:
 def sliceable(_obj):
     """
     Checks whether or not the object can be sliced.
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.sliceable(2) == False)
     >>> print(gx.sliceable((1, 2, 3)) == True)
     >>> print(gx.sliceable('abc') == True)
@@ -336,7 +496,7 @@ def make_range(_x):
     The object can be an integer, a list, a tuple, a generator of no more than three items, or a mapping with one required keys 'stop' and two optional keys 'start' and 'step'.
     Mainly used for parameter parsing.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.make_range(5))
     >>> print(gx.make_range((1, 6, 2)))
     >>> print(gx.make_range({ 'stop': 10, 'step': 2 }))
@@ -358,7 +518,7 @@ def broadcastable(shape1, shape2) -> bool:
     Broadcasting is a common operation in many modern Python packages.
     See https://docs.scipy.org/doc/numpy/user/theory.broadcasting.html#array-broadcasting-in-numpy.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.broadcastable(3, 1) == True)
     >>> print(gx.broadcastable((3, 4, 5), (3, 1, 5)) == True)
     >>> print(gx.broadcastable((3, 4, 5), (4, 1)) == True)
@@ -394,7 +554,7 @@ def shape_after_broadcast(shape1, shape2):
     Gets the out shape of after broadcasting for two input shapes.
     Broadcasting is a common operation in many modern Python packages.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.shape_after_broadcast(3, 1) == (3,))
     >>> print(gx.shape_after_broadcast((3, 4, 5), (3, 1, 5)) == (3,4,5))
     >>> print(gx.shape_after_broadcast((3, 4, 5), (4, 1)) == (3, 4, 5))
@@ -506,13 +666,24 @@ def has_fixed_fields(obj):
     return has_slots(obj) or (is_named_tuple(obj) and obj._fields)
 
 
+def convert_values(_container, _converter, atom_types=(str,)):
+    try:
+        if isinstance(_container, atom_types):
+            return _container(_container)
+        else:
+            return type(_container)(convert_values(x, _converter, atom_types=atom_types) for x in _container)
+    except:
+        pass
+    return _converter(_container)
+
+
 def value_type(_container, atom_types=(str,), key=0):
     """
     Gets the type of an atomic value in the provided object container. The container may be nested, and we use `key` to recursively retrieve the inside container.
     NOTE this method generally assumes the values in the container are of the same type.
 
     >>> import numpy as np
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> 
     >>> print(gx.value_type(np.array([[1, 2], [3, 4]])) is np.int32)
     >>> print(gx.value_type(((True, False), (True, False))) is bool)
@@ -543,7 +714,7 @@ def compose2(func2, func1):
     """
     A composition of two functions.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> def f1(x):
     >>>     return x + 2
     >>> def f2(x):
@@ -565,7 +736,7 @@ def compose(*funcs):
     """
     A composition of n functions.
     >>> from timeit import timeit
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> def f1(x):
     >>>     return x + 2
     >>> def f2(x):
@@ -659,7 +830,7 @@ def str2val__(s: str, success_label=False):
     Parses a string as its likely equivalent value.
     Typically trie sto convert to integers, floats, bools, lists, tuples, dictionaries.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> print(gx.str2val__('1') == 1)
     >>> print(gx.str2val__('2.554') == 2.554)
     >>> print(gx.str2val__("[1, 2, 'a', 'b', False]") == [1, 2, 'a', 'b', False])
@@ -816,7 +987,86 @@ class JSerializable:
 
 # endregion
 
+# region sequence merge
+
+"""
+Provides sequence merge utilities.
+Typically used by other utilities; for example, merging leave values from multiple dictionaries.
+"""
+
+
+def first__(iterables):
+    it = iter(iterables)
+    if it is iterables:
+        first = next(it)
+        return first, chain((first,), it)
+    else:
+        return next(it), iterables
+
+
+def default_merge_func(first, iterables):
+    if isinstance(first, list):
+        return sum(iterables, [])
+    elif isinstance(first, tuple):
+        return sum(iterables, ())
+    elif isinstance(first, dict):
+        for d in iterables:
+            first.update(d)
+        return first
+
+
+def iterable_merge(iterables, merge_funcs: Tuple[Callable, ...] = (default_merge_func,)):
+    first, iterables = first__(iterables)
+    for merge_func in merge_funcs:
+        out = merge_func(first, iterables)
+        if out is not None:
+            return out
+    return tuple(iterables)
+
+
+# endregion
+
+
 # region misc
+
+def cpu_count():
+    import multiprocessing
+    return multiprocessing.cpu_count()
+
+
+class SlotsTuple:
+    def __init__(self):
+        self._tup = tuple(getattr(self, x) for x in self.__slots__ if x != '_tup')
+
+    def __getitem__(self, item):
+        return self._tup[item]
+
+    def __len__(self):
+        return len(self._tup)
+
+
+class Callables:
+    """
+    A sequence o callables for the convenience to apply them all at once.
+
+    >>> from utix.general import Callables
+    >>> foo = Callables((int, float, str, bool), no_return=False)
+    >>> print(foo(3) == (3, 3.0, '3', True))
+
+    """
+    __slots__ = ('callables', 'no_return')
+
+    def __init__(self, callables, no_return=True):
+        self.callables = tuple(x for x in callables if x is not None)
+        self.no_return = no_return
+
+    def __call__(self, *args, **kwargs):
+        if self.no_return:
+            for x in self.callables:
+                x(*args, **kwargs)
+        else:
+            return tuple(x(*args, **kwargs) for x in self.callables)
+
 
 def value__(_obj):
     return _obj.value if hasattr(_obj, 'value') else (tuple(map(value__, _obj)) if isinstance(_obj, (tuple, list)) else _obj)
@@ -863,11 +1113,36 @@ def tqdm_wrap(it, use_tqdm, tqdm_msg, verbose=__debug__):
     return it
 
 
+def apply_tqdm(func):
+    def _wrap(*args, **kwargs):
+        use_tqdm = kwargs.pop('use_tqdm', True)
+        tqdm_msg = kwargs.pop('tqdm_msg', kwargs.pop('display_msg', None))
+        verbose = kwargs.pop('verbose', __debug__)
+
+        if len(args) > 0:
+            first_arg = args[0]
+            args = args[1:]
+        else:
+            first_arg = next(iter(kwargs.items()))
+            del kwargs[first_arg[0]]
+            first_arg = first_arg[1]
+        if callable(tqdm_msg):
+            tqdm_msg = tqdm_msg()
+        if isinstance(first_arg, tqdm):
+            first_arg.set_description(tqdm_msg)
+        else:
+            first_arg = tqdm_wrap(first_arg, use_tqdm=use_tqdm, tqdm_msg=tqdm_msg, verbose=verbose)
+
+        return func(first_arg, *args, **kwargs)
+
+    return _wrap
+
+
 def setattr_if_none_or_empty(obj, attr: str, val) -> None:
     """
     The same as the build-in function `setattr`, with the difference that this function only set the attribute if the it is `None` or does not currently exist in the object.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> from collections import namedtuple
     >>> from math import factorial
     >>> from functools import partial
@@ -895,7 +1170,7 @@ def setattr_if_none_or_empty__(obj, attr: str, get_val: Callable) -> None:
     The same as `setattr_if_none_or_empty`, but the "value" is a callable `get_val`. If the attribute to set is `None` or does not currently exist in the object, then the callable `get_val` is executed to compute the actual value to set.
     The purpose is avoid unnecessary computation of the value. Sometime the value is expensive to compute, and here we only compute the value if the attribute to set does not currently exists or has a `None` value.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> from collections import namedtuple
     >>> from math import factorial
     >>> from functools import partial
@@ -955,7 +1230,7 @@ def getattr__(obj, name: str, other_name: str, default=None):
     """
     The same as the build-in function `getattr`, with an additional parameter `other_name` so that if the `name` does not exist, then as the alternative, this function tries to retrieve the attribute of `other_name`.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> from collections import namedtuple
     >>> Point = namedtuple('Point', ['x1', 'x2'])
     >>> Pair = namedtuple('Pair', ['value1', 'value2'])
@@ -1029,7 +1304,7 @@ def try__(func: Callable, afunc: Callable, *args, post_error_raise_check: Callab
     1) tries to apply the optional `raise_when` function on the arguments, then raise the error with the optional `extra_msg` if `raise_when` returns `True`;
     2) otherwise, runs the alternative function `afunc`.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> def func1(x):
     >>>     return x[0]
     >>> def func2(x):
@@ -1068,7 +1343,7 @@ def zip__(*objs, atom_types=(str,)):
     """
     A variant of zip function that allows non-iterables.
 
-    >>> from utilx.general_ext import zip__
+    >>> from utix.general import zip__
     >>> z = zip__(0, [1,2,3,4], [5, 6, 7, 8])
     >>> print(list(z) == [(0, 1, 5), (0, 2, 6), (0, 3, 7), (0, 4, 8)])
 
@@ -1094,12 +1369,12 @@ def unzip(tuples, idx=None):
         return (unzips[_idx] for _idx in idx)
 
 
-def sorted__(_iterable, key, reverse: bool = False, return_tuple=False):
+def sorted__(_iterable, key, reverse: bool = False, return_tuple=False, return_indexes=False):
     """
-    An alternative for the build-in `sorted` function. Allows `key` be a sequence of values as the sorting keys for the `_iterable`.
+    An alternative for the build-in `sorted` function. Allows the `key` be a sequence of values (as the sorting keys) for the `_iterable`.
     There is an extra parameter `return_tuple` for convenience; if it is set `True`, then the return is a sorted tuple; otherwise it is a sorted list.
 
-    >>> import utilx.general_ext as gx
+    >>> import utix.general as gx
     >>> class A:
     >>>     def __init__(self, x):
     >>>         self._x = x
@@ -1109,22 +1384,36 @@ def sorted__(_iterable, key, reverse: bool = False, return_tuple=False):
 
     >>> # the following prints out '[1, 3, 5, 7, 9, 0, 2, 4, 6, 8]'
     >>> print(gx.sorted__(list(map(A, range(10))),
-    >>>         key=(x % 2 == 0 for x in range(10)))) # we allow the key be a sequence of values
+    >>>         # we allow the key be a sequence of values, serving as the sorting keys; here the sorting keys are 1,0,1,0,1,0,1,0,1,0, so the odd numbers a promoted to the front because their sorting keys are smaller
+    >>>         key=(x % 2 == 0 for x in range(10))))
 
     :param _iterable: a sequence of objects to sort.
-    :param key:
-    :param reverse:
-    :return:
+    :param key: the sorting key; can be a function such like the `key` parameter for the build-in sorted function, a sequence of values as the sorting keys.
+    :param reverse: `True` to sort descendingly; `False` to sort ascendingly.
+    :param return_tuple: `True` to return a tuple; `False` to return a list.
+    :return: a list or a tuple of sorted values from the `_iterable`.
     """
+
+    if return_indexes is True:
+        return sorted__(((x, i) for i, x in enumerate(_iterable)), key=key, reverse=reverse, return_tuple=return_tuple, return_indexes=False)
+    elif return_indexes == 'labels':
+        sorted_tups = sorted__(((x, i) for i, x in enumerate(_iterable)), key=key, reverse=reverse, return_tuple=True, return_indexes=False)
+        labels = [0] * len(sorted_tups)
+        for j, (x, i) in enumerate(sorted_tups):
+            labels[i] = j
+        out = ((x, l) for (x, i), l in zip(sorted_tups, labels))
+        return tuple(out) if return_tuple else list(out)
+
     if callable(key):
-        if return_tuple:
-            return tuple(sorted(_iterable, key=key, reverse=reverse))
-        else:
-            return sorted(_iterable, key=key, reverse=reverse)
-    elif return_tuple:
-        return unzip(unzip(sorted(zip(key, enumerate(_iterable)), reverse=reverse), 1), 1)
+        s = sorted(_iterable, key=key, reverse=reverse)
+        return tuple(s) if return_tuple else s
     else:
-        return list(unzip(unzip(sorted(zip(key, enumerate(_iterable)), reverse=reverse), 1), 1))
+        s = unzip(unzip(sorted(zip(key, enumerate(_iterable)), reverse=reverse), 1), 1)  # `enumerate(_iterable)` ensures the original order of the `_iterable` when keys are the same
+        return s if return_tuple else list(s)
+
+
+def is_os_windows():
+    return os.name == 'nt'
 
 
 # endregion
@@ -1190,7 +1479,7 @@ class list__(list):
     """
     A simple variant of list that allows the '+' and '+=' operator to work with non-iterable objects.
 
-    >>> from utilx.general_ext import list__
+    >>> from utix.general import list__
     >>> x = list__([1, 2, 3, 4])
     >>> x += 5
     >>> x += [6, 7]
@@ -1484,6 +1773,11 @@ def xmean(it: Iterator):
 
 
 def xmean_(it: Iterator):
+    """
+    Computes the mean of a sequence of objects. The result is written into the first object of the sequence.
+    :param it: the object iterator.
+    :return: the first object in `it` which saves the mean of the whole sequence.
+    """
     it = iter(it)
     first = next(it)
     cnt = 1
@@ -1594,7 +1888,7 @@ def cprint_pairs(*args, first_color=Fore.CYAN, second_color=Fore.WHITE, sep=' ',
 
 # region highlight print
 
-def get_hprint_str(msg, color_place_holder='`', end='\n') -> str:
+def get_hprint_str(msg, color_place_holder='`', end='') -> str:
     return get_cprint_str(text=msg, color_quote=color_place_holder, color=Fore.CYAN, bk_color=Fore.WHITE, end=end)
 
 
@@ -1625,6 +1919,9 @@ def hprint_message(title, content='', start='', end=''):
     print(get_hprint_message_str(title=title, content=content, start=start, end=end))
 
 
+hmsg = hprint_message
+
+
 def hprint_pairs(*args, sep=' ', end=''):
     cprint_pairs(*args, first_color=Fore.CYAN, second_color=Fore.WHITE, sep=sep, end=end)
 
@@ -1652,7 +1949,7 @@ def eprint_message(title, content='', start='', end=''):
 
 # region warning print
 
-def warning_print(title, content='', start='', end='\n'):
+def wprint_message(title, content='', start='', end='\n'):
     cprint_message(title, content, title_color=Fore.MAGENTA, content_color=Fore.YELLOW, start=start, end=end)
 
 
@@ -1756,6 +2053,44 @@ def kv_tuple_format(kv_tuples, kv_delimiter, pair_delimiter, value_idx=-1):
 
 def take_element_if_list(potential_list, i: int):
     return potential_list[i] if isinstance(potential_list, list) else potential_list
+
+
+def mapping_or_namespace_items(x):
+    if isinstance(x, Mapping):
+        return x.items()
+    elif hasattr(x, '__dict__'):
+        return x.__dict__.items()
+
+
+def mapping_or_namespace_keys(x):
+    if isinstance(x, Mapping):
+        return x.keys()
+    elif hasattr(x, '__dict__'):
+        return x.__dict__.keys()
+
+
+def mapping_or_namespace_values(x, filter=None):
+    if filter is None:
+        if isinstance(x, Mapping):
+            return x.values()
+        elif hasattr(x, '__dict__'):
+            return x.__dict__.values()
+    else:
+        d = x if isinstance(x, Mapping) else x.__dict__
+        return [d[k] for k in filter]
+
+
+def deduplicate_sum_lists(_lists: List[List], keep_order=False):
+    if keep_order:
+        if not isinstance(_lists, (list, tuple)):
+            _lists = list(_lists)
+        dd_sum = set(sum(_lists, []))
+        for _list in _lists:
+            if dd_sum == set(_list) and len(dd_sum) == len(_list):
+                return _list
+        return list(dd_sum)
+    else:
+        return list(set(sum(_lists, [])))
 
 
 def iter_pairs(_x):

@@ -5,7 +5,7 @@
     "distutils": {
         "name": "graph_util",
         "sources": [
-            "../_util/graph_util.py"
+            "../_util/graphutix._util.py"
         ]
     },
     "module_name": "graph_util"
@@ -813,7 +813,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "graph_util.py",
+  "graphutix._util.py",
 };
 
 /*--- Type declarations ---*/
@@ -844,7 +844,7 @@ struct __pyx_defaults3 {
   PyObject *__pyx_arg_verbose;
 };
 
-/* "graph_util.py":42
+/* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -860,7 +860,7 @@ struct __pyx_obj_10graph_util___pyx_scope_struct__write_adj_data {
 };
 
 
-/* "graph_util.py":48
+/* "graphutix._util.py":48
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:
  *         for key in sorted_keys:
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))             # <<<<<<<<<<<<<<
@@ -878,7 +878,7 @@ struct __pyx_obj_10graph_util___pyx_scope_struct_1_genexpr {
 };
 
 
-/* "graph_util.py":58
+/* "graphutix._util.py":58
  *                 adj_list.append((adj, adj_dict[key]))
  *             else:
  *                 adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' for adj, adj_data in adj_list))             # <<<<<<<<<<<<<<
@@ -895,7 +895,7 @@ struct __pyx_obj_10graph_util___pyx_scope_struct_2_genexpr {
 };
 
 
-/* "graph_util.py":118
+/* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -909,7 +909,7 @@ struct __pyx_obj_10graph_util___pyx_scope_struct_3_draw_with_communities {
 };
 
 
-/* "graph_util.py":119
+/* "graphutix._util.py":119
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):
  *     nx.draw(g, node_color=pltx.get_colors(it=(x[community_label] for x in g._node.values()), cmap=cmap), node_size=node_size, width=edge_width)             # <<<<<<<<<<<<<<
@@ -926,7 +926,7 @@ struct __pyx_obj_10graph_util___pyx_scope_struct_4_genexpr {
 };
 
 
-/* "graph_util.py":314
+/* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -1921,15 +1921,15 @@ static const char __pyx_k_json_single[] = "json_single";
 static const char __pyx_k_sorted_keys[] = "sorted_keys";
 static const char __pyx_k_src_node_id[] = "src_node_id";
 static const char __pyx_k_update_meta[] = "_update_meta";
-static const char __pyx_k_utilx_jsonx[] = "utilx.jsonx";
+static const char __pyx_k_utilx_jsonx[] = "utix.jsonx";
 static const char __pyx_k_EdgeDataDict[] = "EdgeDataDict";
 static const char __pyx_k_StringFilter[] = "StringFilter";
 static const char __pyx_k_cur_adj_data[] = "cur_adj_data";
 static const char __pyx_k_edge_density[] = "edge_density";
 static const char __pyx_k_edge_types_2[] = "_edge_types";
 static const char __pyx_k_num_replaces[] = "num_replaces";
-static const char __pyx_k_utilx_io_ext[] = "utilx.io_ext";
-static const char __pyx_k_utilx_np_ext[] = "utilx.np_ext";
+static const char __pyx_k_utilx_io_ext[] = "utix.io_ext";
+static const char __pyx_k_utilx_np_ext[] = "utix.np_ext";
 static const char __pyx_k_AdjDictFormat[] = "AdjDictFormat";
 static const char __pyx_k_CorePeriphery[] = "CorePeriphery";
 static const char __pyx_k_file_format_2[] = "_file_format";
@@ -1940,10 +1940,10 @@ static const char __pyx_k_prev_adj_data[] = "prev_adj_data";
 static const char __pyx_k_prev_src_data[] = "prev_src_data";
 static const char __pyx_k_rnd_sbm_graph[] = "rnd_sbm_graph";
 static const char __pyx_k_use_prev_data[] = "use_prev_data";
-static const char __pyx_k_util_dict_ext[] = "_util.dict_ext";
-static const char __pyx_k_utilx_msg_ext[] = "utilx.msg_ext";
-static const char __pyx_k_utilx_rnd_ext[] = "utilx.rnd_ext";
-static const char __pyx_k_utilx_str_ext[] = "utilx.str_ext";
+static const char __pyx_k_util_dict_ext[] = "utix._util.dict_ext";
+static const char __pyx_k_utilx_msg_ext[] = "utix.msg_ext";
+static const char __pyx_k_utilx_rnd_ext[] = "utix.rnd_ext";
+static const char __pyx_k_utilx_str_ext[] = "utix.str_ext";
 static const char __pyx_k_PaddedListDict[] = "PaddedListDict";
 static const char __pyx_k_SrcNodeAdjDict[] = "SrcNodeAdjDict";
 static const char __pyx_k_adj_node_types[] = "adj_node_types";
@@ -1951,8 +1951,8 @@ static const char __pyx_k_graph_to_files[] = "graph_to_files";
 static const char __pyx_k_node_data_file[] = "node_data_file";
 static const char __pyx_k_node_meta_data[] = "node_meta_data";
 static const char __pyx_k_src_node_types[] = "src_node_types";
-static const char __pyx_k_utilx_path_ext[] = "utilx.path_ext";
-static const char __pyx_k_utilx_plot_ext[] = "utilx.plot_ext";
+static const char __pyx_k_utilx_path_ext[] = "utix.path_ext";
+static const char __pyx_k_utilx_plot_ext[] = "utix.plot_ext";
 static const char __pyx_k_write_adj_data[] = "write_adj_data";
 static const char __pyx_k_AnomalyClusters[] = "AnomalyClusters";
 static const char __pyx_k_adj_file_format[] = "adj_file_format";
@@ -1970,7 +1970,7 @@ static const char __pyx_k_src_node_types_2[] = "_src_node_types";
 static const char __pyx_k_adj_node_edge_str[] = "adj_node_edge_str";
 static const char __pyx_k_anomaly_cluster_p[] = "anomaly_cluster_p";
 static const char __pyx_k_comment_indicator[] = "comment_indicator";
-static const char __pyx_k_utilx_general_ext[] = "utilx.general_ext";
+static const char __pyx_k_utilx_general_ext[] = "utix.general";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_file_name_part_sep[] = "file_name_part_sep";
 static const char __pyx_k_remove_empty_split[] = "remove_empty_split";
@@ -2017,10 +2017,10 @@ static const char __pyx_k_AdjacencyFileFormat__set_format[] = "AdjacencyFileForm
 static const char __pyx_k_ReadGraphAdjacencyFile___call_2[] = "ReadGraphAdjacencyFile.__call__.<locals>._update_meta";
 static const char __pyx_k_does_not_seen_to_describe_an_ad[] = "` does not seen to describe an adjacency list or a path, while using `";
 static const char __pyx_k_AdjacencyFileFormat__parse_by_fo[] = "AdjacencyFileFormat._parse_by_format2";
-static const char __pyx_k_E_Documents_PyCharmProjects_PyMo[] = "E:\\Documents\\PyCharmProjects\\PyModels\\_util\\graph_util.py";
+static const char __pyx_k_E_Documents_PyCharmProjects_PyMo[] = "E:\\Documents\\PyCharmProjects\\PyModels\\_util\\graphutix._util.py";
 static const char __pyx_k_a_source_node_cannot_be_parsed_f[] = "a source node cannot be parsed from the string `";
 static const char __pyx_k_draw_with_communities_locals_gen[] = "draw_with_communities.<locals>.genexpr";
-static const char __pyx_k_framework_torch_data_loading_dat[] = "framework.torch.data_loading.data_entries";
+static const char __pyx_k_framework_torch_data_loading_dat[] = "utix.data_entries";
 static const char __pyx_k_one_of_the_source_node_format_ad[] = "one of the `source_node_format`, `adj_node_format`, `edge_format` is a tuple, and in this case `field_sep` must be specified";
 static const char __pyx_k_the_field_node_id_must_be_define[] = "the field `node_id` must be defined in the node text format string";
 static const char __pyx_k_the_input_graph_adjacency_path_l[] = "the input graph adjacency/path line to parse is empty";
@@ -2405,7 +2405,7 @@ static PyObject *__pyx_codeobj__51;
 static PyObject *__pyx_codeobj__55;
 /* Late includes */
 
-/* "graph_util.py":22
+/* "graphutix._util.py":22
  * 
  * 
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):             # <<<<<<<<<<<<<<
@@ -2503,7 +2503,7 @@ static PyObject *__pyx_pw_10graph_util_1graph_to_files(PyObject *__pyx_self, PyO
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("graph_to_files", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 22, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.graph_to_files", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.graph_to_files", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -2531,7 +2531,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   int __pyx_t_7;
   __Pyx_RefNannySetupContext("graph_to_files", 0);
 
-  /* "graph_util.py":24
+  /* "graphutix._util.py":24
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):
  *     # NOTE: a networkx graph supports global node data and adjacency data; it does not support local node data
  *     if node_data_format == 'json':             # <<<<<<<<<<<<<<
@@ -2541,7 +2541,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_node_data_format, __pyx_n_s_json, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 24, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":25
+    /* "graphutix._util.py":25
  *     # NOTE: a networkx graph supports global node data and adjacency data; it does not support local node data
  *     if node_data_format == 'json':
  *         json.dump_iter(g._node.items(), node_data_file)             # <<<<<<<<<<<<<<
@@ -2622,7 +2622,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":24
+    /* "graphutix._util.py":24
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):
  *     # NOTE: a networkx graph supports global node data and adjacency data; it does not support local node data
  *     if node_data_format == 'json':             # <<<<<<<<<<<<<<
@@ -2632,7 +2632,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     goto __pyx_L3;
   }
 
-  /* "graph_util.py":26
+  /* "graphutix._util.py":26
  *     if node_data_format == 'json':
  *         json.dump_iter(g._node.items(), node_data_file)
  *     elif node_data_format == 'json_single':             # <<<<<<<<<<<<<<
@@ -2642,7 +2642,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_node_data_format, __pyx_n_s_json_single, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 26, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":27
+    /* "graphutix._util.py":27
  *         json.dump_iter(g._node.items(), node_data_file)
  *     elif node_data_format == 'json_single':
  *         json.dump(g._node, node_data_file)             # <<<<<<<<<<<<<<
@@ -2705,7 +2705,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":26
+    /* "graphutix._util.py":26
  *     if node_data_format == 'json':
  *         json.dump_iter(g._node.items(), node_data_file)
  *     elif node_data_format == 'json_single':             # <<<<<<<<<<<<<<
@@ -2715,7 +2715,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   }
   __pyx_L3:;
 
-  /* "graph_util.py":29
+  /* "graphutix._util.py":29
  *         json.dump(g._node, node_data_file)
  * 
  *     if adj_file_format == 'json':             # <<<<<<<<<<<<<<
@@ -2725,7 +2725,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_adj_file_format, __pyx_n_s_json, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 29, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":30
+    /* "graphutix._util.py":30
  * 
  *     if adj_file_format == 'json':
  *         json.dump_iter(g._adj.items(), node_data_file)             # <<<<<<<<<<<<<<
@@ -2806,7 +2806,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":29
+    /* "graphutix._util.py":29
  *         json.dump(g._node, node_data_file)
  * 
  *     if adj_file_format == 'json':             # <<<<<<<<<<<<<<
@@ -2816,7 +2816,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     goto __pyx_L4;
   }
 
-  /* "graph_util.py":31
+  /* "graphutix._util.py":31
  *     if adj_file_format == 'json':
  *         json.dump_iter(g._adj.items(), node_data_file)
  *     elif adj_file_format == 'json_single':             # <<<<<<<<<<<<<<
@@ -2826,7 +2826,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_adj_file_format, __pyx_n_s_json_single, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 31, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":32
+    /* "graphutix._util.py":32
  *         json.dump_iter(g._adj.items(), node_data_file)
  *     elif adj_file_format == 'json_single':
  *         json.dump(g._adj, adj_file)             # <<<<<<<<<<<<<<
@@ -2889,7 +2889,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":31
+    /* "graphutix._util.py":31
  *     if adj_file_format == 'json':
  *         json.dump_iter(g._adj.items(), node_data_file)
  *     elif adj_file_format == 'json_single':             # <<<<<<<<<<<<<<
@@ -2899,7 +2899,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     goto __pyx_L4;
   }
 
-  /* "graph_util.py":33
+  /* "graphutix._util.py":33
  *     elif adj_file_format == 'json_single':
  *         json.dump(g._adj, adj_file)
  *     elif adj_file_format == 'adj':             # <<<<<<<<<<<<<<
@@ -2909,7 +2909,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_adj_file_format, __pyx_n_s_adj, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":34
+    /* "graphutix._util.py":34
  *         json.dump(g._adj, adj_file)
  *     elif adj_file_format == 'adj':
  *         write_adj_data(adj_file, g._adj)             # <<<<<<<<<<<<<<
@@ -2969,7 +2969,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":33
+    /* "graphutix._util.py":33
  *     elif adj_file_format == 'json_single':
  *         json.dump(g._adj, adj_file)
  *     elif adj_file_format == 'adj':             # <<<<<<<<<<<<<<
@@ -2979,7 +2979,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   }
   __pyx_L4:;
 
-  /* "graph_util.py":22
+  /* "graphutix._util.py":22
  * 
  * 
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):             # <<<<<<<<<<<<<<
@@ -2996,7 +2996,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.graph_to_files", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.graph_to_files", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3004,7 +3004,7 @@ static PyObject *__pyx_pf_10graph_util_graph_to_files(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "graph_util.py":42
+/* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -3046,7 +3046,7 @@ static PyObject *__pyx_pf_10graph_util_14__defaults__(CYTHON_UNUSED PyObject *__
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("graph_util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3147,7 +3147,7 @@ static PyObject *__pyx_pw_10graph_util_3write_adj_data(PyObject *__pyx_self, PyO
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("write_adj_data", 0, 2, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 42, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.write_adj_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.write_adj_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -3166,7 +3166,7 @@ static PyObject *__pyx_pw_10graph_util_3write_adj_data(PyObject *__pyx_self, PyO
 }
 static PyObject *__pyx_gb_10graph_util_14write_adj_data_2generator1(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "graph_util.py":48
+/* "graphutix._util.py":48
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:
  *         for key in sorted_keys:
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))             # <<<<<<<<<<<<<<
@@ -3199,7 +3199,7 @@ static PyObject *__pyx_pf_10graph_util_14write_adj_data_genexpr(PyObject *__pyx_
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("graph_util.write_adj_data.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.write_adj_data.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
@@ -3437,7 +3437,7 @@ static PyObject *__pyx_gb_10graph_util_14write_adj_data_2generator1(__pyx_Corout
 }
 static PyObject *__pyx_gb_10graph_util_14write_adj_data_5generator2(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "graph_util.py":58
+/* "graphutix._util.py":58
  *                 adj_list.append((adj, adj_dict[key]))
  *             else:
  *                 adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' for adj, adj_data in adj_list))             # <<<<<<<<<<<<<<
@@ -3470,7 +3470,7 @@ static PyObject *__pyx_pf_10graph_util_14write_adj_data_3genexpr(PyObject *__pyx
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("graph_util.write_adj_data.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.write_adj_data.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
@@ -3641,7 +3641,7 @@ static PyObject *__pyx_gb_10graph_util_14write_adj_data_5generator2(__pyx_Corout
   return __pyx_r;
 }
 
-/* "graph_util.py":42
+/* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -3687,7 +3687,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_field_sep);
   __Pyx_INCREF(__pyx_v_file);
 
-  /* "graph_util.py":43
+  /* "graphutix._util.py":43
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):
  *     if isinstance(file, str):             # <<<<<<<<<<<<<<
@@ -3698,7 +3698,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":44
+    /* "graphutix._util.py":44
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):
  *     if isinstance(file, str):
  *         file = open(file, 'w')             # <<<<<<<<<<<<<<
@@ -3719,7 +3719,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_file, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "graph_util.py":43
+    /* "graphutix._util.py":43
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):
  *     if isinstance(file, str):             # <<<<<<<<<<<<<<
@@ -3728,7 +3728,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
  */
   }
 
-  /* "graph_util.py":45
+  /* "graphutix._util.py":45
  *     if isinstance(file, str):
  *         file = open(file, 'w')
  *     sorted_keys = sorted(adj_dict.keys())             # <<<<<<<<<<<<<<
@@ -3750,7 +3750,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __pyx_v_sorted_keys = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "graph_util.py":46
+  /* "graphutix._util.py":46
  *         file = open(file, 'w')
  *     sorted_keys = sorted(adj_dict.keys())
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:             # <<<<<<<<<<<<<<
@@ -3768,7 +3768,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_2) {
 
-    /* "graph_util.py":47
+    /* "graphutix._util.py":47
  *     sorted_keys = sorted(adj_dict.keys())
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:
  *         for key in sorted_keys:             # <<<<<<<<<<<<<<
@@ -3793,7 +3793,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_GIVEREF(__pyx_t_5);
       __pyx_t_5 = 0;
 
-      /* "graph_util.py":48
+      /* "graphutix._util.py":48
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:
  *         for key in sorted_keys:
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))             # <<<<<<<<<<<<<<
@@ -3812,7 +3812,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_XDECREF_SET(__pyx_v_adj_str, ((PyObject*)__pyx_t_3));
       __pyx_t_3 = 0;
 
-      /* "graph_util.py":49
+      /* "graphutix._util.py":49
  *         for key in sorted_keys:
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))
  *             file.write(f'{key}{node_sep}{adj_str}\n')             # <<<<<<<<<<<<<<
@@ -3871,7 +3871,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "graph_util.py":47
+      /* "graphutix._util.py":47
  *     sorted_keys = sorted(adj_dict.keys())
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:
  *         for key in sorted_keys:             # <<<<<<<<<<<<<<
@@ -3881,7 +3881,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "graph_util.py":46
+    /* "graphutix._util.py":46
  *         file = open(file, 'w')
  *     sorted_keys = sorted(adj_dict.keys())
  *     if dict_format == AdjDictFormat.SrcNodeAdjDict:             # <<<<<<<<<<<<<<
@@ -3891,7 +3891,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     goto __pyx_L4;
   }
 
-  /* "graph_util.py":50
+  /* "graphutix._util.py":50
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))
  *             file.write(f'{key}{node_sep}{adj_str}\n')
  *     elif dict_format == AdjDictFormat.EdgeData:             # <<<<<<<<<<<<<<
@@ -3909,7 +3909,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_2) {
 
-    /* "graph_util.py":51
+    /* "graphutix._util.py":51
  *             file.write(f'{key}{node_sep}{adj_str}\n')
  *     elif dict_format == AdjDictFormat.EdgeData:
  *         prev_src = sorted_keys[0][0]             # <<<<<<<<<<<<<<
@@ -3928,7 +3928,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     __pyx_v_prev_src = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":52
+    /* "graphutix._util.py":52
  *     elif dict_format == AdjDictFormat.EdgeData:
  *         prev_src = sorted_keys[0][0]
  *         adj_list = []             # <<<<<<<<<<<<<<
@@ -3941,7 +3941,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     __pyx_cur_scope->__pyx_v_adj_list = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":53
+    /* "graphutix._util.py":53
  *         prev_src = sorted_keys[0][0]
  *         adj_list = []
  *         for key in sorted_keys:             # <<<<<<<<<<<<<<
@@ -3966,7 +3966,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_GIVEREF(__pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "graph_util.py":54
+      /* "graphutix._util.py":54
  *         adj_list = []
  *         for key in sorted_keys:
  *             src, adj = key             # <<<<<<<<<<<<<<
@@ -4022,7 +4022,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_XDECREF_SET(__pyx_v_adj, __pyx_t_5);
       __pyx_t_5 = 0;
 
-      /* "graph_util.py":55
+      /* "graphutix._util.py":55
  *         for key in sorted_keys:
  *             src, adj = key
  *             if prev_src == src:             # <<<<<<<<<<<<<<
@@ -4034,7 +4034,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_2) {
 
-        /* "graph_util.py":56
+        /* "graphutix._util.py":56
  *             src, adj = key
  *             if prev_src == src:
  *                 adj_list.append((adj, adj_dict[key]))             # <<<<<<<<<<<<<<
@@ -4058,7 +4058,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
         __pyx_t_6 = __Pyx_PyList_Append(__pyx_cur_scope->__pyx_v_adj_list, __pyx_t_4); if (unlikely(__pyx_t_6 == ((int)-1))) __PYX_ERR(0, 56, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":55
+        /* "graphutix._util.py":55
  *         for key in sorted_keys:
  *             src, adj = key
  *             if prev_src == src:             # <<<<<<<<<<<<<<
@@ -4068,7 +4068,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
         goto __pyx_L11;
       }
 
-      /* "graph_util.py":58
+      /* "graphutix._util.py":58
  *                 adj_list.append((adj, adj_dict[key]))
  *             else:
  *                 adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' for adj, adj_data in adj_list))             # <<<<<<<<<<<<<<
@@ -4088,7 +4088,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
         __Pyx_XDECREF_SET(__pyx_v_adj_str, ((PyObject*)__pyx_t_5));
         __pyx_t_5 = 0;
 
-        /* "graph_util.py":59
+        /* "graphutix._util.py":59
  *             else:
  *                 adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' for adj, adj_data in adj_list))
  *                 file.write(f'{src}{node_sep}{adj_str}\n')             # <<<<<<<<<<<<<<
@@ -4149,7 +4149,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
       }
       __pyx_L11:;
 
-      /* "graph_util.py":53
+      /* "graphutix._util.py":53
  *         prev_src = sorted_keys[0][0]
  *         adj_list = []
  *         for key in sorted_keys:             # <<<<<<<<<<<<<<
@@ -4159,7 +4159,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "graph_util.py":50
+    /* "graphutix._util.py":50
  *             adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' if adj_data else str(adj) for adj, adj_data in adj_dict[key].items()))
  *             file.write(f'{key}{node_sep}{adj_str}\n')
  *     elif dict_format == AdjDictFormat.EdgeData:             # <<<<<<<<<<<<<<
@@ -4169,7 +4169,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   }
   __pyx_L4:;
 
-  /* "graph_util.py":60
+  /* "graphutix._util.py":60
  *                 adj_str = node_sep.join((f'{adj}{field_sep}{adj_data}' for adj, adj_data in adj_list))
  *                 file.write(f'{src}{node_sep}{adj_str}\n')
  *     file.close()             # <<<<<<<<<<<<<<
@@ -4195,7 +4195,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":42
+  /* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -4212,7 +4212,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_AddTraceback("graph_util.write_adj_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.write_adj_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_sorted_keys);
@@ -4227,7 +4227,7 @@ static PyObject *__pyx_pf_10graph_util_2write_adj_data(CYTHON_UNUSED PyObject *_
   return __pyx_r;
 }
 
-/* "graph_util.py":70
+/* "graphutix._util.py":70
  * 
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -4359,7 +4359,7 @@ static PyObject *__pyx_pw_10graph_util_5sbm_core_periphery_P(PyObject *__pyx_sel
   __Pyx_RaiseArgtupleInvalid("sbm_core_periphery_P", 0, 1, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 70, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
-  __Pyx_AddTraceback("graph_util.sbm_core_periphery_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.sbm_core_periphery_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -4386,7 +4386,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("sbm_core_periphery_P", 0);
 
-  /* "graph_util.py":71
+  /* "graphutix._util.py":71
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -4397,7 +4397,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":72
+    /* "graphutix._util.py":72
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:
  *         np.random.seed(seed)             # <<<<<<<<<<<<<<
@@ -4429,7 +4429,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "graph_util.py":71
+    /* "graphutix._util.py":71
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -4438,7 +4438,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
  */
   }
 
-  /* "graph_util.py":73
+  /* "graphutix._util.py":73
  *     if seed is not None:
  *         np.random.seed(seed)
  *     sizes = np.random.random_integers(block_size_range[0], block_size_range[1], size=k).tolist()             # <<<<<<<<<<<<<<
@@ -4494,7 +4494,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __pyx_v_sizes = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "graph_util.py":74
+  /* "graphutix._util.py":74
  *         np.random.seed(seed)
  *     sizes = np.random.random_integers(block_size_range[0], block_size_range[1], size=k).tolist()
  *     P = rndx.random_square_matrix(inter_block_p, k)             # <<<<<<<<<<<<<<
@@ -4554,7 +4554,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __pyx_v_P = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "graph_util.py":75
+  /* "graphutix._util.py":75
  *     sizes = np.random.random_integers(block_size_range[0], block_size_range[1], size=k).tolist()
  *     P = rndx.random_square_matrix(inter_block_p, k)
  *     rndx.random_fill_diagonal(P, intra_block_p)             # <<<<<<<<<<<<<<
@@ -4613,7 +4613,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":76
+  /* "graphutix._util.py":76
  *     P = rndx.random_square_matrix(inter_block_p, k)
  *     rndx.random_fill_diagonal(P, intra_block_p)
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)             # <<<<<<<<<<<<<<
@@ -4641,7 +4641,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":77
+  /* "graphutix._util.py":77
  *     rndx.random_fill_diagonal(P, intra_block_p)
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)
  *     npx.make_symmetric_matrix(P)             # <<<<<<<<<<<<<<
@@ -4670,7 +4670,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":78
+  /* "graphutix._util.py":78
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)
  *     npx.make_symmetric_matrix(P)
  *     return P, sizes             # <<<<<<<<<<<<<<
@@ -4690,7 +4690,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "graph_util.py":70
+  /* "graphutix._util.py":70
  * 
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -4705,7 +4705,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("graph_util.sbm_core_periphery_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.sbm_core_periphery_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_sizes);
@@ -4715,7 +4715,7 @@ static PyObject *__pyx_pf_10graph_util_4sbm_core_periphery_P(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "graph_util.py":81
+/* "graphutix._util.py":81
  * 
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -4856,7 +4856,7 @@ static PyObject *__pyx_pw_10graph_util_7sbm_anomaly_clusters_P(PyObject *__pyx_s
   __Pyx_RaiseArgtupleInvalid("sbm_anomaly_clusters_P", 0, 3, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 81, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
-  __Pyx_AddTraceback("graph_util.sbm_anomaly_clusters_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.sbm_anomaly_clusters_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -4883,7 +4883,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("sbm_anomaly_clusters_P", 0);
 
-  /* "graph_util.py":82
+  /* "graphutix._util.py":82
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -4894,7 +4894,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":83
+    /* "graphutix._util.py":83
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:
  *         np.random.seed(seed)             # <<<<<<<<<<<<<<
@@ -4926,7 +4926,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "graph_util.py":82
+    /* "graphutix._util.py":82
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -4935,7 +4935,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
  */
   }
 
-  /* "graph_util.py":84
+  /* "graphutix._util.py":84
  *     if seed is not None:
  *         np.random.seed(seed)
  *     sizes = np.random.random_integers(*anomaly_clusters_size_range, size=k).tolist() + [np.random.random_integers(*non_anomaly_size_range)]             # <<<<<<<<<<<<<<
@@ -5004,7 +5004,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __pyx_v_sizes = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "graph_util.py":85
+  /* "graphutix._util.py":85
  *         np.random.seed(seed)
  *     sizes = np.random.random_integers(*anomaly_clusters_size_range, size=k).tolist() + [np.random.random_integers(*non_anomaly_size_range)]
  *     P = rndx.random_square_matrix(non_anomaly_p, k + 1)             # <<<<<<<<<<<<<<
@@ -5068,7 +5068,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __pyx_v_P = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "graph_util.py":86
+  /* "graphutix._util.py":86
  *     sizes = np.random.random_integers(*anomaly_clusters_size_range, size=k).tolist() + [np.random.random_integers(*non_anomaly_size_range)]
  *     P = rndx.random_square_matrix(non_anomaly_p, k + 1)
  *     rndx.random_fill_diagonal(P, anomaly_cluster_p, first_k=k)             # <<<<<<<<<<<<<<
@@ -5098,7 +5098,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "graph_util.py":87
+  /* "graphutix._util.py":87
  *     P = rndx.random_square_matrix(non_anomaly_p, k + 1)
  *     rndx.random_fill_diagonal(P, anomaly_cluster_p, first_k=k)
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)             # <<<<<<<<<<<<<<
@@ -5126,7 +5126,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":88
+  /* "graphutix._util.py":88
  *     rndx.random_fill_diagonal(P, anomaly_cluster_p, first_k=k)
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)
  *     npx.make_symmetric_matrix(P)             # <<<<<<<<<<<<<<
@@ -5155,7 +5155,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":89
+  /* "graphutix._util.py":89
  *     rndx.random_matrix_replace(P, dist=noise_p, num_replaces=num_noisy_p_per_block)
  *     npx.make_symmetric_matrix(P)
  *     return P, sizes             # <<<<<<<<<<<<<<
@@ -5175,7 +5175,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "graph_util.py":81
+  /* "graphutix._util.py":81
  * 
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -5190,7 +5190,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("graph_util.sbm_anomaly_clusters_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.sbm_anomaly_clusters_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_sizes);
@@ -5200,7 +5200,7 @@ static PyObject *__pyx_pf_10graph_util_6sbm_anomaly_clusters_P(CYTHON_UNUSED PyO
   return __pyx_r;
 }
 
-/* "graph_util.py":92
+/* "graphutix._util.py":92
  * 
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:             # <<<<<<<<<<<<<<
@@ -5242,7 +5242,7 @@ static PyObject *__pyx_pf_10graph_util_16__defaults__(CYTHON_UNUSED PyObject *__
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("graph_util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -5336,7 +5336,7 @@ static PyObject *__pyx_pw_10graph_util_9rnd_sbm_graph(PyObject *__pyx_self, PyOb
   __Pyx_RaiseArgtupleInvalid("rnd_sbm_graph", 0, 1, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 92, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
-  __Pyx_AddTraceback("graph_util.rnd_sbm_graph", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.rnd_sbm_graph", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -5365,7 +5365,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __Pyx_RefNannySetupContext("rnd_sbm_graph", 0);
   __Pyx_INCREF(__pyx_v_k);
 
-  /* "graph_util.py":93
+  /* "graphutix._util.py":93
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -5376,7 +5376,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":94
+    /* "graphutix._util.py":94
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:
  *     if seed is not None:
  *         np.random.seed(seed)             # <<<<<<<<<<<<<<
@@ -5408,7 +5408,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "graph_util.py":93
+    /* "graphutix._util.py":93
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:
  *     if seed is not None:             # <<<<<<<<<<<<<<
@@ -5417,7 +5417,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   }
 
-  /* "graph_util.py":95
+  /* "graphutix._util.py":95
  *     if seed is not None:
  *         np.random.seed(seed)
  *     if type(k) is not int:             # <<<<<<<<<<<<<<
@@ -5428,7 +5428,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "graph_util.py":96
+    /* "graphutix._util.py":96
  *         np.random.seed(seed)
  *     if type(k) is not int:
  *         k = round(np.random.uniform(low=k[0], high=k[1]))             # <<<<<<<<<<<<<<
@@ -5463,7 +5463,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF_SET(__pyx_v_k, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "graph_util.py":95
+    /* "graphutix._util.py":95
  *     if seed is not None:
  *         np.random.seed(seed)
  *     if type(k) is not int:             # <<<<<<<<<<<<<<
@@ -5472,7 +5472,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   }
 
-  /* "graph_util.py":97
+  /* "graphutix._util.py":97
  *     if type(k) is not int:
  *         k = round(np.random.uniform(low=k[0], high=k[1]))
  *     if graph_style == SbmStyle.CorePeriphery:             # <<<<<<<<<<<<<<
@@ -5490,7 +5490,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_1) {
 
-    /* "graph_util.py":98
+    /* "graphutix._util.py":98
  *         k = round(np.random.uniform(low=k[0], high=k[1]))
  *     if graph_style == SbmStyle.CorePeriphery:
  *         p, sizes = sbm_core_periphery_P(k, seed=seed, **kwargs)             # <<<<<<<<<<<<<<
@@ -5566,7 +5566,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     __pyx_v_sizes = __pyx_t_5;
     __pyx_t_5 = 0;
 
-    /* "graph_util.py":97
+    /* "graphutix._util.py":97
  *     if type(k) is not int:
  *         k = round(np.random.uniform(low=k[0], high=k[1]))
  *     if graph_style == SbmStyle.CorePeriphery:             # <<<<<<<<<<<<<<
@@ -5576,7 +5576,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     goto __pyx_L5;
   }
 
-  /* "graph_util.py":99
+  /* "graphutix._util.py":99
  *     if graph_style == SbmStyle.CorePeriphery:
  *         p, sizes = sbm_core_periphery_P(k, seed=seed, **kwargs)
  *     elif graph_style == SbmStyle.AnomalyClusters:             # <<<<<<<<<<<<<<
@@ -5594,7 +5594,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (likely(__pyx_t_1)) {
 
-    /* "graph_util.py":100
+    /* "graphutix._util.py":100
  *         p, sizes = sbm_core_periphery_P(k, seed=seed, **kwargs)
  *     elif graph_style == SbmStyle.AnomalyClusters:
  *         p, sizes = sbm_anomaly_clusters_P(k, seed=seed, **kwargs)             # <<<<<<<<<<<<<<
@@ -5670,7 +5670,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     __pyx_v_sizes = __pyx_t_5;
     __pyx_t_5 = 0;
 
-    /* "graph_util.py":99
+    /* "graphutix._util.py":99
  *     if graph_style == SbmStyle.CorePeriphery:
  *         p, sizes = sbm_core_periphery_P(k, seed=seed, **kwargs)
  *     elif graph_style == SbmStyle.AnomalyClusters:             # <<<<<<<<<<<<<<
@@ -5680,7 +5680,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
     goto __pyx_L5;
   }
 
-  /* "graph_util.py":102
+  /* "graphutix._util.py":102
  *         p, sizes = sbm_anomaly_clusters_P(k, seed=seed, **kwargs)
  *     else:
  *         raise NotImplementedError             # <<<<<<<<<<<<<<
@@ -5693,7 +5693,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   }
   __pyx_L5:;
 
-  /* "graph_util.py":103
+  /* "graphutix._util.py":103
  *     else:
  *         raise NotImplementedError
  *     g = nx.stochastic_block_model(sizes=sizes,             # <<<<<<<<<<<<<<
@@ -5709,7 +5709,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __Pyx_GOTREF(__pyx_t_4);
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_sizes, __pyx_v_sizes) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
 
-  /* "graph_util.py":104
+  /* "graphutix._util.py":104
  *         raise NotImplementedError
  *     g = nx.stochastic_block_model(sizes=sizes,
  *                                   p=p,             # <<<<<<<<<<<<<<
@@ -5718,7 +5718,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_p, __pyx_v_p) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
 
-  /* "graph_util.py":105
+  /* "graphutix._util.py":105
  *     g = nx.stochastic_block_model(sizes=sizes,
  *                                   p=p,
  *                                   seed=seed,             # <<<<<<<<<<<<<<
@@ -5727,7 +5727,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_seed, __pyx_v_seed) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
 
-  /* "graph_util.py":106
+  /* "graphutix._util.py":106
  *                                   p=p,
  *                                   seed=seed,
  *                                   directed=directed,             # <<<<<<<<<<<<<<
@@ -5736,7 +5736,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_directed, __pyx_v_directed) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
 
-  /* "graph_util.py":107
+  /* "graphutix._util.py":107
  *                                   seed=seed,
  *                                   directed=directed,
  *                                   nodelist=kwargs.get('nodelist', None),             # <<<<<<<<<<<<<<
@@ -5748,7 +5748,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_nodelist, __pyx_t_3) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":108
+  /* "graphutix._util.py":108
  *                                   directed=directed,
  *                                   nodelist=kwargs.get('nodelist', None),
  *                                   selfloops=kwargs.get('selfloops', False),             # <<<<<<<<<<<<<<
@@ -5760,7 +5760,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_selfloops, __pyx_t_3) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":109
+  /* "graphutix._util.py":109
  *                                   nodelist=kwargs.get('nodelist', None),
  *                                   selfloops=kwargs.get('selfloops', False),
  *                                   sparse=kwargs.get('sparse', False))             # <<<<<<<<<<<<<<
@@ -5772,7 +5772,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_sparse, __pyx_t_3) < 0) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":103
+  /* "graphutix._util.py":103
  *     else:
  *         raise NotImplementedError
  *     g = nx.stochastic_block_model(sizes=sizes,             # <<<<<<<<<<<<<<
@@ -5786,7 +5786,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __pyx_v_g = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "graph_util.py":110
+  /* "graphutix._util.py":110
  *                                   selfloops=kwargs.get('selfloops', False),
  *                                   sparse=kwargs.get('sparse', False))
  *     setattr(g, 'p', p)             # <<<<<<<<<<<<<<
@@ -5795,7 +5795,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
  */
   __pyx_t_8 = PyObject_SetAttr(__pyx_v_g, __pyx_n_s_p, __pyx_v_p); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 110, __pyx_L1_error)
 
-  /* "graph_util.py":111
+  /* "graphutix._util.py":111
  *                                   sparse=kwargs.get('sparse', False))
  *     setattr(g, 'p', p)
  *     return g             # <<<<<<<<<<<<<<
@@ -5807,7 +5807,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __pyx_r = __pyx_v_g;
   goto __pyx_L0;
 
-  /* "graph_util.py":92
+  /* "graphutix._util.py":92
  * 
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:             # <<<<<<<<<<<<<<
@@ -5821,7 +5821,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.rnd_sbm_graph", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.rnd_sbm_graph", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_p);
@@ -5833,7 +5833,7 @@ static PyObject *__pyx_pf_10graph_util_8rnd_sbm_graph(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "graph_util.py":118
+/* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -5878,7 +5878,7 @@ static PyObject *__pyx_pf_10graph_util_18__defaults__(CYTHON_UNUSED PyObject *__
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("graph_util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -5981,7 +5981,7 @@ static PyObject *__pyx_pw_10graph_util_11draw_with_communities(PyObject *__pyx_s
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("draw_with_communities", 0, 1, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 118, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.draw_with_communities", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.draw_with_communities", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -5993,7 +5993,7 @@ static PyObject *__pyx_pw_10graph_util_11draw_with_communities(PyObject *__pyx_s
 }
 static PyObject *__pyx_gb_10graph_util_21draw_with_communities_2generator3(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "graph_util.py":119
+/* "graphutix._util.py":119
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):
  *     nx.draw(g, node_color=pltx.get_colors(it=(x[community_label] for x in g._node.values()), cmap=cmap), node_size=node_size, width=edge_width)             # <<<<<<<<<<<<<<
@@ -6026,7 +6026,7 @@ static PyObject *__pyx_pf_10graph_util_21draw_with_communities_genexpr(PyObject 
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("graph_util.draw_with_communities.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.draw_with_communities.genexpr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
@@ -6164,7 +6164,7 @@ static PyObject *__pyx_gb_10graph_util_21draw_with_communities_2generator3(__pyx
   return __pyx_r;
 }
 
-/* "graph_util.py":118
+/* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -6198,7 +6198,7 @@ static PyObject *__pyx_pf_10graph_util_10draw_with_communities(CYTHON_UNUSED PyO
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_community_label);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_community_label);
 
-  /* "graph_util.py":119
+  /* "graphutix._util.py":119
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):
  *     nx.draw(g, node_color=pltx.get_colors(it=(x[community_label] for x in g._node.values()), cmap=cmap), node_size=node_size, width=edge_width)             # <<<<<<<<<<<<<<
@@ -6244,7 +6244,7 @@ static PyObject *__pyx_pf_10graph_util_10draw_with_communities(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "graph_util.py":118
+  /* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -6262,7 +6262,7 @@ static PyObject *__pyx_pf_10graph_util_10draw_with_communities(CYTHON_UNUSED PyO
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.draw_with_communities", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.draw_with_communities", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
@@ -6271,7 +6271,7 @@ static PyObject *__pyx_pf_10graph_util_10draw_with_communities(CYTHON_UNUSED PyO
   return __pyx_r;
 }
 
-/* "graph_util.py":137
+/* "graphutix._util.py":137
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):             # <<<<<<<<<<<<<<
@@ -6352,7 +6352,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_1_set_format(PyObje
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_set_format", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 137, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat._set_format", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat._set_format", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -6374,7 +6374,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("_set_format", 0);
 
-  /* "graph_util.py":138
+  /* "graphutix._util.py":138
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):
  *         if isinstance(format_obj, tuple):             # <<<<<<<<<<<<<<
@@ -6385,7 +6385,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":139
+    /* "graphutix._util.py":139
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):
  *         if isinstance(format_obj, tuple):
  *             setattr(self, format_var_name, format_obj)             # <<<<<<<<<<<<<<
@@ -6394,7 +6394,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
  */
     __pyx_t_3 = PyObject_SetAttr(__pyx_v_self, __pyx_v_format_var_name, __pyx_v_format_obj); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 139, __pyx_L1_error)
 
-    /* "graph_util.py":140
+    /* "graphutix._util.py":140
  *         if isinstance(format_obj, tuple):
  *             setattr(self, format_var_name, format_obj)
  *             setattr(self, format_type_var_name, 0)             # <<<<<<<<<<<<<<
@@ -6403,7 +6403,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
  */
     __pyx_t_3 = PyObject_SetAttr(__pyx_v_self, __pyx_v_format_type_var_name, __pyx_int_0); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 140, __pyx_L1_error)
 
-    /* "graph_util.py":138
+    /* "graphutix._util.py":138
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):
  *         if isinstance(format_obj, tuple):             # <<<<<<<<<<<<<<
@@ -6413,7 +6413,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
     goto __pyx_L3;
   }
 
-  /* "graph_util.py":142
+  /* "graphutix._util.py":142
  *             setattr(self, format_type_var_name, 0)
  *         else:
  *             setattr(self, format_var_name, NamedFieldExtractor(format_obj))             # <<<<<<<<<<<<<<
@@ -6441,7 +6441,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
     __pyx_t_3 = PyObject_SetAttr(__pyx_v_self, __pyx_v_format_var_name, __pyx_t_4); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 142, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "graph_util.py":143
+    /* "graphutix._util.py":143
  *         else:
  *             setattr(self, format_var_name, NamedFieldExtractor(format_obj))
  *             setattr(self, format_type_var_name, 1)             # <<<<<<<<<<<<<<
@@ -6452,7 +6452,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
   }
   __pyx_L3:;
 
-  /* "graph_util.py":137
+  /* "graphutix._util.py":137
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):             # <<<<<<<<<<<<<<
@@ -6467,7 +6467,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat._set_format", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat._set_format", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6475,7 +6475,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat__set_format(CYTHON_
   return __pyx_r;
 }
 
-/* "graph_util.py":145
+/* "graphutix._util.py":145
  *             setattr(self, format_type_var_name, 1)
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:             # <<<<<<<<<<<<<<
@@ -6567,7 +6567,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_3_parse_by_format2(
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_parse_by_format2", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 145, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat._parse_by_format2", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat._parse_by_format2", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -6594,7 +6594,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("_parse_by_format2", 0);
 
-  /* "graph_util.py":146
+  /* "graphutix._util.py":146
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:
  *         if format_type == 0:             # <<<<<<<<<<<<<<
@@ -6607,7 +6607,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "graph_util.py":147
+    /* "graphutix._util.py":147
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:
  *         if format_type == 0:
  *             return tup2dict__(zip(format_obj, split__(text, self.field_sep, parse=True)), key_prefix=key_prefix)             # <<<<<<<<<<<<<<
@@ -6666,7 +6666,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
     __pyx_t_5 = 0;
     goto __pyx_L0;
 
-    /* "graph_util.py":146
+    /* "graphutix._util.py":146
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:
  *         if format_type == 0:             # <<<<<<<<<<<<<<
@@ -6675,7 +6675,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
  */
   }
 
-  /* "graph_util.py":148
+  /* "graphutix._util.py":148
  *         if format_type == 0:
  *             return tup2dict__(zip(format_obj, split__(text, self.field_sep, parse=True)), key_prefix=key_prefix)
  *         elif format_type == 1:             # <<<<<<<<<<<<<<
@@ -6688,7 +6688,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_2) {
 
-    /* "graph_util.py":149
+    /* "graphutix._util.py":149
  *             return tup2dict__(zip(format_obj, split__(text, self.field_sep, parse=True)), key_prefix=key_prefix)
  *         elif format_type == 1:
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)             # <<<<<<<<<<<<<<
@@ -6751,7 +6751,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
     __pyx_t_4 = 0;
     goto __pyx_L0;
 
-    /* "graph_util.py":148
+    /* "graphutix._util.py":148
  *         if format_type == 0:
  *             return tup2dict__(zip(format_obj, split__(text, self.field_sep, parse=True)), key_prefix=key_prefix)
  *         elif format_type == 1:             # <<<<<<<<<<<<<<
@@ -6760,7 +6760,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
  */
   }
 
-  /* "graph_util.py":145
+  /* "graphutix._util.py":145
  *             setattr(self, format_type_var_name, 1)
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:             # <<<<<<<<<<<<<<
@@ -6777,7 +6777,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat._parse_by_format2", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat._parse_by_format2", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6785,7 +6785,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_2_parse_by_format2(
   return __pyx_r;
 }
 
-/* "graph_util.py":151
+/* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -6812,7 +6812,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_5__init__(PyObject 
     PyObject* values[6] = {0,0,0,0,0,0};
     values[1] = ((PyObject *)((PyObject*)__pyx_tuple__7));
 
-    /* "graph_util.py":152
+    /* "graphutix._util.py":152
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),
  *                  adj_node_format: TYPE_DATA_TEXT_FORMAT = None,             # <<<<<<<<<<<<<<
@@ -6909,7 +6909,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_5__init__(PyObject 
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 151, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -6917,7 +6917,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_5__init__(PyObject 
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_field_sep), (&PyString_Type), 1, "field_sep", 1))) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_r = __pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(__pyx_self, __pyx_v_self, __pyx_v_src_node_format, __pyx_v_adj_node_format, __pyx_v_node_sep, __pyx_v_field_sep, __pyx_v_comment_indicator);
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -6945,7 +6945,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "graph_util.py":168
+  /* "graphutix._util.py":168
  *         """
  *         # region sets format objs
  *         if isinstance(src_node_format, str) and 'node_id' not in src_node_format:             # <<<<<<<<<<<<<<
@@ -6965,7 +6965,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   __pyx_L4_bool_binop_done:;
   if (unlikely(__pyx_t_1)) {
 
-    /* "graph_util.py":169
+    /* "graphutix._util.py":169
  *         # region sets format objs
  *         if isinstance(src_node_format, str) and 'node_id' not in src_node_format:
  *             raise ValueError("the field `node_id` must be defined in the node text format string")             # <<<<<<<<<<<<<<
@@ -6978,7 +6978,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __PYX_ERR(0, 169, __pyx_L1_error)
 
-    /* "graph_util.py":168
+    /* "graphutix._util.py":168
  *         """
  *         # region sets format objs
  *         if isinstance(src_node_format, str) and 'node_id' not in src_node_format:             # <<<<<<<<<<<<<<
@@ -6987,7 +6987,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
   }
 
-  /* "graph_util.py":170
+  /* "graphutix._util.py":170
  *         if isinstance(src_node_format, str) and 'node_id' not in src_node_format:
  *             raise ValueError("the field `node_id` must be defined in the node text format string")
  *         self._set_format(format_obj=src_node_format, format_var_name='source_node_format', format_type_var_name='_source_node_format_type')             # <<<<<<<<<<<<<<
@@ -7007,7 +7007,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "graph_util.py":172
+  /* "graphutix._util.py":172
  *         self._set_format(format_obj=src_node_format, format_var_name='source_node_format', format_type_var_name='_source_node_format_type')
  * 
  *         if adj_node_format:             # <<<<<<<<<<<<<<
@@ -7017,7 +7017,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_adj_node_format); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 172, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":173
+    /* "graphutix._util.py":173
  * 
  *         if adj_node_format:
  *             if isinstance(src_node_format, str) and 'node_id' not in src_node_format:             # <<<<<<<<<<<<<<
@@ -7037,7 +7037,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     __pyx_L8_bool_binop_done:;
     if (unlikely(__pyx_t_1)) {
 
-      /* "graph_util.py":174
+      /* "graphutix._util.py":174
  *         if adj_node_format:
  *             if isinstance(src_node_format, str) and 'node_id' not in src_node_format:
  *                 raise ValueError("the field `node_id` must be defined in the node text format string")             # <<<<<<<<<<<<<<
@@ -7050,7 +7050,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __PYX_ERR(0, 174, __pyx_L1_error)
 
-      /* "graph_util.py":173
+      /* "graphutix._util.py":173
  * 
  *         if adj_node_format:
  *             if isinstance(src_node_format, str) and 'node_id' not in src_node_format:             # <<<<<<<<<<<<<<
@@ -7059,7 +7059,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
     }
 
-    /* "graph_util.py":175
+    /* "graphutix._util.py":175
  *             if isinstance(src_node_format, str) and 'node_id' not in src_node_format:
  *                 raise ValueError("the field `node_id` must be defined in the node text format string")
  *             self._set_format(format_obj=adj_node_format, format_var_name='adj_node_format', format_type_var_name='_adj_node_format_type')             # <<<<<<<<<<<<<<
@@ -7079,7 +7079,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "graph_util.py":172
+    /* "graphutix._util.py":172
  *         self._set_format(format_obj=src_node_format, format_var_name='source_node_format', format_type_var_name='_source_node_format_type')
  * 
  *         if adj_node_format:             # <<<<<<<<<<<<<<
@@ -7089,7 +7089,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     goto __pyx_L6;
   }
 
-  /* "graph_util.py":177
+  /* "graphutix._util.py":177
  *             self._set_format(format_obj=adj_node_format, format_var_name='adj_node_format', format_type_var_name='_adj_node_format_type')
  *         else:
  *             self.adj_node_format = self.source_node_format             # <<<<<<<<<<<<<<
@@ -7102,7 +7102,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_adj_node_format, __pyx_t_4) < 0) __PYX_ERR(0, 177, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "graph_util.py":178
+    /* "graphutix._util.py":178
  *         else:
  *             self.adj_node_format = self.source_node_format
  *             self._adj_node_format_type = self._source_node_format_type             # <<<<<<<<<<<<<<
@@ -7116,7 +7116,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   }
   __pyx_L6:;
 
-  /* "graph_util.py":182
+  /* "graphutix._util.py":182
  *         # endregion
  * 
  *         self.node_sep = node_sep             # <<<<<<<<<<<<<<
@@ -7125,7 +7125,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_node_sep, __pyx_v_node_sep) < 0) __PYX_ERR(0, 182, __pyx_L1_error)
 
-  /* "graph_util.py":183
+  /* "graphutix._util.py":183
  * 
  *         self.node_sep = node_sep
  *         self.field_sep = field_sep             # <<<<<<<<<<<<<<
@@ -7134,7 +7134,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_field_sep, __pyx_v_field_sep) < 0) __PYX_ERR(0, 183, __pyx_L1_error)
 
-  /* "graph_util.py":184
+  /* "graphutix._util.py":184
  *         self.node_sep = node_sep
  *         self.field_sep = field_sep
  *         self.comment_indicator = comment_indicator             # <<<<<<<<<<<<<<
@@ -7143,7 +7143,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_comment_indicator, __pyx_v_comment_indicator) < 0) __PYX_ERR(0, 184, __pyx_L1_error)
 
-  /* "graph_util.py":185
+  /* "graphutix._util.py":185
  *         self.field_sep = field_sep
  *         self.comment_indicator = comment_indicator
  *         if isinstance(self.source_node_format, tuple) or isinstance(self.adj_node_format, tuple):             # <<<<<<<<<<<<<<
@@ -7169,7 +7169,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   __pyx_L11_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "graph_util.py":186
+    /* "graphutix._util.py":186
  *         self.comment_indicator = comment_indicator
  *         if isinstance(self.source_node_format, tuple) or isinstance(self.adj_node_format, tuple):
  *             ensure_arg_not_none_or_empty(arg_val=field_sep,             # <<<<<<<<<<<<<<
@@ -7189,7 +7189,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-    /* "graph_util.py":185
+    /* "graphutix._util.py":185
  *         self.field_sep = field_sep
  *         self.comment_indicator = comment_indicator
  *         if isinstance(self.source_node_format, tuple) or isinstance(self.adj_node_format, tuple):             # <<<<<<<<<<<<<<
@@ -7198,7 +7198,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
  */
   }
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -7213,7 +7213,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7221,7 +7221,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_4__init__(CYTHON_UN
   return __pyx_r;
 }
 
-/* "graph_util.py":190
+/* "graphutix._util.py":190
  *                                          extra_msg="one of the `source_node_format`, `adj_node_format`, `edge_format` is a tuple, and in this case `field_sep` must be specified")
  * 
  *     def parse_line(self, line: str, src_ntypes=None, adj_ntypes=None, etypes=None, prev_data: PrevData = None, verbose=__debug__):             # <<<<<<<<<<<<<<
@@ -7269,7 +7269,7 @@ static PyObject *__pyx_pf_10graph_util_20__defaults__(CYTHON_UNUSED PyObject *__
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("graph_util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.__defaults__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7397,7 +7397,7 @@ static PyObject *__pyx_pw_10graph_util_19AdjacencyFileFormat_7parse_line(PyObjec
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("parse_line", 0, 2, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 190, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -7448,7 +7448,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __Pyx_INCREF(__pyx_v_line);
   __Pyx_INCREF(__pyx_v_prev_data);
 
-  /* "graph_util.py":203
+  /* "graphutix._util.py":203
  *         """
  * 
  *         if prev_data:             # <<<<<<<<<<<<<<
@@ -7458,7 +7458,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_prev_data); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 203, __pyx_L1_error)
   if (__pyx_t_1) {
 
-    /* "graph_util.py":204
+    /* "graphutix._util.py":204
  * 
  *         if prev_data:
  *             prev_src_data, prev_adj_data = prev_data             # <<<<<<<<<<<<<<
@@ -7514,7 +7514,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_v_prev_adj_data = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":205
+    /* "graphutix._util.py":205
  *         if prev_data:
  *             prev_src_data, prev_adj_data = prev_data
  *             if not line:             # <<<<<<<<<<<<<<
@@ -7525,7 +7525,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_t_6 = ((!__pyx_t_1) != 0);
     if (__pyx_t_6) {
 
-      /* "graph_util.py":206
+      /* "graphutix._util.py":206
  *             prev_src_data, prev_adj_data = prev_data
  *             if not line:
  *                 if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -7535,7 +7535,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_prev_adj_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 206, __pyx_L1_error)
       if (__pyx_t_6) {
 
-        /* "graph_util.py":207
+        /* "graphutix._util.py":207
  *             if not line:
  *                 if prev_adj_data:
  *                     prev_src_data.update(prev_adj_data)             # <<<<<<<<<<<<<<
@@ -7561,7 +7561,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "graph_util.py":206
+        /* "graphutix._util.py":206
  *             prev_src_data, prev_adj_data = prev_data
  *             if not line:
  *                 if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -7570,7 +7570,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
       }
 
-      /* "graph_util.py":208
+      /* "graphutix._util.py":208
  *                 if prev_adj_data:
  *                     prev_src_data.update(prev_adj_data)
  *                 return prev_src_data             # <<<<<<<<<<<<<<
@@ -7582,7 +7582,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_r = __pyx_v_prev_src_data;
       goto __pyx_L0;
 
-      /* "graph_util.py":205
+      /* "graphutix._util.py":205
  *         if prev_data:
  *             prev_src_data, prev_adj_data = prev_data
  *             if not line:             # <<<<<<<<<<<<<<
@@ -7591,7 +7591,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
     }
 
-    /* "graph_util.py":209
+    /* "graphutix._util.py":209
  *                     prev_src_data.update(prev_adj_data)
  *                 return prev_src_data
  *             line = line.lstrip()             # <<<<<<<<<<<<<<
@@ -7604,7 +7604,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF_SET(__pyx_v_line, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":210
+    /* "graphutix._util.py":210
  *                 return prev_src_data
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):             # <<<<<<<<<<<<<<
@@ -7638,7 +7638,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_6) {
 
-      /* "graph_util.py":211
+      /* "graphutix._util.py":211
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):
  *                 return None, prev_data             # <<<<<<<<<<<<<<
@@ -7658,7 +7658,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_t_3 = 0;
       goto __pyx_L0;
 
-      /* "graph_util.py":210
+      /* "graphutix._util.py":210
  *                 return prev_src_data
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):             # <<<<<<<<<<<<<<
@@ -7667,7 +7667,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
     }
 
-    /* "graph_util.py":212
+    /* "graphutix._util.py":212
  *             if line[0].startswith(self.comment_indicator):
  *                 return None, prev_data
  *             prev_data = bool(prev_data)             # <<<<<<<<<<<<<<
@@ -7680,7 +7680,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF_SET(__pyx_v_prev_data, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":203
+    /* "graphutix._util.py":203
  *         """
  * 
  *         if prev_data:             # <<<<<<<<<<<<<<
@@ -7690,7 +7690,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     goto __pyx_L3;
   }
 
-  /* "graph_util.py":214
+  /* "graphutix._util.py":214
  *             prev_data = bool(prev_data)
  *         else:
  *             ensure_arg_not_none_or_empty(arg_val=line, arg_name='line', extra_msg='the input graph adjacency/path line to parse is empty')             # <<<<<<<<<<<<<<
@@ -7711,7 +7711,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "graph_util.py":215
+    /* "graphutix._util.py":215
  *         else:
  *             ensure_arg_not_none_or_empty(arg_val=line, arg_name='line', extra_msg='the input graph adjacency/path line to parse is empty')
  *             line = line.lstrip()             # <<<<<<<<<<<<<<
@@ -7724,7 +7724,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF_SET(__pyx_v_line, ((PyObject*)__pyx_t_2));
     __pyx_t_2 = 0;
 
-    /* "graph_util.py":216
+    /* "graphutix._util.py":216
  *             ensure_arg_not_none_or_empty(arg_val=line, arg_name='line', extra_msg='the input graph adjacency/path line to parse is empty')
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):             # <<<<<<<<<<<<<<
@@ -7758,7 +7758,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_6) {
 
-      /* "graph_util.py":217
+      /* "graphutix._util.py":217
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):
  *                 return None             # <<<<<<<<<<<<<<
@@ -7769,7 +7769,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_r = Py_None; __Pyx_INCREF(Py_None);
       goto __pyx_L0;
 
-      /* "graph_util.py":216
+      /* "graphutix._util.py":216
  *             ensure_arg_not_none_or_empty(arg_val=line, arg_name='line', extra_msg='the input graph adjacency/path line to parse is empty')
  *             line = line.lstrip()
  *             if line[0].startswith(self.comment_indicator):             # <<<<<<<<<<<<<<
@@ -7780,7 +7780,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   }
   __pyx_L3:;
 
-  /* "graph_util.py":219
+  /* "graphutix._util.py":219
  *                 return None
  * 
  *         splits = line.split(self.node_sep)             # <<<<<<<<<<<<<<
@@ -7795,7 +7795,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __pyx_v_splits = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "graph_util.py":220
+  /* "graphutix._util.py":220
  * 
  *         splits = line.split(self.node_sep)
  *         if len(splits) <= 1:             # <<<<<<<<<<<<<<
@@ -7806,7 +7806,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __pyx_t_6 = ((__pyx_t_8 <= 1) != 0);
   if (unlikely(__pyx_t_6)) {
 
-    /* "graph_util.py":221
+    /* "graphutix._util.py":221
  *         splits = line.split(self.node_sep)
  *         if len(splits) <= 1:
  *             raise ValueError(f"the string `{line}` does not seen to describe an adjacency list or a path, while using `{self.node_sep}` as the delimiter")             # <<<<<<<<<<<<<<
@@ -7856,7 +7856,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __PYX_ERR(0, 221, __pyx_L1_error)
 
-    /* "graph_util.py":220
+    /* "graphutix._util.py":220
  * 
  *         splits = line.split(self.node_sep)
  *         if len(splits) <= 1:             # <<<<<<<<<<<<<<
@@ -7865,7 +7865,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
   }
 
-  /* "graph_util.py":222
+  /* "graphutix._util.py":222
  *         if len(splits) <= 1:
  *             raise ValueError(f"the string `{line}` does not seen to describe an adjacency list or a path, while using `{self.node_sep}` as the delimiter")
  *         try:             # <<<<<<<<<<<<<<
@@ -7881,7 +7881,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_XGOTREF(__pyx_t_12);
     /*try:*/ {
 
-      /* "graph_util.py":223
+      /* "graphutix._util.py":223
  *             raise ValueError(f"the string `{line}` does not seen to describe an adjacency list or a path, while using `{self.node_sep}` as the delimiter")
  *         try:
  *             data_entry = self._parse_by_format2(key_prefix='src_', format_obj=self.source_node_format, format_type=self._source_node_format_type, text=splits[0])             # <<<<<<<<<<<<<<
@@ -7912,7 +7912,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_v_data_entry = __pyx_t_2;
       __pyx_t_2 = 0;
 
-      /* "graph_util.py":224
+      /* "graphutix._util.py":224
  *         try:
  *             data_entry = self._parse_by_format2(key_prefix='src_', format_obj=self.source_node_format, format_type=self._source_node_format_type, text=splits[0])
  *             use_prev_data: bool = prev_data and prev_src_data is not None and data_entry['src_nid'] == prev_src_data['src_nid']             # <<<<<<<<<<<<<<
@@ -7951,7 +7951,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_v_use_prev_data = __pyx_t_2;
       __pyx_t_2 = 0;
 
-      /* "graph_util.py":222
+      /* "graphutix._util.py":222
  *         if len(splits) <= 1:
  *             raise ValueError(f"the string `{line}` does not seen to describe an adjacency list or a path, while using `{self.node_sep}` as the delimiter")
  *         try:             # <<<<<<<<<<<<<<
@@ -7969,7 +7969,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-    /* "graph_util.py":225
+    /* "graphutix._util.py":225
  *             data_entry = self._parse_by_format2(key_prefix='src_', format_obj=self.source_node_format, format_type=self._source_node_format_type, text=splits[0])
  *             use_prev_data: bool = prev_data and prev_src_data is not None and data_entry['src_nid'] == prev_src_data['src_nid']
  *         except Exception as err:             # <<<<<<<<<<<<<<
@@ -7978,7 +7978,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
     __pyx_t_13 = __Pyx_PyErr_ExceptionMatches(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])));
     if (__pyx_t_13) {
-      __Pyx_AddTraceback("graph_util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_7, &__pyx_t_3) < 0) __PYX_ERR(0, 225, __pyx_L13_except_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GOTREF(__pyx_t_7);
@@ -7986,7 +7986,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __Pyx_INCREF(__pyx_t_7);
       __pyx_v_err = __pyx_t_7;
 
-      /* "graph_util.py":226
+      /* "graphutix._util.py":226
  *             use_prev_data: bool = prev_data and prev_src_data is not None and data_entry['src_nid'] == prev_src_data['src_nid']
  *         except Exception as err:
  *             raise extra_msg(err,             # <<<<<<<<<<<<<<
@@ -7996,7 +7996,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __Pyx_GetModuleGlobalName(__pyx_t_14, __pyx_n_s_extra_msg); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 226, __pyx_L13_except_error)
       __Pyx_GOTREF(__pyx_t_14);
 
-      /* "graph_util.py":227
+      /* "graphutix._util.py":227
  *         except Exception as err:
  *             raise extra_msg(err,
  *                             f"a source node cannot be parsed from the string `{splits[0]}`; the whole line to parse is `{line}`")             # <<<<<<<<<<<<<<
@@ -8093,7 +8093,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     goto __pyx_L13_except_error;
     __pyx_L13_except_error:;
 
-    /* "graph_util.py":222
+    /* "graphutix._util.py":222
  *         if len(splits) <= 1:
  *             raise ValueError(f"the string `{line}` does not seen to describe an adjacency list or a path, while using `{self.node_sep}` as the delimiter")
  *         try:             # <<<<<<<<<<<<<<
@@ -8108,7 +8108,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_L16_try_end:;
   }
 
-  /* "graph_util.py":229
+  /* "graphutix._util.py":229
  *                             f"a source node cannot be parsed from the string `{splits[0]}`; the whole line to parse is `{line}`")
  * 
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter             # <<<<<<<<<<<<<<
@@ -8134,7 +8134,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __pyx_L23_bool_binop_done:;
   if (__pyx_t_6) {
 
-    /* "graph_util.py":230
+    /* "graphutix._util.py":230
  * 
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter
  *             adj_data = prev_adj_data if use_prev_data and prev_adj_data is not None else PaddedListDict()             # <<<<<<<<<<<<<<
@@ -8180,7 +8180,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_v_adj_data = __pyx_t_7;
     __pyx_t_7 = 0;
 
-    /* "graph_util.py":231
+    /* "graphutix._util.py":231
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter
  *             adj_data = prev_adj_data if use_prev_data and prev_adj_data is not None else PaddedListDict()
  *             for adj_node_edge_str in splits[1:]:             # <<<<<<<<<<<<<<
@@ -8232,7 +8232,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __Pyx_XDECREF_SET(__pyx_v_adj_node_edge_str, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "graph_util.py":232
+      /* "graphutix._util.py":232
  *             adj_data = prev_adj_data if use_prev_data and prev_adj_data is not None else PaddedListDict()
  *             for adj_node_edge_str in splits[1:]:
  *                 cur_adj_data = self._parse_by_format2(key_prefix='adj_', format_obj=self.adj_node_format, format_type=self._adj_node_format_type, text=adj_node_edge_str)             # <<<<<<<<<<<<<<
@@ -8260,7 +8260,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __Pyx_XDECREF_SET(__pyx_v_cur_adj_data, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "graph_util.py":233
+      /* "graphutix._util.py":233
  *             for adj_node_edge_str in splits[1:]:
  *                 cur_adj_data = self._parse_by_format2(key_prefix='adj_', format_obj=self.adj_node_format, format_type=self._adj_node_format_type, text=adj_node_edge_str)
  *                 if (adj_ntypes and cur_adj_data.get('adj_ntype', None) not in adj_ntypes) or (etypes and cur_adj_data.get('adj_etype', None) not in etypes):             # <<<<<<<<<<<<<<
@@ -8304,7 +8304,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_L30_bool_binop_done:;
       if (__pyx_t_6) {
 
-        /* "graph_util.py":234
+        /* "graphutix._util.py":234
  *                 cur_adj_data = self._parse_by_format2(key_prefix='adj_', format_obj=self.adj_node_format, format_type=self._adj_node_format_type, text=adj_node_edge_str)
  *                 if (adj_ntypes and cur_adj_data.get('adj_ntype', None) not in adj_ntypes) or (etypes and cur_adj_data.get('adj_etype', None) not in etypes):
  *                     continue             # <<<<<<<<<<<<<<
@@ -8313,7 +8313,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
         goto __pyx_L27_continue;
 
-        /* "graph_util.py":233
+        /* "graphutix._util.py":233
  *             for adj_node_edge_str in splits[1:]:
  *                 cur_adj_data = self._parse_by_format2(key_prefix='adj_', format_obj=self.adj_node_format, format_type=self._adj_node_format_type, text=adj_node_edge_str)
  *                 if (adj_ntypes and cur_adj_data.get('adj_ntype', None) not in adj_ntypes) or (etypes and cur_adj_data.get('adj_etype', None) not in etypes):             # <<<<<<<<<<<<<<
@@ -8322,7 +8322,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
       }
 
-      /* "graph_util.py":235
+      /* "graphutix._util.py":235
  *                 if (adj_ntypes and cur_adj_data.get('adj_ntype', None) not in adj_ntypes) or (etypes and cur_adj_data.get('adj_etype', None) not in etypes):
  *                     continue
  *                 adj_data += cur_adj_data             # <<<<<<<<<<<<<<
@@ -8334,7 +8334,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __Pyx_DECREF_SET(__pyx_v_adj_data, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "graph_util.py":231
+      /* "graphutix._util.py":231
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter
  *             adj_data = prev_adj_data if use_prev_data and prev_adj_data is not None else PaddedListDict()
  *             for adj_node_edge_str in splits[1:]:             # <<<<<<<<<<<<<<
@@ -8345,7 +8345,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "graph_util.py":237
+    /* "graphutix._util.py":237
  *                 adj_data += cur_adj_data
  * 
  *             if prev_data:             # <<<<<<<<<<<<<<
@@ -8355,7 +8355,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_prev_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 237, __pyx_L1_error)
     if (__pyx_t_6) {
 
-      /* "graph_util.py":238
+      /* "graphutix._util.py":238
  * 
  *             if prev_data:
  *                 if use_prev_data:             # <<<<<<<<<<<<<<
@@ -8365,7 +8365,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_use_prev_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 238, __pyx_L1_error)
       if (__pyx_t_6) {
 
-        /* "graph_util.py":239
+        /* "graphutix._util.py":239
  *             if prev_data:
  *                 if use_prev_data:
  *                     data_entry.update(prev_src_data)             # <<<<<<<<<<<<<<
@@ -8392,7 +8392,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "graph_util.py":240
+        /* "graphutix._util.py":240
  *                 if use_prev_data:
  *                     data_entry.update(prev_src_data)
  *                     return None, (data_entry, adj_data)             # <<<<<<<<<<<<<<
@@ -8420,7 +8420,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __pyx_t_4 = 0;
         goto __pyx_L0;
 
-        /* "graph_util.py":238
+        /* "graphutix._util.py":238
  * 
  *             if prev_data:
  *                 if use_prev_data:             # <<<<<<<<<<<<<<
@@ -8429,7 +8429,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
       }
 
-      /* "graph_util.py":242
+      /* "graphutix._util.py":242
  *                     return None, (data_entry, adj_data)
  *                 else:
  *                     if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -8441,7 +8441,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_prev_adj_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
         if (__pyx_t_6) {
 
-          /* "graph_util.py":243
+          /* "graphutix._util.py":243
  *                 else:
  *                     if prev_adj_data:
  *                         prev_src_data.update(prev_adj_data)             # <<<<<<<<<<<<<<
@@ -8469,7 +8469,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "graph_util.py":242
+          /* "graphutix._util.py":242
  *                     return None, (data_entry, adj_data)
  *                 else:
  *                     if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -8478,7 +8478,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
         }
 
-        /* "graph_util.py":244
+        /* "graphutix._util.py":244
  *                     if prev_adj_data:
  *                         prev_src_data.update(prev_adj_data)
  *                     return prev_src_data, (data_entry, adj_data)             # <<<<<<<<<<<<<<
@@ -8508,7 +8508,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         goto __pyx_L0;
       }
 
-      /* "graph_util.py":237
+      /* "graphutix._util.py":237
  *                 adj_data += cur_adj_data
  * 
  *             if prev_data:             # <<<<<<<<<<<<<<
@@ -8517,7 +8517,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
     }
 
-    /* "graph_util.py":246
+    /* "graphutix._util.py":246
  *                     return prev_src_data, (data_entry, adj_data)
  *             else:
  *                 if adj_data:             # <<<<<<<<<<<<<<
@@ -8528,7 +8528,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_adj_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 246, __pyx_L1_error)
       if (__pyx_t_6) {
 
-        /* "graph_util.py":247
+        /* "graphutix._util.py":247
  *             else:
  *                 if adj_data:
  *                     data_entry.update(adj_data)             # <<<<<<<<<<<<<<
@@ -8554,7 +8554,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-        /* "graph_util.py":248
+        /* "graphutix._util.py":248
  *                 if adj_data:
  *                     data_entry.update(adj_data)
  *                     return data_entry             # <<<<<<<<<<<<<<
@@ -8566,7 +8566,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __pyx_r = __pyx_v_data_entry;
         goto __pyx_L0;
 
-        /* "graph_util.py":246
+        /* "graphutix._util.py":246
  *                     return prev_src_data, (data_entry, adj_data)
  *             else:
  *                 if adj_data:             # <<<<<<<<<<<<<<
@@ -8575,7 +8575,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
       }
 
-      /* "graph_util.py":250
+      /* "graphutix._util.py":250
  *                     return data_entry
  *                 else:
  *                     return None             # <<<<<<<<<<<<<<
@@ -8589,7 +8589,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       }
     }
 
-    /* "graph_util.py":229
+    /* "graphutix._util.py":229
  *                             f"a source node cannot be parsed from the string `{splits[0]}`; the whole line to parse is `{line}`")
  * 
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter             # <<<<<<<<<<<<<<
@@ -8598,7 +8598,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
   }
 
-  /* "graph_util.py":252
+  /* "graphutix._util.py":252
  *                     return None
  *         else:
  *             if prev_data:             # <<<<<<<<<<<<<<
@@ -8609,7 +8609,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_prev_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 252, __pyx_L1_error)
     if (__pyx_t_6) {
 
-      /* "graph_util.py":253
+      /* "graphutix._util.py":253
  *         else:
  *             if prev_data:
  *                 if use_prev_data:             # <<<<<<<<<<<<<<
@@ -8619,7 +8619,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
       __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_use_prev_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 253, __pyx_L1_error)
       if (__pyx_t_6) {
 
-        /* "graph_util.py":254
+        /* "graphutix._util.py":254
  *             if prev_data:
  *                 if use_prev_data:
  *                     return None, (prev_src_data, prev_adj_data)             # <<<<<<<<<<<<<<
@@ -8649,7 +8649,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __pyx_t_4 = 0;
         goto __pyx_L0;
 
-        /* "graph_util.py":253
+        /* "graphutix._util.py":253
  *         else:
  *             if prev_data:
  *                 if use_prev_data:             # <<<<<<<<<<<<<<
@@ -8658,7 +8658,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
       }
 
-      /* "graph_util.py":256
+      /* "graphutix._util.py":256
  *                     return None, (prev_src_data, prev_adj_data)
  *                 else:
  *                     if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -8670,7 +8670,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_prev_adj_data); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 256, __pyx_L1_error)
         if (__pyx_t_6) {
 
-          /* "graph_util.py":257
+          /* "graphutix._util.py":257
  *                 else:
  *                     if prev_adj_data:
  *                         prev_src_data.update(prev_adj_data)             # <<<<<<<<<<<<<<
@@ -8698,7 +8698,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "graph_util.py":256
+          /* "graphutix._util.py":256
  *                     return None, (prev_src_data, prev_adj_data)
  *                 else:
  *                     if prev_adj_data:             # <<<<<<<<<<<<<<
@@ -8707,7 +8707,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
         }
 
-        /* "graph_util.py":258
+        /* "graphutix._util.py":258
  *                     if prev_adj_data:
  *                         prev_src_data.update(prev_adj_data)
  *                     return prev_src_data, (None, None)             # <<<<<<<<<<<<<<
@@ -8729,7 +8729,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
         goto __pyx_L0;
       }
 
-      /* "graph_util.py":252
+      /* "graphutix._util.py":252
  *                     return None
  *         else:
  *             if prev_data:             # <<<<<<<<<<<<<<
@@ -8738,7 +8738,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
  */
     }
 
-    /* "graph_util.py":260
+    /* "graphutix._util.py":260
  *                     return prev_src_data, (None, None)
  *             else:
  *                 return None             # <<<<<<<<<<<<<<
@@ -8752,7 +8752,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
     }
   }
 
-  /* "graph_util.py":190
+  /* "graphutix._util.py":190
  *                                          extra_msg="one of the `source_node_format`, `adj_node_format`, `edge_format` is a tuple, and in this case `field_sep` must be specified")
  * 
  *     def parse_line(self, line: str, src_ntypes=None, adj_ntypes=None, etypes=None, prev_data: PrevData = None, verbose=__debug__):             # <<<<<<<<<<<<<<
@@ -8770,7 +8770,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   __Pyx_XDECREF(__pyx_t_15);
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
-  __Pyx_AddTraceback("graph_util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.AdjacencyFileFormat.parse_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_prev_src_data);
@@ -8789,7 +8789,7 @@ static PyObject *__pyx_pf_10graph_util_19AdjacencyFileFormat_6parse_line(CYTHON_
   return __pyx_r;
 }
 
-/* "graph_util.py":269
+/* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -8824,7 +8824,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
     PyObject* values[11] = {0,0,0,0,0,0,0,0,0,0,0};
     values[1] = ((PyObject *)((PyObject *)Py_None));
 
-    /* "graph_util.py":270
+    /* "graphutix._util.py":270
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -8833,7 +8833,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[2] = ((PyObject *)((PyObject *)Py_None));
 
-    /* "graph_util.py":271
+    /* "graphutix._util.py":271
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  adj_node_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -8842,7 +8842,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[3] = ((PyObject *)((PyObject *)Py_None));
 
-    /* "graph_util.py":272
+    /* "graphutix._util.py":272
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  adj_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  edge_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -8851,7 +8851,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[4] = ((PyObject *)((PyObject *)Py_None));
 
-    /* "graph_util.py":273
+    /* "graphutix._util.py":273
  *                  adj_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  edge_types: TYPE_NODE_EDGE_FILTER = None,
  *                  node_edge_types_in_file_name=True,             # <<<<<<<<<<<<<<
@@ -8861,7 +8861,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
     values[5] = ((PyObject *)((PyObject *)Py_True));
     values[6] = ((PyObject*)((PyObject*)__pyx_kp_s__16));
 
-    /* "graph_util.py":275
+    /* "graphutix._util.py":275
  *                  node_edge_types_in_file_name=True,
  *                  file_name_part_sep: str = '-',
  *                  file_ext: str = None,             # <<<<<<<<<<<<<<
@@ -8870,7 +8870,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[7] = ((PyObject*)((PyObject *)Py_None));
 
-    /* "graph_util.py":276
+    /* "graphutix._util.py":276
  *                  file_name_part_sep: str = '-',
  *                  file_ext: str = None,
  *                  data_typing: Union[Mapping, Callable] = None,             # <<<<<<<<<<<<<<
@@ -8879,7 +8879,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[8] = ((PyObject *)((PyObject *)Py_None));
 
-    /* "graph_util.py":277
+    /* "graphutix._util.py":277
  *                  file_ext: str = None,
  *                  data_typing: Union[Mapping, Callable] = None,
  *                  multiline=False,             # <<<<<<<<<<<<<<
@@ -8888,7 +8888,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
  */
     values[9] = ((PyObject *)((PyObject *)Py_False));
 
-    /* "graph_util.py":278
+    /* "graphutix._util.py":278
  *                  data_typing: Union[Mapping, Callable] = None,
  *                  multiline=False,
  *                  node_meta_data: Mapping = None,             # <<<<<<<<<<<<<<
@@ -9038,7 +9038,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
   __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 11, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 269, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
-  __Pyx_AddTraceback("graph_util.ReadGraphAdjacencyFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.ReadGraphAdjacencyFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -9046,7 +9046,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_1__init__(PyObje
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_file_ext), (&PyString_Type), 1, "file_ext", 1))) __PYX_ERR(0, 275, __pyx_L1_error)
   __pyx_r = __pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(__pyx_self, __pyx_v_self, __pyx_v_file_format, __pyx_v_src_node_types, __pyx_v_adj_node_types, __pyx_v_edge_types, __pyx_v_node_edge_types_in_file_name, __pyx_v_file_name_part_sep, __pyx_v_file_ext, __pyx_v_data_typing, __pyx_v_multiline, __pyx_v_node_meta_data, __pyx_v_kwargs);
 
-  /* "graph_util.py":269
+  /* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -9071,7 +9071,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "graph_util.py":300
+  /* "graphutix._util.py":300
  *         :param kwargs:
  *         """
  *         self._src_node_types = src_node_types             # <<<<<<<<<<<<<<
@@ -9080,7 +9080,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_src_node_types_2, __pyx_v_src_node_types) < 0) __PYX_ERR(0, 300, __pyx_L1_error)
 
-  /* "graph_util.py":301
+  /* "graphutix._util.py":301
  *         """
  *         self._src_node_types = src_node_types
  *         self._adj_node_types = adj_node_types             # <<<<<<<<<<<<<<
@@ -9089,7 +9089,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_adj_node_types_2, __pyx_v_adj_node_types) < 0) __PYX_ERR(0, 301, __pyx_L1_error)
 
-  /* "graph_util.py":302
+  /* "graphutix._util.py":302
  *         self._src_node_types = src_node_types
  *         self._adj_node_types = adj_node_types
  *         self._edge_types = edge_types             # <<<<<<<<<<<<<<
@@ -9098,7 +9098,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_edge_types_2, __pyx_v_edge_types) < 0) __PYX_ERR(0, 302, __pyx_L1_error)
 
-  /* "graph_util.py":303
+  /* "graphutix._util.py":303
  *         self._adj_node_types = adj_node_types
  *         self._edge_types = edge_types
  *         self._has_src_node_type_filter = bool(src_node_types)             # <<<<<<<<<<<<<<
@@ -9111,7 +9111,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_has_src_node_type_filter, __pyx_t_2) < 0) __PYX_ERR(0, 303, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":304
+  /* "graphutix._util.py":304
  *         self._edge_types = edge_types
  *         self._has_src_node_type_filter = bool(src_node_types)
  *         self._has_adj_node_type_filter = bool(adj_node_types)             # <<<<<<<<<<<<<<
@@ -9124,7 +9124,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_has_adj_node_type_filter, __pyx_t_2) < 0) __PYX_ERR(0, 304, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":305
+  /* "graphutix._util.py":305
  *         self._has_src_node_type_filter = bool(src_node_types)
  *         self._has_adj_node_type_filter = bool(adj_node_types)
  *         self._has_edge_type_filter = bool(edge_types)             # <<<<<<<<<<<<<<
@@ -9137,7 +9137,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_has_edge_type_filter, __pyx_t_2) < 0) __PYX_ERR(0, 305, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":306
+  /* "graphutix._util.py":306
  *         self._has_adj_node_type_filter = bool(adj_node_types)
  *         self._has_edge_type_filter = bool(edge_types)
  *         self._file_name_part_sep = file_name_part_sep             # <<<<<<<<<<<<<<
@@ -9146,7 +9146,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_name_part_sep_2, __pyx_v_file_name_part_sep) < 0) __PYX_ERR(0, 306, __pyx_L1_error)
 
-  /* "graph_util.py":307
+  /* "graphutix._util.py":307
  *         self._has_edge_type_filter = bool(edge_types)
  *         self._file_name_part_sep = file_name_part_sep
  *         self._file_format = file_format             # <<<<<<<<<<<<<<
@@ -9155,7 +9155,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_format_2, __pyx_v_file_format) < 0) __PYX_ERR(0, 307, __pyx_L1_error)
 
-  /* "graph_util.py":308
+  /* "graphutix._util.py":308
  *         self._file_name_part_sep = file_name_part_sep
  *         self._file_format = file_format
  *         self._file_ext = file_ext             # <<<<<<<<<<<<<<
@@ -9164,7 +9164,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_ext_2, __pyx_v_file_ext) < 0) __PYX_ERR(0, 308, __pyx_L1_error)
 
-  /* "graph_util.py":309
+  /* "graphutix._util.py":309
  *         self._file_format = file_format
  *         self._file_ext = file_ext
  *         self._node_edge_types_in_file_name = node_edge_types_in_file_name             # <<<<<<<<<<<<<<
@@ -9173,7 +9173,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_node_edge_types_in_file_name_2, __pyx_v_node_edge_types_in_file_name) < 0) __PYX_ERR(0, 309, __pyx_L1_error)
 
-  /* "graph_util.py":310
+  /* "graphutix._util.py":310
  *         self._file_ext = file_ext
  *         self._node_edge_types_in_file_name = node_edge_types_in_file_name
  *         self._data_types = data_typing             # <<<<<<<<<<<<<<
@@ -9182,7 +9182,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_data_types, __pyx_v_data_typing) < 0) __PYX_ERR(0, 310, __pyx_L1_error)
 
-  /* "graph_util.py":311
+  /* "graphutix._util.py":311
  *         self._node_edge_types_in_file_name = node_edge_types_in_file_name
  *         self._data_types = data_typing
  *         self.multiline = multiline             # <<<<<<<<<<<<<<
@@ -9191,7 +9191,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_multiline, __pyx_v_multiline) < 0) __PYX_ERR(0, 311, __pyx_L1_error)
 
-  /* "graph_util.py":312
+  /* "graphutix._util.py":312
  *         self._data_types = data_typing
  *         self.multiline = multiline
  *         self.node_meta_data = node_meta_data             # <<<<<<<<<<<<<<
@@ -9200,7 +9200,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_node_meta_data, __pyx_v_node_meta_data) < 0) __PYX_ERR(0, 312, __pyx_L1_error)
 
-  /* "graph_util.py":269
+  /* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -9213,7 +9213,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("graph_util.ReadGraphAdjacencyFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.ReadGraphAdjacencyFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -9222,7 +9222,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile___init__(CYTHON_
 }
 static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "graph_util.py":314
+/* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -9299,7 +9299,7 @@ static PyObject *__pyx_pw_10graph_util_22ReadGraphAdjacencyFile_3__call__(PyObje
   __pyx_L3_error:;
   __Pyx_CLEAR(__pyx_v_args);
   __Pyx_CLEAR(__pyx_v_kwargs);
-  __Pyx_AddTraceback("graph_util.ReadGraphAdjacencyFile.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.ReadGraphAdjacencyFile.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -9351,7 +9351,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_2__call__(CYTHON
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_AddTraceback("graph_util.ReadGraphAdjacencyFile.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.ReadGraphAdjacencyFile.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
@@ -9359,7 +9359,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_2__call__(CYTHON
   return __pyx_r;
 }
 
-/* "graph_util.py":342
+/* "graphutix._util.py":342
  *             fin = file_path
  * 
  *         def _update_meta():             # <<<<<<<<<<<<<<
@@ -9406,7 +9406,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
   __pyx_outer_scope = (struct __pyx_obj_10graph_util___pyx_scope_struct_5___call__ *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
 
-  /* "graph_util.py":343
+  /* "graphutix._util.py":343
  * 
  *         def _update_meta():
  *             if self.node_meta_data:             # <<<<<<<<<<<<<<
@@ -9420,7 +9420,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "graph_util.py":344
+    /* "graphutix._util.py":344
  *         def _update_meta():
  *             if self.node_meta_data:
  *                 src_meta = self.node_meta_data[data['src_nid']]             # <<<<<<<<<<<<<<
@@ -9440,7 +9440,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
     __pyx_v_src_meta = __pyx_t_4;
     __pyx_t_4 = 0;
 
-    /* "graph_util.py":345
+    /* "graphutix._util.py":345
  *             if self.node_meta_data:
  *                 src_meta = self.node_meta_data[data['src_nid']]
  *                 if isinstance(src_meta, Mapping):             # <<<<<<<<<<<<<<
@@ -9454,7 +9454,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
     __pyx_t_5 = (__pyx_t_2 != 0);
     if (__pyx_t_5) {
 
-      /* "graph_util.py":346
+      /* "graphutix._util.py":346
  *                 src_meta = self.node_meta_data[data['src_nid']]
  *                 if isinstance(src_meta, Mapping):
  *                     data.update({(k if k.startswith('src_') else 'src_' + k): v for k, v in src_meta.items()})             # <<<<<<<<<<<<<<
@@ -9633,7 +9633,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "graph_util.py":345
+      /* "graphutix._util.py":345
  *             if self.node_meta_data:
  *                 src_meta = self.node_meta_data[data['src_nid']]
  *                 if isinstance(src_meta, Mapping):             # <<<<<<<<<<<<<<
@@ -9643,7 +9643,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
       goto __pyx_L4;
     }
 
-    /* "graph_util.py":348
+    /* "graphutix._util.py":348
  *                     data.update({(k if k.startswith('src_') else 'src_' + k): v for k, v in src_meta.items()})
  *                 else:
  *                     data['src_meta'] = src_meta             # <<<<<<<<<<<<<<
@@ -9656,7 +9656,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
     }
     __pyx_L4:;
 
-    /* "graph_util.py":343
+    /* "graphutix._util.py":343
  * 
  *         def _update_meta():
  *             if self.node_meta_data:             # <<<<<<<<<<<<<<
@@ -9665,7 +9665,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
  */
   }
 
-  /* "graph_util.py":342
+  /* "graphutix._util.py":342
  *             fin = file_path
  * 
  *         def _update_meta():             # <<<<<<<<<<<<<<
@@ -9685,7 +9685,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("graph_util.ReadGraphAdjacencyFile.__call__._update_meta", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.ReadGraphAdjacencyFile.__call__._update_meta", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_src_meta);
@@ -9696,7 +9696,7 @@ static PyObject *__pyx_pf_10graph_util_22ReadGraphAdjacencyFile_8__call____updat
   return __pyx_r;
 }
 
-/* "graph_util.py":314
+/* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -9736,7 +9736,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   __pyx_L3_first_run:;
   if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 314, __pyx_L1_error)
 
-  /* "graph_util.py":333
+  /* "graphutix._util.py":333
  *         # endregion
  * 
  *         if isinstance(file_path, str):             # <<<<<<<<<<<<<<
@@ -9747,7 +9747,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "graph_util.py":334
+    /* "graphutix._util.py":334
  * 
  *         if isinstance(file_path, str):
  *             main_name, ext_name = get_main_name_ext_name(file_path)  # NOTE: `ext_name` carries the '.'             # <<<<<<<<<<<<<<
@@ -9824,7 +9824,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __pyx_cur_scope->__pyx_v_ext_name = __pyx_t_5;
     __pyx_t_5 = 0;
 
-    /* "graph_util.py":335
+    /* "graphutix._util.py":335
  *         if isinstance(file_path, str):
  *             main_name, ext_name = get_main_name_ext_name(file_path)  # NOTE: `ext_name` carries the '.'
  *             if self._file_ext is not None and ext_name != self._file_ext:             # <<<<<<<<<<<<<<
@@ -9851,7 +9851,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __pyx_L8_bool_binop_done:;
     if (__pyx_t_2) {
 
-      /* "graph_util.py":336
+      /* "graphutix._util.py":336
  *             main_name, ext_name = get_main_name_ext_name(file_path)  # NOTE: `ext_name` carries the '.'
  *             if self._file_ext is not None and ext_name != self._file_ext:
  *                 return             # <<<<<<<<<<<<<<
@@ -9862,7 +9862,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __pyx_r = NULL;
       goto __pyx_L0;
 
-      /* "graph_util.py":335
+      /* "graphutix._util.py":335
  *         if isinstance(file_path, str):
  *             main_name, ext_name = get_main_name_ext_name(file_path)  # NOTE: `ext_name` carries the '.'
  *             if self._file_ext is not None and ext_name != self._file_ext:             # <<<<<<<<<<<<<<
@@ -9871,7 +9871,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
     }
 
-    /* "graph_util.py":337
+    /* "graphutix._util.py":337
  *             if self._file_ext is not None and ext_name != self._file_ext:
  *                 return
  *             fin = open(file_path, 'r')             # <<<<<<<<<<<<<<
@@ -9893,7 +9893,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __pyx_cur_scope->__pyx_v_fin = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "graph_util.py":333
+    /* "graphutix._util.py":333
  *         # endregion
  * 
  *         if isinstance(file_path, str):             # <<<<<<<<<<<<<<
@@ -9903,7 +9903,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     goto __pyx_L4;
   }
 
-  /* "graph_util.py":340
+  /* "graphutix._util.py":340
  * 
  *         else:
  *             fin = file_path             # <<<<<<<<<<<<<<
@@ -9917,7 +9917,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   }
   __pyx_L4:;
 
-  /* "graph_util.py":342
+  /* "graphutix._util.py":342
  *             fin = file_path
  * 
  *         def _update_meta():             # <<<<<<<<<<<<<<
@@ -9930,7 +9930,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   __pyx_cur_scope->__pyx_v__update_meta = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "graph_util.py":350
+  /* "graphutix._util.py":350
  *                     data['src_meta'] = src_meta
  * 
  *         if isinstance(self._file_format, str):             # <<<<<<<<<<<<<<
@@ -9944,7 +9944,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   __pyx_t_8 = (__pyx_t_2 != 0);
   if (__pyx_t_8) {
 
-    /* "graph_util.py":351
+    /* "graphutix._util.py":351
  * 
  *         if isinstance(self._file_format, str):
  *             if self._file_format == 'json':             # <<<<<<<<<<<<<<
@@ -9959,7 +9959,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       goto __pyx_L11;
     }
 
-    /* "graph_util.py":353
+    /* "graphutix._util.py":353
  *             if self._file_format == 'json':
  *                 pass
  *             elif self._file_format == 'csv':             # <<<<<<<<<<<<<<
@@ -9974,7 +9974,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       goto __pyx_L11;
     }
 
-    /* "graph_util.py":355
+    /* "graphutix._util.py":355
  *             elif self._file_format == 'csv':
  *                 pass
  *             elif self._file_format.startswith('simple'):             # <<<<<<<<<<<<<<
@@ -10005,7 +10005,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_8) {
 
-      /* "graph_util.py":358
+      /* "graphutix._util.py":358
  *                 # region simple adjacency/path file with only node ids
  * 
  *                 directives: str = self._file_format[7:]             # <<<<<<<<<<<<<<
@@ -10022,7 +10022,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __pyx_cur_scope->__pyx_v_directives = ((PyObject*)__pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "graph_util.py":359
+      /* "graphutix._util.py":359
  * 
  *                 directives: str = self._file_format[7:]
  *                 if not directives:             # <<<<<<<<<<<<<<
@@ -10033,7 +10033,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __pyx_t_2 = ((!__pyx_t_8) != 0);
       if (__pyx_t_2) {
 
-        /* "graph_util.py":360
+        /* "graphutix._util.py":360
  *                 directives: str = self._file_format[7:]
  *                 if not directives:
  *                     sep, com, remm, cut_before, cut_after = '\t', '#', True, ';', None             # <<<<<<<<<<<<<<
@@ -10066,7 +10066,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __pyx_cur_scope->__pyx_v_cut_after = __pyx_t_9;
         __pyx_t_9 = 0;
 
-        /* "graph_util.py":359
+        /* "graphutix._util.py":359
  * 
  *                 directives: str = self._file_format[7:]
  *                 if not directives:             # <<<<<<<<<<<<<<
@@ -10076,7 +10076,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         goto __pyx_L12;
       }
 
-      /* "graph_util.py":362
+      /* "graphutix._util.py":362
  *                     sep, com, remm, cut_before, cut_after = '\t', '#', True, ';', None
  *                 else:
  *                     sep, com, remm, cut_before, cut_after = directives[0], directives[1], bool(int(directives[2])), directives[3], directives[4]             # <<<<<<<<<<<<<<
@@ -10119,7 +10119,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       }
       __pyx_L12:;
 
-      /* "graph_util.py":364
+      /* "graphutix._util.py":364
  *                     sep, com, remm, cut_before, cut_after = directives[0], directives[1], bool(int(directives[2])), directives[3], directives[4]
  * 
  *                 if self.multiline:             # <<<<<<<<<<<<<<
@@ -10132,7 +10132,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (__pyx_t_2) {
 
-        /* "graph_util.py":365
+        /* "graphutix._util.py":365
  * 
  *                 if self.multiline:
  *                     prev = adj = None             # <<<<<<<<<<<<<<
@@ -10146,7 +10146,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(Py_None);
         __pyx_cur_scope->__pyx_v_adj = Py_None;
 
-        /* "graph_util.py":366
+        /* "graphutix._util.py":366
  *                 if self.multiline:
  *                     prev = adj = None
  *                     for line in fin:             # <<<<<<<<<<<<<<
@@ -10197,7 +10197,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_GIVEREF(__pyx_t_5);
           __pyx_t_5 = 0;
 
-          /* "graph_util.py":367
+          /* "graphutix._util.py":367
  *                     prev = adj = None
  *                     for line in fin:
  *                         line = line.strip()             # <<<<<<<<<<<<<<
@@ -10226,7 +10226,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_GIVEREF(__pyx_t_5);
           __pyx_t_5 = 0;
 
-          /* "graph_util.py":368
+          /* "graphutix._util.py":368
  *                     for line in fin:
  *                         line = line.strip()
  *                         if line[0] != com:             # <<<<<<<<<<<<<<
@@ -10241,7 +10241,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
           if (__pyx_t_2) {
 
-            /* "graph_util.py":369
+            /* "graphutix._util.py":369
  *                         line = line.strip()
  *                         if line[0] != com:
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)             # <<<<<<<<<<<<<<
@@ -10274,7 +10274,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_GIVEREF(__pyx_t_9);
             __pyx_t_9 = 0;
 
-            /* "graph_util.py":370
+            /* "graphutix._util.py":370
  *                         if line[0] != com:
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)
  *                             src_node_id = splits[0]             # <<<<<<<<<<<<<<
@@ -10288,7 +10288,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_GIVEREF(__pyx_t_9);
             __pyx_t_9 = 0;
 
-            /* "graph_util.py":371
+            /* "graphutix._util.py":371
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)
  *                             src_node_id = splits[0]
  *                             if src_node_id != prev:             # <<<<<<<<<<<<<<
@@ -10300,7 +10300,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
             if (__pyx_t_2) {
 
-              /* "graph_util.py":372
+              /* "graphutix._util.py":372
  *                             src_node_id = splits[0]
  *                             if src_node_id != prev:
  *                                 if prev is not None:             # <<<<<<<<<<<<<<
@@ -10311,7 +10311,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
               __pyx_t_8 = (__pyx_t_2 != 0);
               if (__pyx_t_8) {
 
-                /* "graph_util.py":373
+                /* "graphutix._util.py":373
  *                             if src_node_id != prev:
  *                                 if prev is not None:
  *                                     data = {'src_nid': prev, 'adj_nid': adj}             # <<<<<<<<<<<<<<
@@ -10327,7 +10327,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
                 __Pyx_GIVEREF(__pyx_t_9);
                 __pyx_t_9 = 0;
 
-                /* "graph_util.py":374
+                /* "graphutix._util.py":374
  *                                 if prev is not None:
  *                                     data = {'src_nid': prev, 'adj_nid': adj}
  *                                     _update_meta()             # <<<<<<<<<<<<<<
@@ -10338,7 +10338,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
                 __Pyx_GOTREF(__pyx_t_9);
                 __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-                /* "graph_util.py":375
+                /* "graphutix._util.py":375
  *                                     data = {'src_nid': prev, 'adj_nid': adj}
  *                                     _update_meta()
  *                                     yield make_data_(data_dict=data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -10378,7 +10378,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
                 __pyx_t_11 = __pyx_cur_scope->__pyx_t_2;
                 if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 375, __pyx_L1_error)
 
-                /* "graph_util.py":372
+                /* "graphutix._util.py":372
  *                             src_node_id = splits[0]
  *                             if src_node_id != prev:
  *                                 if prev is not None:             # <<<<<<<<<<<<<<
@@ -10387,7 +10387,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
               }
 
-              /* "graph_util.py":376
+              /* "graphutix._util.py":376
  *                                     _update_meta()
  *                                     yield make_data_(data_dict=data, data_typing=self._data_types)
  *                                 prev = src_node_id             # <<<<<<<<<<<<<<
@@ -10399,7 +10399,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
               __Pyx_DECREF_SET(__pyx_cur_scope->__pyx_v_prev, __pyx_cur_scope->__pyx_v_src_node_id);
               __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_src_node_id);
 
-              /* "graph_util.py":377
+              /* "graphutix._util.py":377
  *                                     yield make_data_(data_dict=data, data_typing=self._data_types)
  *                                 prev = src_node_id
  *                                 adj = splits[1:]             # <<<<<<<<<<<<<<
@@ -10413,7 +10413,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
               __Pyx_GIVEREF(__pyx_t_5);
               __pyx_t_5 = 0;
 
-              /* "graph_util.py":371
+              /* "graphutix._util.py":371
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)
  *                             src_node_id = splits[0]
  *                             if src_node_id != prev:             # <<<<<<<<<<<<<<
@@ -10423,7 +10423,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
               goto __pyx_L17;
             }
 
-            /* "graph_util.py":379
+            /* "graphutix._util.py":379
  *                                 adj = splits[1:]
  *                             else:
  *                                 adj.extend((splits[1:]))             # <<<<<<<<<<<<<<
@@ -10455,7 +10455,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             }
             __pyx_L17:;
 
-            /* "graph_util.py":368
+            /* "graphutix._util.py":368
  *                     for line in fin:
  *                         line = line.strip()
  *                         if line[0] != com:             # <<<<<<<<<<<<<<
@@ -10464,7 +10464,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
           }
 
-          /* "graph_util.py":366
+          /* "graphutix._util.py":366
  *                 if self.multiline:
  *                     prev = adj = None
  *                     for line in fin:             # <<<<<<<<<<<<<<
@@ -10474,7 +10474,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         }
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":380
+        /* "graphutix._util.py":380
  *                             else:
  *                                 adj.extend((splits[1:]))
  *                     data = {'src_nid': src_node_id, 'adj_nid': adj}             # <<<<<<<<<<<<<<
@@ -10491,7 +10491,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(__pyx_t_4);
         __pyx_t_4 = 0;
 
-        /* "graph_util.py":381
+        /* "graphutix._util.py":381
  *                                 adj.extend((splits[1:]))
  *                     data = {'src_nid': src_node_id, 'adj_nid': adj}
  *                     _update_meta()             # <<<<<<<<<<<<<<
@@ -10502,7 +10502,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":382
+        /* "graphutix._util.py":382
  *                     data = {'src_nid': src_node_id, 'adj_nid': adj}
  *                     _update_meta()
  *                     yield make_data_(data_dict=data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -10533,7 +10533,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __pyx_L20_resume_from_yield:;
         if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 382, __pyx_L1_error)
 
-        /* "graph_util.py":364
+        /* "graphutix._util.py":364
  *                     sep, com, remm, cut_before, cut_after = directives[0], directives[1], bool(int(directives[2])), directives[3], directives[4]
  * 
  *                 if self.multiline:             # <<<<<<<<<<<<<<
@@ -10543,7 +10543,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         goto __pyx_L13;
       }
 
-      /* "graph_util.py":384
+      /* "graphutix._util.py":384
  *                     yield make_data_(data_dict=data, data_typing=self._data_types)
  *                 else:
  *                     for line in fin:             # <<<<<<<<<<<<<<
@@ -10595,7 +10595,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_GIVEREF(__pyx_t_5);
           __pyx_t_5 = 0;
 
-          /* "graph_util.py":385
+          /* "graphutix._util.py":385
  *                 else:
  *                     for line in fin:
  *                         line = line.strip()             # <<<<<<<<<<<<<<
@@ -10624,7 +10624,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_GIVEREF(__pyx_t_5);
           __pyx_t_5 = 0;
 
-          /* "graph_util.py":386
+          /* "graphutix._util.py":386
  *                     for line in fin:
  *                         line = line.strip()
  *                         if line[0] != com:             # <<<<<<<<<<<<<<
@@ -10639,7 +10639,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
           if (__pyx_t_8) {
 
-            /* "graph_util.py":387
+            /* "graphutix._util.py":387
  *                         line = line.strip()
  *                         if line[0] != com:
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)             # <<<<<<<<<<<<<<
@@ -10672,7 +10672,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_GIVEREF(__pyx_t_3);
             __pyx_t_3 = 0;
 
-            /* "graph_util.py":388
+            /* "graphutix._util.py":388
  *                         if line[0] != com:
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)
  *                             data = {'src_nid': splits[0], 'adj_nid': splits[1:]}             # <<<<<<<<<<<<<<
@@ -10694,7 +10694,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_GIVEREF(__pyx_t_3);
             __pyx_t_3 = 0;
 
-            /* "graph_util.py":389
+            /* "graphutix._util.py":389
  *                             splits = split__(line, sep=sep, remove_empty_split=remm, lstrip=True, rstrip=True, parse=True, cut_before=cut_before, cut_after=cut_after)
  *                             data = {'src_nid': splits[0], 'adj_nid': splits[1:]}
  *                             _update_meta()             # <<<<<<<<<<<<<<
@@ -10705,7 +10705,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __Pyx_GOTREF(__pyx_t_3);
             __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-            /* "graph_util.py":390
+            /* "graphutix._util.py":390
  *                             data = {'src_nid': splits[0], 'adj_nid': splits[1:]}
  *                             _update_meta()
  *                             yield make_data_(data_dict=data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -10745,7 +10745,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
             __pyx_t_11 = __pyx_cur_scope->__pyx_t_2;
             if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 390, __pyx_L1_error)
 
-            /* "graph_util.py":386
+            /* "graphutix._util.py":386
  *                     for line in fin:
  *                         line = line.strip()
  *                         if line[0] != com:             # <<<<<<<<<<<<<<
@@ -10754,7 +10754,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
           }
 
-          /* "graph_util.py":384
+          /* "graphutix._util.py":384
  *                     yield make_data_(data_dict=data, data_typing=self._data_types)
  *                 else:
  *                     for line in fin:             # <<<<<<<<<<<<<<
@@ -10766,7 +10766,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       }
       __pyx_L13:;
 
-      /* "graph_util.py":355
+      /* "graphutix._util.py":355
  *             elif self._file_format == 'csv':
  *                 pass
  *             elif self._file_format.startswith('simple'):             # <<<<<<<<<<<<<<
@@ -10776,7 +10776,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     }
     __pyx_L11:;
 
-    /* "graph_util.py":350
+    /* "graphutix._util.py":350
  *                     data['src_meta'] = src_meta
  * 
  *         if isinstance(self._file_format, str):             # <<<<<<<<<<<<<<
@@ -10786,7 +10786,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     goto __pyx_L10;
   }
 
-  /* "graph_util.py":394
+  /* "graphutix._util.py":394
  *         else:
  *             # region complex adjacency/path file with adjacency/path associated attributes
  *             if self.multiline:             # <<<<<<<<<<<<<<
@@ -10800,7 +10800,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (__pyx_t_8) {
 
-      /* "graph_util.py":395
+      /* "graphutix._util.py":395
  *             # region complex adjacency/path file with adjacency/path associated attributes
  *             if self.multiline:
  *                 prev_data = (None, None)             # <<<<<<<<<<<<<<
@@ -10811,7 +10811,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __Pyx_GIVEREF(__pyx_tuple__15);
       __pyx_cur_scope->__pyx_v_prev_data = __pyx_tuple__15;
 
-      /* "graph_util.py":396
+      /* "graphutix._util.py":396
  *             if self.multiline:
  *                 prev_data = (None, None)
  *                 for line in fin:             # <<<<<<<<<<<<<<
@@ -10862,7 +10862,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(__pyx_t_5);
         __pyx_t_5 = 0;
 
-        /* "graph_util.py":397
+        /* "graphutix._util.py":397
  *                 prev_data = (None, None)
  *                 for line in fin:
  *                     data, prev_data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -10886,7 +10886,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_src_ntypes, __pyx_t_4) < 0) __PYX_ERR(0, 397, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":398
+        /* "graphutix._util.py":398
  *                 for line in fin:
  *                     data, prev_data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,
  *                                                                    adj_ntypes=self._adj_node_types,             # <<<<<<<<<<<<<<
@@ -10898,7 +10898,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_adj_ntypes, __pyx_t_4) < 0) __PYX_ERR(0, 397, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":399
+        /* "graphutix._util.py":399
  *                     data, prev_data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,
  *                                                                    adj_ntypes=self._adj_node_types,
  *                                                                    etypes=self._edge_types,             # <<<<<<<<<<<<<<
@@ -10910,7 +10910,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_etypes, __pyx_t_4) < 0) __PYX_ERR(0, 397, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":400
+        /* "graphutix._util.py":400
  *                                                                    adj_ntypes=self._adj_node_types,
  *                                                                    etypes=self._edge_types,
  *                                                                    prev_data=prev_data)             # <<<<<<<<<<<<<<
@@ -10919,7 +10919,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_prev_data, __pyx_cur_scope->__pyx_v_prev_data) < 0) __PYX_ERR(0, 397, __pyx_L1_error)
 
-        /* "graph_util.py":397
+        /* "graphutix._util.py":397
  *                 prev_data = (None, None)
  *                 for line in fin:
  *                     data, prev_data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -10986,7 +10986,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(__pyx_t_5);
         __pyx_t_5 = 0;
 
-        /* "graph_util.py":401
+        /* "graphutix._util.py":401
  *                                                                    etypes=self._edge_types,
  *                                                                    prev_data=prev_data)
  *                     if data is not None:             # <<<<<<<<<<<<<<
@@ -10997,7 +10997,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __pyx_t_2 = (__pyx_t_8 != 0);
         if (__pyx_t_2) {
 
-          /* "graph_util.py":402
+          /* "graphutix._util.py":402
  *                                                                    prev_data=prev_data)
  *                     if data is not None:
  *                         _update_meta()             # <<<<<<<<<<<<<<
@@ -11008,7 +11008,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "graph_util.py":403
+          /* "graphutix._util.py":403
  *                     if data is not None:
  *                         _update_meta()
  *                         yield make_data_(data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -11053,7 +11053,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
           __pyx_t_11 = __pyx_cur_scope->__pyx_t_2;
           if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 403, __pyx_L1_error)
 
-          /* "graph_util.py":401
+          /* "graphutix._util.py":401
  *                                                                    etypes=self._edge_types,
  *                                                                    prev_data=prev_data)
  *                     if data is not None:             # <<<<<<<<<<<<<<
@@ -11062,7 +11062,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
         }
 
-        /* "graph_util.py":396
+        /* "graphutix._util.py":396
  *             if self.multiline:
  *                 prev_data = (None, None)
  *                 for line in fin:             # <<<<<<<<<<<<<<
@@ -11072,7 +11072,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       }
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-      /* "graph_util.py":404
+      /* "graphutix._util.py":404
  *                         _update_meta()
  *                         yield make_data_(data, data_typing=self._data_types)
  *                 data = self._file_format.parse_line(None, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -11091,7 +11091,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_src_ntypes, __pyx_t_3) < 0) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "graph_util.py":405
+      /* "graphutix._util.py":405
  *                         yield make_data_(data, data_typing=self._data_types)
  *                 data = self._file_format.parse_line(None, src_ntypes=self._src_node_types,
  *                                                     adj_ntypes=self._adj_node_types,             # <<<<<<<<<<<<<<
@@ -11103,7 +11103,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_adj_ntypes, __pyx_t_3) < 0) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "graph_util.py":406
+      /* "graphutix._util.py":406
  *                 data = self._file_format.parse_line(None, src_ntypes=self._src_node_types,
  *                                                     adj_ntypes=self._adj_node_types,
  *                                                     etypes=self._edge_types,             # <<<<<<<<<<<<<<
@@ -11115,7 +11115,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_etypes, __pyx_t_3) < 0) __PYX_ERR(0, 404, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "graph_util.py":407
+      /* "graphutix._util.py":407
  *                                                     adj_ntypes=self._adj_node_types,
  *                                                     etypes=self._edge_types,
  *                                                     prev_data=prev_data)             # <<<<<<<<<<<<<<
@@ -11124,7 +11124,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
  */
       if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_prev_data, __pyx_cur_scope->__pyx_v_prev_data) < 0) __PYX_ERR(0, 404, __pyx_L1_error)
 
-      /* "graph_util.py":404
+      /* "graphutix._util.py":404
  *                         _update_meta()
  *                         yield make_data_(data, data_typing=self._data_types)
  *                 data = self._file_format.parse_line(None, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -11140,7 +11140,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __Pyx_GIVEREF(__pyx_t_3);
       __pyx_t_3 = 0;
 
-      /* "graph_util.py":408
+      /* "graphutix._util.py":408
  *                                                     etypes=self._edge_types,
  *                                                     prev_data=prev_data)
  *                 _update_meta()             # <<<<<<<<<<<<<<
@@ -11151,7 +11151,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "graph_util.py":409
+      /* "graphutix._util.py":409
  *                                                     prev_data=prev_data)
  *                 _update_meta()
  *                 yield make_data_(data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -11187,7 +11187,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       __pyx_L32_resume_from_yield:;
       if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 409, __pyx_L1_error)
 
-      /* "graph_util.py":394
+      /* "graphutix._util.py":394
  *         else:
  *             # region complex adjacency/path file with adjacency/path associated attributes
  *             if self.multiline:             # <<<<<<<<<<<<<<
@@ -11197,7 +11197,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
       goto __pyx_L25;
     }
 
-    /* "graph_util.py":411
+    /* "graphutix._util.py":411
  *                 yield make_data_(data, data_typing=self._data_types)
  *             else:
  *                 for line in fin:             # <<<<<<<<<<<<<<
@@ -11249,7 +11249,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(__pyx_t_9);
         __pyx_t_9 = 0;
 
-        /* "graph_util.py":412
+        /* "graphutix._util.py":412
  *             else:
  *                 for line in fin:
  *                     data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -11273,7 +11273,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_src_ntypes, __pyx_t_4) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":413
+        /* "graphutix._util.py":413
  *                 for line in fin:
  *                     data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,
  *                                                         adj_ntypes=self._adj_node_types,             # <<<<<<<<<<<<<<
@@ -11285,7 +11285,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_adj_ntypes, __pyx_t_4) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":414
+        /* "graphutix._util.py":414
  *                     data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,
  *                                                         adj_ntypes=self._adj_node_types,
  *                                                         etypes=self._edge_types)             # <<<<<<<<<<<<<<
@@ -11297,7 +11297,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_etypes, __pyx_t_4) < 0) __PYX_ERR(0, 412, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":412
+        /* "graphutix._util.py":412
  *             else:
  *                 for line in fin:
  *                     data = self._file_format.parse_line(line, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -11314,7 +11314,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GIVEREF(__pyx_t_4);
         __pyx_t_4 = 0;
 
-        /* "graph_util.py":415
+        /* "graphutix._util.py":415
  *                                                         adj_ntypes=self._adj_node_types,
  *                                                         etypes=self._edge_types)
  *                     _update_meta()             # <<<<<<<<<<<<<<
@@ -11325,7 +11325,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "graph_util.py":416
+        /* "graphutix._util.py":416
  *                                                         etypes=self._edge_types)
  *                     _update_meta()
  *                     yield make_data_(data, data_typing=self._data_types)             # <<<<<<<<<<<<<<
@@ -11370,7 +11370,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
         __pyx_t_11 = __pyx_cur_scope->__pyx_t_2;
         if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 416, __pyx_L1_error)
 
-        /* "graph_util.py":411
+        /* "graphutix._util.py":411
  *                 yield make_data_(data, data_typing=self._data_types)
  *             else:
  *                 for line in fin:             # <<<<<<<<<<<<<<
@@ -11384,7 +11384,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   }
   __pyx_L10:;
 
-  /* "graph_util.py":419
+  /* "graphutix._util.py":419
  *             # endregion
  * 
  *         if hasattr(fin, 'close'):             # <<<<<<<<<<<<<<
@@ -11395,7 +11395,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   __pyx_t_8 = (__pyx_t_2 != 0);
   if (__pyx_t_8) {
 
-    /* "graph_util.py":420
+    /* "graphutix._util.py":420
  * 
  *         if hasattr(fin, 'close'):
  *             fin.close()             # <<<<<<<<<<<<<<
@@ -11421,7 +11421,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "graph_util.py":419
+    /* "graphutix._util.py":419
  *             # endregion
  * 
  *         if hasattr(fin, 'close'):             # <<<<<<<<<<<<<<
@@ -11431,7 +11431,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "graph_util.py":314
+  /* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -11460,7 +11460,7 @@ static PyObject *__pyx_gb_10graph_util_22ReadGraphAdjacencyFile_4generator(__pyx
   return __pyx_r;
 }
 
-/* "graph_util.py":427
+/* "graphutix._util.py":427
  * 
  * # region utilities
  * def edge_density(com1, com2, edges):             # <<<<<<<<<<<<<<
@@ -11530,7 +11530,7 @@ static PyObject *__pyx_pw_10graph_util_13edge_density(PyObject *__pyx_self, PyOb
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("edge_density", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 427, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("graph_util.edge_density", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.edge_density", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -11559,7 +11559,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
   Py_ssize_t __pyx_t_11;
   __Pyx_RefNannySetupContext("edge_density", 0);
 
-  /* "graph_util.py":428
+  /* "graphutix._util.py":428
  * # region utilities
  * def edge_density(com1, com2, edges):
  *     ecnt: int = 0             # <<<<<<<<<<<<<<
@@ -11569,7 +11569,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_ecnt = __pyx_int_0;
 
-  /* "graph_util.py":429
+  /* "graphutix._util.py":429
  * def edge_density(com1, com2, edges):
  *     ecnt: int = 0
  *     for pair in product(com1, com2):             # <<<<<<<<<<<<<<
@@ -11666,7 +11666,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
     __Pyx_XDECREF_SET(__pyx_v_pair, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "graph_util.py":430
+    /* "graphutix._util.py":430
  *     ecnt: int = 0
  *     for pair in product(com1, com2):
  *         ecnt += pair in edges             # <<<<<<<<<<<<<<
@@ -11682,7 +11682,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
     __Pyx_DECREF_SET(__pyx_v_ecnt, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "graph_util.py":429
+    /* "graphutix._util.py":429
  * def edge_density(com1, com2, edges):
  *     ecnt: int = 0
  *     for pair in product(com1, com2):             # <<<<<<<<<<<<<<
@@ -11692,7 +11692,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":431
+  /* "graphutix._util.py":431
  *     for pair in product(com1, com2):
  *         ecnt += pair in edges
  *     return ecnt / (len(com1) * len(com2) - (len(com1) if com1 is com2 else 0))             # <<<<<<<<<<<<<<
@@ -11717,7 +11717,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "graph_util.py":427
+  /* "graphutix._util.py":427
  * 
  * # region utilities
  * def edge_density(com1, com2, edges):             # <<<<<<<<<<<<<<
@@ -11731,7 +11731,7 @@ static PyObject *__pyx_pf_10graph_util_12edge_density(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("graph_util.edge_density", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("graphutix._util.edge_density", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_ecnt);
@@ -11804,7 +11804,7 @@ static int __pyx_tp_clear_10graph_util___pyx_scope_struct__write_adj_data(PyObje
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct__write_adj_data = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct__write_adj_data", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct__write_adj_data", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct__write_adj_data), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct__write_adj_data, /*tp_dealloc*/
@@ -11914,7 +11914,7 @@ static int __pyx_tp_traverse_10graph_util___pyx_scope_struct_1_genexpr(PyObject 
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct_1_genexpr = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct_1_genexpr", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct_1_genexpr", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct_1_genexpr), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct_1_genexpr, /*tp_dealloc*/
@@ -12024,7 +12024,7 @@ static int __pyx_tp_traverse_10graph_util___pyx_scope_struct_2_genexpr(PyObject 
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct_2_genexpr = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct_2_genexpr", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct_2_genexpr", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct_2_genexpr), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct_2_genexpr, /*tp_dealloc*/
@@ -12138,7 +12138,7 @@ static int __pyx_tp_clear_10graph_util___pyx_scope_struct_3_draw_with_communitie
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct_3_draw_with_communities = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct_3_draw_with_communities", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct_3_draw_with_communities", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct_3_draw_with_communities), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct_3_draw_with_communities, /*tp_dealloc*/
@@ -12244,7 +12244,7 @@ static int __pyx_tp_traverse_10graph_util___pyx_scope_struct_4_genexpr(PyObject 
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct_4_genexpr = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct_4_genexpr", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct_4_genexpr", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct_4_genexpr), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct_4_genexpr, /*tp_dealloc*/
@@ -12420,7 +12420,7 @@ static int __pyx_tp_traverse_10graph_util___pyx_scope_struct_5___call__(PyObject
 
 static PyTypeObject __pyx_type_10graph_util___pyx_scope_struct_5___call__ = {
   PyVarObject_HEAD_INIT(0, 0)
-  "graph_util.__pyx_scope_struct_5___call__", /*tp_name*/
+  "graphutix._util.__pyx_scope_struct_5___call__", /*tp_name*/
   sizeof(struct __pyx_obj_10graph_util___pyx_scope_struct_5___call__), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_10graph_util___pyx_scope_struct_5___call__, /*tp_dealloc*/
@@ -12834,7 +12834,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "graph_util.py":70
+  /* "graphutix._util.py":70
  * 
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -12851,7 +12851,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -12862,7 +12862,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "graph_util.py":169
+  /* "graphutix._util.py":169
  *         # region sets format objs
  *         if isinstance(src_node_format, str) and 'node_id' not in src_node_format:
  *             raise ValueError("the field `node_id` must be defined in the node text format string")             # <<<<<<<<<<<<<<
@@ -12873,7 +12873,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "graph_util.py":229
+  /* "graphutix._util.py":229
  *                             f"a source node cannot be parsed from the string `{splits[0]}`; the whole line to parse is `{line}`")
  * 
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter             # <<<<<<<<<<<<<<
@@ -12884,7 +12884,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "graph_util.py":231
+  /* "graphutix._util.py":231
  *         if src_ntypes is None or data_entry.get('src_ntype', None) in src_ntypes:  # applies the source node type filter
  *             adj_data = prev_adj_data if use_prev_data and prev_adj_data is not None else PaddedListDict()
  *             for adj_node_edge_str in splits[1:]:             # <<<<<<<<<<<<<<
@@ -12895,7 +12895,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_slice__12);
   __Pyx_GIVEREF(__pyx_slice__12);
 
-  /* "graph_util.py":233
+  /* "graphutix._util.py":233
  *             for adj_node_edge_str in splits[1:]:
  *                 cur_adj_data = self._parse_by_format2(key_prefix='adj_', format_obj=self.adj_node_format, format_type=self._adj_node_format_type, text=adj_node_edge_str)
  *                 if (adj_ntypes and cur_adj_data.get('adj_ntype', None) not in adj_ntypes) or (etypes and cur_adj_data.get('adj_etype', None) not in etypes):             # <<<<<<<<<<<<<<
@@ -12909,7 +12909,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "graph_util.py":258
+  /* "graphutix._util.py":258
  *                     if prev_adj_data:
  *                         prev_src_data.update(prev_adj_data)
  *                     return prev_src_data, (None, None)             # <<<<<<<<<<<<<<
@@ -12920,7 +12920,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "graph_util.py":342
+  /* "graphutix._util.py":342
  *             fin = file_path
  * 
  *         def _update_meta():             # <<<<<<<<<<<<<<
@@ -12932,7 +12932,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__18);
   __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_update_meta, 342, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 342, __pyx_L1_error)
 
-  /* "graph_util.py":358
+  /* "graphutix._util.py":358
  *                 # region simple adjacency/path file with only node ids
  * 
  *                 directives: str = self._file_format[7:]             # <<<<<<<<<<<<<<
@@ -12943,7 +12943,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_slice__20);
   __Pyx_GIVEREF(__pyx_slice__20);
 
-  /* "graph_util.py":404
+  /* "graphutix._util.py":404
  *                         _update_meta()
  *                         yield make_data_(data, data_typing=self._data_types)
  *                 data = self._file_format.parse_line(None, src_ntypes=self._src_node_types,             # <<<<<<<<<<<<<<
@@ -12954,7 +12954,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "graph_util.py":22
+  /* "graphutix._util.py":22
  * 
  * 
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):             # <<<<<<<<<<<<<<
@@ -12969,7 +12969,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "graph_util.py":42
+  /* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -12981,7 +12981,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__27);
   __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(5, 0, 15, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_write_adj_data, 42, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 42, __pyx_L1_error)
 
-  /* "graph_util.py":70
+  /* "graphutix._util.py":70
  * 
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -12996,7 +12996,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
 
-  /* "graph_util.py":81
+  /* "graphutix._util.py":81
  * 
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -13011,7 +13011,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
 
-  /* "graph_util.py":92
+  /* "graphutix._util.py":92
  * 
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:             # <<<<<<<<<<<<<<
@@ -13023,7 +13023,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__35);
   __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(4, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_rnd_sbm_graph, 92, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 92, __pyx_L1_error)
 
-  /* "graph_util.py":118
+  /* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -13035,7 +13035,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__37);
   __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_draw_with_communities, 118, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 118, __pyx_L1_error)
 
-  /* "graph_util.py":133
+  /* "graphutix._util.py":133
  *     however, global node data is preferred to avoid redundancy.
  *     """
  *     __slots__ = ('source_node_format', 'adj_node_format', 'node_sep', 'field_sep', 'comment_indicator', '_source_node_format_type', '_adj_node_format_type')             # <<<<<<<<<<<<<<
@@ -13046,7 +13046,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__39);
   __Pyx_GIVEREF(__pyx_tuple__39);
 
-  /* "graph_util.py":135
+  /* "graphutix._util.py":135
  *     __slots__ = ('source_node_format', 'adj_node_format', 'node_sep', 'field_sep', 'comment_indicator', '_source_node_format_type', '_adj_node_format_type')
  *     TYPE_DATA_TEXT_FORMAT = Union[Tuple, str, NamedFieldExtractor]
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')             # <<<<<<<<<<<<<<
@@ -13057,7 +13057,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "graph_util.py":137
+  /* "graphutix._util.py":137
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):             # <<<<<<<<<<<<<<
@@ -13069,7 +13069,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__41);
   __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(4, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_set_format, 137, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 137, __pyx_L1_error)
 
-  /* "graph_util.py":145
+  /* "graphutix._util.py":145
  *             setattr(self, format_type_var_name, 1)
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:             # <<<<<<<<<<<<<<
@@ -13081,7 +13081,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__43);
   __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(5, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_parse_by_format2, 145, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(0, 145, __pyx_L1_error)
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -13096,7 +13096,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__47);
   __Pyx_GIVEREF(__pyx_tuple__47);
 
-  /* "graph_util.py":190
+  /* "graphutix._util.py":190
  *                                          extra_msg="one of the `source_node_format`, `adj_node_format`, `edge_format` is a tuple, and in this case `field_sep` must be specified")
  * 
  *     def parse_line(self, line: str, src_ntypes=None, adj_ntypes=None, etypes=None, prev_data: PrevData = None, verbose=__debug__):             # <<<<<<<<<<<<<<
@@ -13108,7 +13108,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__48);
   __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(7, 0, 16, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_parse_line, 190, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 190, __pyx_L1_error)
 
-  /* "graph_util.py":269
+  /* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -13123,7 +13123,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__52);
   __Pyx_GIVEREF(__pyx_tuple__52);
 
-  /* "graph_util.py":314
+  /* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -13135,7 +13135,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__53);
   __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(2, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_E_Documents_PyCharmProjects_PyMo, __pyx_n_s_call, 314, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 314, __pyx_L1_error)
 
-  /* "graph_util.py":427
+  /* "graphutix._util.py":427
  * 
  * # region utilities
  * def edge_density(com1, com2, edges):             # <<<<<<<<<<<<<<
@@ -13491,7 +13491,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "graph_util.py":1
+  /* "graphutix._util.py":1
  * from collections import namedtuple             # <<<<<<<<<<<<<<
  * from enum import IntEnum
  * from itertools import product
@@ -13510,7 +13510,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":2
+  /* "graphutix._util.py":2
  * from collections import namedtuple
  * from enum import IntEnum             # <<<<<<<<<<<<<<
  * from itertools import product
@@ -13530,7 +13530,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":3
+  /* "graphutix._util.py":3
  * from collections import namedtuple
  * from enum import IntEnum
  * from itertools import product             # <<<<<<<<<<<<<<
@@ -13551,7 +13551,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":4
+  /* "graphutix._util.py":4
  * from enum import IntEnum
  * from itertools import product
  * from typing import Callable, List, Union, Tuple, Set, Mapping             # <<<<<<<<<<<<<<
@@ -13607,7 +13607,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":6
+  /* "graphutix._util.py":6
  * from typing import Callable, List, Union, Tuple, Set, Mapping
  * 
  * import networkx as nx             # <<<<<<<<<<<<<<
@@ -13619,24 +13619,24 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_nx, __pyx_t_1) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":7
+  /* "graphutix._util.py":7
  * 
  * import networkx as nx
  * import numpy as np             # <<<<<<<<<<<<<<
  * 
- * import utilx.jsonx as json
+ * import utix.jsonx as json
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":9
+  /* "graphutix._util.py":9
  * import numpy as np
  * 
- * import utilx.jsonx as json             # <<<<<<<<<<<<<<
- * import utilx.np_ext as npx
- * import utilx.plot_ext as pltx
+ * import utix.jsonx as json             # <<<<<<<<<<<<<<
+ * import utix.np_ext as npx
+ * import utix.plot_ext as pltx
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13649,12 +13649,12 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_json, __pyx_t_2) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":10
+  /* "graphutix._util.py":10
  * 
- * import utilx.jsonx as json
- * import utilx.np_ext as npx             # <<<<<<<<<<<<<<
- * import utilx.plot_ext as pltx
- * import utilx.rnd_ext as rndx
+ * import utix.jsonx as json
+ * import utix.np_ext as npx             # <<<<<<<<<<<<<<
+ * import utix.plot_ext as pltx
+ * import utix.rnd_ext as rndx
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -13667,12 +13667,12 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_npx, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":11
- * import utilx.jsonx as json
- * import utilx.np_ext as npx
- * import utilx.plot_ext as pltx             # <<<<<<<<<<<<<<
- * import utilx.rnd_ext as rndx
- * from _util.dict_ext import tup2dict__, PaddedListDict
+  /* "graphutix._util.py":11
+ * import utix.jsonx as json
+ * import utix.np_ext as npx
+ * import utix.plot_ext as pltx             # <<<<<<<<<<<<<<
+ * import utix.rnd_ext as rndx
+ * from utix._util.dict_ext import tup2dict__, PaddedListDict
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13685,12 +13685,12 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pltx, __pyx_t_2) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":12
- * import utilx.np_ext as npx
- * import utilx.plot_ext as pltx
- * import utilx.rnd_ext as rndx             # <<<<<<<<<<<<<<
- * from _util.dict_ext import tup2dict__, PaddedListDict
- * from framework.torch.data_loading.data_entries import make_data_
+  /* "graphutix._util.py":12
+ * import utix.np_ext as npx
+ * import utix.plot_ext as pltx
+ * import utix.rnd_ext as rndx             # <<<<<<<<<<<<<<
+ * from utix._util.dict_ext import tup2dict__, PaddedListDict
+ * from utix.data_entries import make_data_
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -13703,12 +13703,12 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_rndx, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":13
- * import utilx.plot_ext as pltx
- * import utilx.rnd_ext as rndx
- * from _util.dict_ext import tup2dict__, PaddedListDict             # <<<<<<<<<<<<<<
- * from framework.torch.data_loading.data_entries import make_data_
- * from utilx.general_ext import extra_msg
+  /* "graphutix._util.py":13
+ * import utix.plot_ext as pltx
+ * import utix.rnd_ext as rndx
+ * from utix._util.dict_ext import tup2dict__, PaddedListDict             # <<<<<<<<<<<<<<
+ * from utix.data_entries import make_data_
+ * from utix.general import extra_msg
  */
   __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13731,12 +13731,12 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":14
- * import utilx.rnd_ext as rndx
- * from _util.dict_ext import tup2dict__, PaddedListDict
- * from framework.torch.data_loading.data_entries import make_data_             # <<<<<<<<<<<<<<
- * from utilx.general_ext import extra_msg
- * from utilx.io_ext import TYPE_FILENAME_OR_STREAM
+  /* "graphutix._util.py":14
+ * import utix.rnd_ext as rndx
+ * from utix._util.dict_ext import tup2dict__, PaddedListDict
+ * from utix.data_entries import make_data_             # <<<<<<<<<<<<<<
+ * from utix.general import extra_msg
+ * from utix.io_ext import TYPE_FILENAME_OR_STREAM
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -13752,12 +13752,12 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":15
- * from _util.dict_ext import tup2dict__, PaddedListDict
- * from framework.torch.data_loading.data_entries import make_data_
- * from utilx.general_ext import extra_msg             # <<<<<<<<<<<<<<
- * from utilx.io_ext import TYPE_FILENAME_OR_STREAM
- * from utilx.msg_ext import ensure_arg_not_none_or_empty
+  /* "graphutix._util.py":15
+ * from utix._util.dict_ext import tup2dict__, PaddedListDict
+ * from utix.data_entries import make_data_
+ * from utix.general import extra_msg             # <<<<<<<<<<<<<<
+ * from utix.io_ext import TYPE_FILENAME_OR_STREAM
+ * from utix.msg_ext import ensure_arg_not_none_or_empty
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13773,12 +13773,12 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":16
- * from framework.torch.data_loading.data_entries import make_data_
- * from utilx.general_ext import extra_msg
- * from utilx.io_ext import TYPE_FILENAME_OR_STREAM             # <<<<<<<<<<<<<<
- * from utilx.msg_ext import ensure_arg_not_none_or_empty
- * from utilx.path_ext import get_main_name_ext_name
+  /* "graphutix._util.py":16
+ * from utix.data_entries import make_data_
+ * from utix.general import extra_msg
+ * from utix.io_ext import TYPE_FILENAME_OR_STREAM             # <<<<<<<<<<<<<<
+ * from utix.msg_ext import ensure_arg_not_none_or_empty
+ * from utix.path_ext import get_main_name_ext_name
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 16, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -13794,12 +13794,12 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":17
- * from utilx.general_ext import extra_msg
- * from utilx.io_ext import TYPE_FILENAME_OR_STREAM
- * from utilx.msg_ext import ensure_arg_not_none_or_empty             # <<<<<<<<<<<<<<
- * from utilx.path_ext import get_main_name_ext_name
- * from utilx.str_ext import StringFilter, NamedFieldExtractor, split__
+  /* "graphutix._util.py":17
+ * from utix.general import extra_msg
+ * from utix.io_ext import TYPE_FILENAME_OR_STREAM
+ * from utix.msg_ext import ensure_arg_not_none_or_empty             # <<<<<<<<<<<<<<
+ * from utix.path_ext import get_main_name_ext_name
+ * from utix.str_ext import StringFilter, NamedFieldExtractor, split__
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -13815,11 +13815,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":18
- * from utilx.io_ext import TYPE_FILENAME_OR_STREAM
- * from utilx.msg_ext import ensure_arg_not_none_or_empty
- * from utilx.path_ext import get_main_name_ext_name             # <<<<<<<<<<<<<<
- * from utilx.str_ext import StringFilter, NamedFieldExtractor, split__
+  /* "graphutix._util.py":18
+ * from utix.io_ext import TYPE_FILENAME_OR_STREAM
+ * from utix.msg_ext import ensure_arg_not_none_or_empty
+ * from utix.path_ext import get_main_name_ext_name             # <<<<<<<<<<<<<<
+ * from utix.str_ext import StringFilter, NamedFieldExtractor, split__
  * 
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
@@ -13836,10 +13836,10 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":19
- * from utilx.msg_ext import ensure_arg_not_none_or_empty
- * from utilx.path_ext import get_main_name_ext_name
- * from utilx.str_ext import StringFilter, NamedFieldExtractor, split__             # <<<<<<<<<<<<<<
+  /* "graphutix._util.py":19
+ * from utix.msg_ext import ensure_arg_not_none_or_empty
+ * from utix.path_ext import get_main_name_ext_name
+ * from utix.str_ext import StringFilter, NamedFieldExtractor, split__             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -13871,7 +13871,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":22
+  /* "graphutix._util.py":22
  * 
  * 
  * def graph_to_files(g: nx.Graph, node_data_file: str, adj_file: TYPE_FILENAME_OR_STREAM, node_data_format='json', adj_file_format='adj'):             # <<<<<<<<<<<<<<
@@ -13900,7 +13900,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_graph_to_files, __pyx_t_3) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":37
+  /* "graphutix._util.py":37
  * 
  * 
  * class AdjDictFormat(IntEnum):             # <<<<<<<<<<<<<<
@@ -13919,7 +13919,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_1 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_AdjDictFormat, __pyx_n_s_AdjDictFormat, (PyObject *) NULL, __pyx_n_s_graph_util, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "graph_util.py":38
+  /* "graphutix._util.py":38
  * 
  * class AdjDictFormat(IntEnum):
  *     SrcNodeAdjDict = 0             # <<<<<<<<<<<<<<
@@ -13928,7 +13928,7 @@ if (!__Pyx_RefNanny) {
  */
   if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_SrcNodeAdjDict, __pyx_int_0) < 0) __PYX_ERR(0, 38, __pyx_L1_error)
 
-  /* "graph_util.py":39
+  /* "graphutix._util.py":39
  * class AdjDictFormat(IntEnum):
  *     SrcNodeAdjDict = 0
  *     EdgeDataDict = 1             # <<<<<<<<<<<<<<
@@ -13937,7 +13937,7 @@ if (!__Pyx_RefNanny) {
  */
   if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_EdgeDataDict, __pyx_int_1) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
 
-  /* "graph_util.py":37
+  /* "graphutix._util.py":37
  * 
  * 
  * class AdjDictFormat(IntEnum):             # <<<<<<<<<<<<<<
@@ -13952,7 +13952,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":42
+  /* "graphutix._util.py":42
  * 
  * 
  * def write_adj_data(file: TYPE_FILENAME_OR_STREAM, adj_dict: dict, node_sep: str = '\t', field_sep: str = '|', dict_format: AdjDictFormat = AdjDictFormat.SrcNodeAdjDict):             # <<<<<<<<<<<<<<
@@ -13989,7 +13989,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_write_adj_data, __pyx_t_3) < 0) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":65
+  /* "graphutix._util.py":65
  * # region stochastic block model
  * 
  * class SbmStyle(IntEnum):             # <<<<<<<<<<<<<<
@@ -14008,7 +14008,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_4 = __Pyx_Py3MetaclassPrepare(__pyx_t_3, __pyx_t_2, __pyx_n_s_SbmStyle, __pyx_n_s_SbmStyle, (PyObject *) NULL, __pyx_n_s_graph_util, (PyObject *) NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "graph_util.py":66
+  /* "graphutix._util.py":66
  * 
  * class SbmStyle(IntEnum):
  *     CorePeriphery = 0             # <<<<<<<<<<<<<<
@@ -14017,7 +14017,7 @@ if (!__Pyx_RefNanny) {
  */
   if (__Pyx_SetNameInClass(__pyx_t_4, __pyx_n_s_CorePeriphery, __pyx_int_0) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
 
-  /* "graph_util.py":67
+  /* "graphutix._util.py":67
  * class SbmStyle(IntEnum):
  *     CorePeriphery = 0
  *     AnomalyClusters = 1             # <<<<<<<<<<<<<<
@@ -14026,7 +14026,7 @@ if (!__Pyx_RefNanny) {
  */
   if (__Pyx_SetNameInClass(__pyx_t_4, __pyx_n_s_AnomalyClusters, __pyx_int_1) < 0) __PYX_ERR(0, 67, __pyx_L1_error)
 
-  /* "graph_util.py":65
+  /* "graphutix._util.py":65
  * # region stochastic block model
  * 
  * class SbmStyle(IntEnum):             # <<<<<<<<<<<<<<
@@ -14041,7 +14041,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":70
+  /* "graphutix._util.py":70
  * 
  * 
  * def sbm_core_periphery_P(k: int, block_size_range=(10, 30), intra_block_p=(0.6, 0.9), inter_block_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -14060,7 +14060,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sbm_core_periphery_P, __pyx_t_3) < 0) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":81
+  /* "graphutix._util.py":81
  * 
  * 
  * def sbm_anomaly_clusters_P(k: int, anomaly_clusters_size_range, non_anomaly_size_range, anomaly_cluster_p=(0.6, 0.9), non_anomaly_p=(0.05, 0.02), num_noisy_p_per_block=None, noise_p=None, seed: int = None, **kwargs):             # <<<<<<<<<<<<<<
@@ -14079,7 +14079,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sbm_anomaly_clusters_P, __pyx_t_2) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "graph_util.py":92
+  /* "graphutix._util.py":92
  * 
  * 
  * def rnd_sbm_graph(k: Union[int, tuple, list], seed: int = None, graph_style: SbmStyle = SbmStyle.CorePeriphery, directed=False, **kwargs) -> nx.Graph:             # <<<<<<<<<<<<<<
@@ -14136,7 +14136,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_rnd_sbm_graph, __pyx_t_4) < 0) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "graph_util.py":118
+  /* "graphutix._util.py":118
  * # region plots
  * 
  * def draw_with_communities(g: nx.Graph, community_label='block', cmap=pltx.ColorMaps.Tab10, node_size=10, edge_width=0.6):             # <<<<<<<<<<<<<<
@@ -14172,7 +14172,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_draw_with_communities, __pyx_t_3) < 0) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":126
+  /* "graphutix._util.py":126
  * # region graph file reading
  * 
  * class AdjacencyFileFormat:             # <<<<<<<<<<<<<<
@@ -14182,7 +14182,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_AdjacencyFileFormat, __pyx_n_s_AdjacencyFileFormat, (PyObject *) NULL, __pyx_n_s_graph_util, __pyx_kp_s_Defines_the_format_and_reads_a); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "graph_util.py":133
+  /* "graphutix._util.py":133
  *     however, global node data is preferred to avoid redundancy.
  *     """
  *     __slots__ = ('source_node_format', 'adj_node_format', 'node_sep', 'field_sep', 'comment_indicator', '_source_node_format_type', '_adj_node_format_type')             # <<<<<<<<<<<<<<
@@ -14191,7 +14191,7 @@ if (!__Pyx_RefNanny) {
  */
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_slots, __pyx_tuple__39) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
 
-  /* "graph_util.py":134
+  /* "graphutix._util.py":134
  *     """
  *     __slots__ = ('source_node_format', 'adj_node_format', 'node_sep', 'field_sep', 'comment_indicator', '_source_node_format_type', '_adj_node_format_type')
  *     TYPE_DATA_TEXT_FORMAT = Union[Tuple, str, NamedFieldExtractor]             # <<<<<<<<<<<<<<
@@ -14222,7 +14222,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_TYPE_DATA_TEXT_FORMAT, __pyx_t_1) < 0) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":135
+  /* "graphutix._util.py":135
  *     __slots__ = ('source_node_format', 'adj_node_format', 'node_sep', 'field_sep', 'comment_indicator', '_source_node_format_type', '_adj_node_format_type')
  *     TYPE_DATA_TEXT_FORMAT = Union[Tuple, str, NamedFieldExtractor]
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')             # <<<<<<<<<<<<<<
@@ -14237,7 +14237,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_PrevData, __pyx_t_5) < 0) __PYX_ERR(0, 135, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":137
+  /* "graphutix._util.py":137
  *     PrevData = namedtuple('AdjacencyFileFormat_PrevData', 'prev_src_data, prev_adj_data')
  * 
  *     def _set_format(self, format_obj, format_var_name, format_type_var_name):             # <<<<<<<<<<<<<<
@@ -14249,7 +14249,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_set_format, __pyx_t_5) < 0) __PYX_ERR(0, 137, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":145
+  /* "graphutix._util.py":145
  *             setattr(self, format_type_var_name, 1)
  * 
  *     def _parse_by_format2(self, key_prefix, format_obj, format_type: int, text: str) -> dict:             # <<<<<<<<<<<<<<
@@ -14268,7 +14268,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_parse_by_format2, __pyx_t_1) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -14287,7 +14287,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_src_node_format, __pyx_t_5) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":152
+  /* "graphutix._util.py":152
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),
  *                  adj_node_format: TYPE_DATA_TEXT_FORMAT = None,             # <<<<<<<<<<<<<<
@@ -14306,7 +14306,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_node_sep, __pyx_n_u_str) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_field_sep, __pyx_n_u_str) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
 
-  /* "graph_util.py":151
+  /* "graphutix._util.py":151
  *             return tup2dict__(format_obj.parse(text).items(), key_prefix=key_prefix)
  * 
  *     def __init__(self, src_node_format: TYPE_DATA_TEXT_FORMAT = ('nid',),             # <<<<<<<<<<<<<<
@@ -14321,7 +14321,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_5) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "graph_util.py":190
+  /* "graphutix._util.py":190
  *                                          extra_msg="one of the `source_node_format`, `adj_node_format`, `edge_format` is a tuple, and in this case `field_sep` must be specified")
  * 
  *     def parse_line(self, line: str, src_ntypes=None, adj_ntypes=None, etypes=None, prev_data: PrevData = None, verbose=__debug__):             # <<<<<<<<<<<<<<
@@ -14354,7 +14354,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_parse_line, __pyx_t_1) < 0) __PYX_ERR(0, 190, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":126
+  /* "graphutix._util.py":126
  * # region graph file reading
  * 
  * class AdjacencyFileFormat:             # <<<<<<<<<<<<<<
@@ -14367,7 +14367,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":263
+  /* "graphutix._util.py":263
  * 
  * 
  * class ReadGraphAdjacencyFile:             # <<<<<<<<<<<<<<
@@ -14377,7 +14377,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_ReadGraphAdjacencyFile, __pyx_n_s_ReadGraphAdjacencyFile, (PyObject *) NULL, __pyx_n_s_graph_util, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "graph_util.py":265
+  /* "graphutix._util.py":265
  * class ReadGraphAdjacencyFile:
  *     # region types
  *     TYPE_NODE_EDGE_FILTER = Union[StringFilter, List[str], Tuple[str, ...], Set[str]]             # <<<<<<<<<<<<<<
@@ -14433,7 +14433,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_TYPE_NODE_EDGE_FILTER, __pyx_t_4) < 0) __PYX_ERR(0, 265, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "graph_util.py":269
+  /* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -14461,7 +14461,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_file_format, __pyx_t_1) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":270
+  /* "graphutix._util.py":270
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -14478,7 +14478,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_src_node_types, __pyx_t_1) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":271
+  /* "graphutix._util.py":271
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  adj_node_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -14495,7 +14495,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_adj_node_types, __pyx_t_1) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "graph_util.py":272
+  /* "graphutix._util.py":272
  *                  src_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  adj_node_types: TYPE_NODE_EDGE_FILTER = None,
  *                  edge_types: TYPE_NODE_EDGE_FILTER = None,             # <<<<<<<<<<<<<<
@@ -14514,7 +14514,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_file_name_part_sep, __pyx_n_u_str) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_file_ext, __pyx_n_u_str) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
 
-  /* "graph_util.py":276
+  /* "graphutix._util.py":276
  *                  file_name_part_sep: str = '-',
  *                  file_ext: str = None,
  *                  data_typing: Union[Mapping, Callable] = None,             # <<<<<<<<<<<<<<
@@ -14542,7 +14542,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_data_typing, __pyx_t_6) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "graph_util.py":278
+  /* "graphutix._util.py":278
  *                  data_typing: Union[Mapping, Callable] = None,
  *                  multiline=False,
  *                  node_meta_data: Mapping = None,             # <<<<<<<<<<<<<<
@@ -14554,7 +14554,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_node_meta_data, __pyx_t_6) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "graph_util.py":269
+  /* "graphutix._util.py":269
  *     # endregion
  * 
  *     def __init__(self, file_format: Union[str, AdjacencyFileFormat] = None,             # <<<<<<<<<<<<<<
@@ -14569,7 +14569,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_6) < 0) __PYX_ERR(0, 269, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "graph_util.py":314
+  /* "graphutix._util.py":314
  *         self.node_meta_data = node_meta_data
  * 
  *     def __call__(self, file_path: str, *args, **kwargs):             # <<<<<<<<<<<<<<
@@ -14586,7 +14586,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_call, __pyx_t_4) < 0) __PYX_ERR(0, 314, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "graph_util.py":263
+  /* "graphutix._util.py":263
  * 
  * 
  * class ReadGraphAdjacencyFile:             # <<<<<<<<<<<<<<
@@ -14599,7 +14599,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":427
+  /* "graphutix._util.py":427
  * 
  * # region utilities
  * def edge_density(com1, com2, edges):             # <<<<<<<<<<<<<<
@@ -14611,7 +14611,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_edge_density, __pyx_t_3) < 0) __PYX_ERR(0, 427, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "graph_util.py":1
+  /* "graphutix._util.py":1
  * from collections import namedtuple             # <<<<<<<<<<<<<<
  * from enum import IntEnum
  * from itertools import product

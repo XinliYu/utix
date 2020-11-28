@@ -1,7 +1,7 @@
 import timeit
 
-from _util.general_ext import xsum, hprint_message
-from _util.dict_ext import xfdict
+from utix._util.general_ext import xsum, hprint_message
+from utix._util.dict_ext import xfdict
 
 data = [xfdict({'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5})] * 100
 

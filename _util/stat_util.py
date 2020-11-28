@@ -1,21 +1,50 @@
 import os
+import warnings
 from collections.abc import Iterable
 from functools import partial
+from itertools import islice, product
 from os import path
 from random import choice, shuffle, randrange, uniform
-from typing import Dict, List, Callable, Tuple, Union, Iterator, Any, Set
-
+from typing import Dict, List, Callable, Tuple, Union, Iterator, Any, Set, Mapping
+from copy import copy
 import numpy as np
+from sklearn.decomposition import IncrementalPCA
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.externals import joblib
+import sklearn.metrics.pairwise as sklearn_pairwise_metrics
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import precision_score, recall_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
 from tqdm import tqdm
+import xgboost as xgb
+import utix.argex as argex
+import utix.csvex as csvex
+import utix.iterex as iterex
+import utix.general as gex
+from utix.dictex import prioritize_keys
+from utix.timex import tic, toc
+from utix.pathex import ensure_dir_existence
+import utix.msgex as msgex
+import utix.plotex as plotex
+import pandas as pd
 
-import _util.arg_ext as argex
-import _util.csv_ext as csvex
-import _util.general_ext as gex
-from _util.dict_ext import dict_try_div, dict_try_floor_div, prioritize_keys
-from _util.general_ext import nonstr_iterable
-from _util.time_ext import tic, toc
-import _util.msg_ext as msgex
+
+def incremental_pca(feature_iter, batch_size, n_components=10):
+    ipca = IncrementalPCA(n_components=n_components, batch_size=batch_size)
+    for batch in iterex.chunk_iter(it=feature_iter, chunk_size=batch_size, as_list=True):
+        ipca.partial_fit(np.array(batch))
+    return ipca
+
+
+def get_avg_rank(score_matrix, weights=None):
+    ranks = np.argsort(-np.abs(score_matrix), axis=1)
+    if weights is None:
+        return np.mean(ranks, axis=0)
+    else:
+        return np.dot(ranks.T, weights)
+
 
 # region misc
 
@@ -43,6 +72,24 @@ def get_sklearn_models(**kwargs):
         'random_forest_mss50': partial(RandomForestClassifier, n_jobs=-1, min_samples_split=50),
         "decision_tree_md03": partial(DecisionTreeClassifier, max_depth=3)
     }
+
+
+class XgBoostSklearnWrapper:
+    def __init__(self, params=None):
+        self._params = params if params else {'objective': 'binary:logistic', 'eta': 0.2, 'gamma': 1.5, 'min_child_weight': 1.5, 'max_depth': 5}
+        self._model = None
+
+    def fit(self, X, y, num_rounds=20):
+        if isinstance(X, list):
+            X = np.array(X)
+        if isinstance(y, list):
+            y = np.array(y)
+        self._model = xgb.train(params=self._params, dtrain=xgb.DMatrix(X, label=y), num_boost_round=num_rounds)
+
+    def predict_proba(self, data):
+        if isinstance(data, list):
+            data = np.array(data)
+        return self._model.predict(xgb.DMatrix(data))
 
 
 # endregion
@@ -203,13 +250,76 @@ def binary_predict_pos_by_below_or_equal_threshold(pos_scores: np.ndarray, thres
 
 # endregion
 
-def build_binary_classification_models(models: dict, data: Union[Callable, Iterator[Tuple[Dict, Dict]]], eval_funcs: Dict[str, Callable],
-                                       overwrite=True, train_data: Dict = None, test_data: Dict = None,
+def get_predefined_model(model_name):
+    if model_name == 'rf' or model_name == 'random_forest':
+        return partial(RandomForestClassifier, n_jobs=70, random_state=0)
+    if model_name == 'rf_md03' or model_name == 'random_forest_md03':
+        return partial(RandomForestClassifier, n_jobs=-1, max_depth=3)
+    if model_name == 'rf_md05' or model_name == 'random_forest_md05':
+        return partial(RandomForestClassifier, n_jobs=-1, max_depth=5)
+    if model_name == 'rf_md10' or model_name == 'random_forest_md10':
+        return partial(RandomForestClassifier, n_jobs=-1, max_depth=10)
+    if model_name == 'rf_mss50' or model_name == 'random_forest_mss50':
+        return partial(RandomForestClassifier, n_jobs=-1, min_samples_split=50)
+    if model_name == 'rf_mss100' or model_name == 'random_forest_mss100':
+        return partial(RandomForestClassifier, n_jobs=-1, min_samples_split=100)
+    if model_name == 'dt' or model_name == 'decision_tree':
+        return partial(DecisionTreeClassifier, n_jobs=-1)
+    if model_name == 'dt_md03' or model_name == 'decision_tree_md03':
+        return partial(DecisionTreeClassifier, n_jobs=-1, max_depth=3)
+    if model_name == 'gp' or model_name == 'decision_tree_md03':
+        return partial(GaussianProcessClassifier, n_jobs=-1)
+    if model_name == 'knn':
+        return partial(KNeighborsClassifier, n_jobs=-1)
+    if model_name == 'knn20':
+        return partial(KNeighborsClassifier, n_jobs=-1, n_neighbors=20)
+    if model_name == 'adaboost_md02':
+        return partial(AdaBoostClassifier, base_estimator=DecisionTreeClassifier(max_depth=2))
+    if model_name == 'logistic':
+        return partial(LogisticRegression, n_jobs=-1, max_iter=200, solver='saga')
+    if model_name == 'xgboost':
+        return XgBoostSklearnWrapper
+
+
+def get_predefined_eval_funcs(name):
+    if name == 'precision':
+        return {
+            'precision': partial(precision_score, average='binary')
+        }
+    if name == 'recall':
+        return {
+            'recall': partial(recall_score, average='binary')
+        }
+    if name == 'precision_recall':
+        return {
+            'precision': partial(precision_score, average='binary'),
+            'recall': partial(recall_score, average='binary')
+        }
+
+
+def build_binary_classification_models(models: dict,
+                                       data: Union[Callable, Iterator[Tuple[Dict, Dict]]] = None,
+                                       eval_funcs: Dict[str, Callable] = None,
+                                       overwrite=True,
+                                       train_data: Dict = None,
+                                       test_data: Dict = None,
                                        score2pred_func: Callable = binary_predict_pos_by_above_threshold,
-                                       pos_label=1, neg_label=0,
-                                       score_th=0.5, score_th_mode='default', test_data_filter: Callable = None,
-                                       model_saving_dir_path: str = None, model_name_suffix: str = '', result_file_path: str = None,
-                                       print_out=__debug__):
+                                       pos_label=1,
+                                       neg_label=0,
+                                       score_th=0.5,
+                                       score_th_mode='default',
+                                       test_data_filter: Callable = None,
+                                       model_save_dir: str = None,
+                                       model_name_suffix: str = '',
+                                       group_types_to_eval=None,
+                                       result_file_path: str = None,
+                                       use_existing_models=True,
+                                       group_eval_only=False,
+                                       group_best_item_eval_funcs=None,
+                                       group_label_eval_funcs=None,
+                                       print_out=__debug__,
+                                       print_ignore=('model', 'train', 'test'),
+                                       plot_output_path=None):
     """
     Trains a set of binary classification models on the provided training sets and then test them on the provided test sets.
     :param data:
@@ -230,7 +340,7 @@ def build_binary_classification_models(models: dict, data: Union[Callable, Itera
                             if `score_th` is specified as a binary tuple, then it is treated as the beginning and the steps for the line search, with the end being the maximum score;
                             if `score_th` is a value, then it is treated as the beginning of the line search, with the end being the maximum score, and the steps being 6.
     :param test_data_filter: a filter applied on the model name, training set name and the test set name to determine if a test should run; returns `False` to skip a test set.
-    :param model_saving_dir_path: path to the directory to save the trained models.
+    :param model_save_dir: path to the directory to save the trained models.
     :param result_file_path: path to save the evaluation results.
     :param print_out: `True` if some details of the execution of this method should be printed out on the terminal.
     """
@@ -242,22 +352,42 @@ def build_binary_classification_models(models: dict, data: Union[Callable, Itera
     if not data:
         data = ((train_data, test_data),)
 
-    results = []
-    data_idx = 0
+    results, trained_models, data_idx = [], {}, 0
+    model_files = {}
     for model_name, model_args in models.items():
+        is_threshold = False
+        if isinstance(model_args, tuple) and len(model_args) == 2 and isinstance(model_args[0], int):
+            is_threshold = True
+            model_inst = model_args
+        else:
+            model_inst = argex.get_obj_from_args(model_args)
+            trained_models[model_name] = model_inst
+
         for train_data, test_data in (data() if callable(data) else data):
             tic(f'model: {model_name}', verbose=print_out)
-            model_inst = argex.get_obj_from_args(model_args)
             for train_data_name, train_data_tup in train_data.items():
                 if print_out:
                     gex.hprint_pairs(("train data", train_data_name), ("size", len(train_data_tup[0])))
-                model_inst.fit(*train_data_tup)
-                if model_saving_dir_path:
-                    if not path.exists(model_saving_dir_path):
-                        os.makedirs(model_saving_dir_path)
-                    joblib.dump(model_inst, path.join(model_saving_dir_path, f"{model_name}-{train_data_name}{f'-{model_name_suffix}' if model_name_suffix else ''}.pkl"))
+                _model_inst = model_inst
+
+                if not is_threshold:
+                    if model_save_dir:
+                        model_save_path = path.join(ensure_dir_existence(model_save_dir), f"{model_name}-{train_data_name}{f'-{model_name_suffix}' if model_name_suffix else ''}-{data_idx}.pkl")
+                        model_files[(model_name, train_data_name, data_idx)] = model_save_path
+                        model_save_path_exists = path.exists(model_save_path)
+                        if use_existing_models and model_save_path_exists:
+                            _model_inst = joblib.load(model_save_path)
+                        else:
+                            if not overwrite and model_save_path_exists:
+                                raise ValueError(f'model file \'{model_save_path}\' already exists; specify the `overwrite` as `True` to overwrite')
+                            _model_inst.fit(*train_data_tup)
+                            joblib.dump(_model_inst, model_save_path)
+
+                    else:
+                        _model_inst.fit(*train_data_tup)
+
                 eval_binary_classification(
-                    model=model_inst,
+                    model=_model_inst,
                     test_data=test_data,
                     eval_funcs=eval_funcs,
                     score2pred_func=score2pred_func,
@@ -268,19 +398,63 @@ def build_binary_classification_models(models: dict, data: Union[Callable, Itera
                     result_output_list=results,
                     score_th_mode=score_th_mode,
                     test_data_filter=None if test_data_filter is None else partial(test_data_filter, model_name=model_name, train_data_name=train_data_name),
-                    print_out=print_out
+                    group_types_to_eval=group_types_to_eval,
+                    print_out=print_out,
+                    print_ignore=print_ignore,
+                    group_eval_only=group_eval_only,
+                    group_best_item_eval_funcs=group_best_item_eval_funcs,
+                    group_label_eval_funcs=group_label_eval_funcs
                 )
             data_idx += 1
             toc(print_out=print_out)
     if result_file_path:
         csvex.write_dicts_to_csv(row_dicts=results, output_path=result_file_path, append=True)
+    if plot_output_path:
+        df = pd.DataFrame(results)
+        group_types = ('all',)
+        if group_types_to_eval is not None:
+            group_types += group_types_to_eval
+        tests = set(result['test'] for result in results)
+        plotex.pd_series_plot(df=df,
+                              output_path=plot_output_path,
+                              group_cols=('group_type', 'test'),
+                              groups=product(group_types, tests),
+                              series_col='model',
+                              index_col='threshold_pos',
+                              value_cols=('precision', 'recall'),
+                              xlabel='threshold',
+                              plot_args={
+                                  'precision': {
+                                      'title': 'hist_p@1_est',
+                                      'marker': 'o'
+                                  },
+                                  'recall': {
+                                      'title': 'hist_trig_est',
+                                      'marker': '^',
+                                      'linestyle': 'dashed'
+                                  },
+                              })
+    return model_files
 
 
-def eval_binary_classification(model, test_data: Dict[str, Tuple],
-                               eval_funcs: Dict[str, Callable], score2pred_func: Callable = binary_predict_pos_by_above_threshold,
-                               pos_label: int = 1, neg_label: int = 0,
-                               score_th: Union[float, Tuple, List] = 0.5,
-                               result_item_base: Dict = None, result_output_list: List[Dict] = None, score_th_mode='default', test_data_filter: Callable = None, print_out=True):
+def eval_binary_classification(
+        model,
+        test_data: Dict[str, Tuple],
+        eval_funcs: Dict[str, Callable],
+        score2pred_func: Callable = binary_predict_pos_by_above_threshold,
+        pos_label: int = 1, neg_label: int = 0,
+        score_th: Union[float, Tuple, List] = 0.5,
+        result_item_base: Dict = None,
+        result_output_list: List[Dict] = None,
+        score_th_mode='default',
+        test_data_filter: Callable = None,
+        group_types_to_eval=None,
+        group_eval_only=False,
+        group_best_item_eval_funcs: Dict[str, Callable] = None,
+        group_label_eval_funcs: Dict[str, Callable] = None,
+        print_out=True,
+        print_ignore=None
+):
     """
     Evaluates a binary classification model on the provided data sets. Supports threshold line search, and grouped evaluation.
     :param model: the binary classification model to evaluate; must have a method `predict_proba` that takes the features as input, and generate scores for each label.
@@ -307,6 +481,9 @@ def eval_binary_classification(model, test_data: Dict[str, Tuple],
     result_item_base = {} if result_item_base is None else result_item_base.copy()
 
     for test_data_name, test_data_tup in test_data.items():
+        if test_data_tup is None:
+            gex.hprint_message("test data not set", test_data_name)
+            continue
         if test_data_filter is not None and not test_data_filter(test_data_name):
             if print_out:
                 gex.hprint_message("skip test data", test_data_name)
@@ -318,82 +495,170 @@ def eval_binary_classification(model, test_data: Dict[str, Tuple],
 
         if len(test_data_tup) == 2:
             test_features, test_labels = test_data_tup
-            group_indices = None
+            group_indices = group_types = None
         elif len(test_data_tup) == 3:
             test_features, test_labels, group_indices = test_data_tup
+            group_types = None
+        elif len(test_data_tup) == 4:
+            test_features, test_labels, group_indices, group_types = test_data_tup
         else:
             raise ValueError("The format of `test_data` is not recognized.")
 
-        scores = model.predict_proba(test_features)[:, pos_label]
-        if score_th_mode == 'line_search':
-            score_th_type = type(ori_score_th)
-            max_score = np.max(scores)
-            if score_th_type in (tuple, list):
-                score_th = ori_score_th.copy()
-                if score_th[0] > max_score:
-                    min_score = np.min(scores)
-                    score_th[0] = (max_score - min_score) * score_th[0] + min_score
-                if len(score_th) == 1:
-                    score_th = np.linspace(score_th[0], max_score, 6)
-                elif len(score_th) == 2:
-                    score_th = np.linspace(score_th[0], max_score, score_th[1])
+        if isinstance(model, tuple):
+            feature_idx, score_th = model
+            scores = np.array([x[feature_idx] for x in test_features])
+        else:
+            scores = model.predict_proba(test_features)
+            if len(scores.shape) > 1:
+                scores = scores[:, pos_label]
+            if score_th_mode == 'line_search':
+                score_th_type = type(ori_score_th)
+                max_score = np.max(scores)
+                if score_th_type in (tuple, list):
+                    score_th = list(ori_score_th)
+                    if score_th[0] > max_score:
+                        min_score = np.min(scores)
+                        score_th[0] = (max_score - min_score) * score_th[0] + min_score
+                    if len(score_th) == 1:
+                        score_th = np.linspace(score_th[0], max_score, 6)
+                    elif len(score_th) == 2:
+                        score_th = np.linspace(score_th[0], max_score, score_th[1])
+                    else:
+                        score_th = np.linspace(score_th[0], score_th[1], score_th[2])
                 else:
-                    score_th = np.linspace(score_th[0], score_th[1], score_th[2])
-            else:
-                score_th = ori_score_th
-                if score_th > max_score:
-                    min_score = np.min(scores)
-                    score_th = (max_score - min_score) * score_th + min_score
-                score_th = np.linspace(score_th, max_score, 10)
-            score_th = score_th[:-1]
+                    score_th = ori_score_th
+                    if score_th > max_score:
+                        min_score = np.min(scores)
+                        score_th = (max_score - min_score) * score_th + min_score
+                    score_th = np.linspace(score_th, max_score, 10)
+                score_th = score_th[:-1]
 
+        group_type_eval_enabled = (bool(group_types_to_eval) and group_types is not None)
         result_item_base['grouped'] = False
-        eval_binary_classification_by_score_threshold(
-            scores=scores,
-            labels=test_labels,
-            eval_funcs=eval_funcs,
-            score2pred_func=score2pred_func,
-            pos_label=pos_label,
-            neg_label=neg_label,
-            score_th=score_th,
-            result_item_base=result_item_base,
-            result_output_list=result_output_list
-        )
+        # result_item_base['label_type'] = 'item_label'
+        if group_type_eval_enabled:
+            result_item_base['group_type'] = None
 
-        if group_indices is not None:
-            grouped_pos_scores, grouped_labels = [], []
-            all_group_start = group_indices[0][0]
-            result_item_base['grouped'] = True
-            for group_start, group_end in group_indices:
-                group_start -= all_group_start
-                group_end -= all_group_start
-                best_score, best_score_label = sorted(zip(scores[group_start:group_end], test_labels[group_start:group_end]), reverse=True)[0]
-                grouped_pos_scores.append(best_score)
-                grouped_labels.append(best_score_label)
-
+        if not group_eval_only:
             eval_binary_classification_by_score_threshold(
-                scores=np.array(grouped_pos_scores),
-                labels=grouped_labels,
+                scores=scores,
+                labels=test_labels,
                 eval_funcs=eval_funcs,
                 score2pred_func=score2pred_func,
                 pos_label=pos_label,
                 neg_label=neg_label,
                 score_th=score_th,
                 result_item_base=result_item_base,
-                result_output_list=result_output_list
+                result_output_list=result_output_list,
+                print_ignore=print_ignore
             )
+
+        if group_indices is not None:
+            best_group_scores, best_group_item_labels, group_labels = [], [], []
+            all_group_start = group_indices[0][0]
+            result_item_base['grouped'] = True
+
+            if group_type_eval_enabled:
+                group_score_labels = {k: ([], [], []) for k in group_types_to_eval}
+                group_score_labels['all'] = (best_group_scores, best_group_item_labels, group_labels)
+            else:
+                group_score_labels = {'all': (best_group_scores, best_group_item_labels, group_labels)}
+
+            for group_idx, (group_start, group_end) in enumerate(group_indices):
+                group_start -= all_group_start
+                group_end -= all_group_start
+                best_score, best_score_label = sorted(zip(scores[group_start:group_end], test_labels[group_start:group_end]), key=lambda x: x[0], reverse=True)[0]
+                best_group_scores.append(best_score)
+                best_group_item_labels.append(best_score_label)
+                group_label = (best_score_label if best_score_label == pos_label else (pos_label in test_labels[group_start:group_end]))
+                group_labels.append(group_label)
+                if group_type_eval_enabled:
+                    group_type = group_types[group_idx]
+                    if group_type in group_score_labels:
+                        _best_group_scores, _best_group_item_labels, _group_labels = group_score_labels[group_type]
+                        _best_group_scores.append(best_score)
+                        _best_group_item_labels.append(best_score_label)
+                        _group_labels.append(group_label)
+
+            for k, (best_group_scores, best_group_item_labels, group_labels) in group_score_labels.items():
+                if group_type_eval_enabled:
+                    result_item_base['group_type'] = k
+
+                if group_best_item_eval_funcs is None and group_label_eval_funcs is None:
+                    warnings.warn("no group evaluation functions are specified")
+                    group_eval_funcs = {
+                        'item_label': eval_funcs,
+                        'group_label': eval_funcs
+                    }
+                    merged_labels = {
+                        'item_label': best_group_item_labels,
+                        'group_label': group_labels
+                    }
+                elif group_best_item_eval_funcs is None:
+                    group_eval_funcs = {
+                        'group_label': group_label_eval_funcs
+                    }
+                    merged_labels = {
+                        'group_label': group_labels
+                    }
+                elif group_label_eval_funcs is None:
+                    group_eval_funcs = {
+                        'item_label': group_best_item_eval_funcs
+                    }
+                    merged_labels = {
+                        'item_label': best_group_item_labels
+                    }
+                else:
+                    group_eval_funcs = {
+                        'item_label': group_best_item_eval_funcs,
+                        'group_label': group_label_eval_funcs
+                    }
+                    merged_labels = {
+                        'item_label': best_group_item_labels,
+                        'group_label': group_labels
+                    }
+
+                eval_binary_classification_by_score_threshold(
+                    scores=np.array(best_group_scores),
+                    labels=merged_labels,
+                    eval_funcs=group_eval_funcs,
+                    score2pred_func=score2pred_func,
+                    pos_label=pos_label,
+                    neg_label=neg_label,
+                    score_th=score_th,
+                    result_item_base=result_item_base,
+                    result_output_list=result_output_list,
+                    print_ignore=print_ignore
+                )
+
+                # result_item_base['label_type'] = 'group_label'
+                # eval_binary_classification_by_score_threshold(
+                #     scores=np.array(best_group_scores),
+                #     labels=group_labels,
+                #     eval_funcs=eval_funcs,
+                #     score2pred_func=score2pred_func,
+                #     pos_label=pos_label,
+                #     neg_label=neg_label,
+                #     score_th=score_th,
+                #     result_item_base=result_item_base,
+                #     result_output_list=result_output_list,
+                #     print_ignore=print_ignore
+                # )
 
     return result_output_list
 
 
-def eval_binary_classification_by_score_threshold(scores, labels,
-                                                  eval_funcs: Dict[str, Callable],
+def eval_binary_classification_by_score_threshold(scores,
+                                                  labels: Union[Any, Mapping[str, Any]],
+                                                  eval_funcs: Union[Mapping[str, Callable], Mapping[str, Mapping[str, Callable]]],
                                                   score2pred_func: Callable = binary_predict_pos_by_above_threshold,
                                                   pos_label: int = 1,
                                                   neg_label: int = 0,
                                                   score_th: Union[float, Tuple, List] = 0.5,
                                                   result_item_base: Dict = None,
-                                                  result_output_list: List[Dict] = None):
+                                                  result_with_label_key=False,
+                                                  result_output_list: List[Dict] = None,
+                                                  print_ignore=None):
     """
     Evaluates the binary classification performance by scores of the positive label and the score threshold(s).
     :param scores: the positive-label scores (e.g. the probability of being positive).
@@ -418,9 +683,22 @@ def eval_binary_classification_by_score_threshold(scores, labels,
         result_item = result_item_base.copy()
         result_item['threshold_pos'] = s_th
         predictions = score2pred_func(scores=scores, score_th=s_th, pos_label=pos_label, neg_label=neg_label)
-        for eval_name, eval_func in eval_funcs.items():
-            result_item[eval_name] = eval_func(labels, predictions) if pos_label is None else eval_func(labels, predictions, pos_label=pos_label)
-        gex.hprint_pairs(*list(result_item.items()))
+        if isinstance(labels, Mapping):
+            for label_key, _labels in labels.items():
+                for eval_name, eval_func in eval_funcs[label_key].items():
+                    eval_result = eval_func(_labels, predictions) if pos_label is None else eval_func(_labels, predictions, pos_label=pos_label)
+                    if result_with_label_key:
+                        result_item[f'{label_key}_{eval_name}'] = eval_result
+                    else:
+                        result_item[eval_name] = eval_result
+        else:
+            for eval_name, eval_func in eval_funcs.items():
+                result_item[eval_name] = eval_func(labels, predictions) if pos_label is None else eval_func(labels, predictions, pos_label=pos_label)
+
+        if print_ignore:
+            gex.hprint_pairs(*((k, v) for k, v in result_item.items() if k not in print_ignore))
+        else:
+            gex.hprint_pairs(*result_item.items())
         result_output_list.append(result_item)
 
     if isinstance(score_th, Iterable):
@@ -442,129 +720,6 @@ def eval_binary_classification_by_score_threshold(scores, labels,
 # endregion
 
 # region improved counter
-
-def count_or_accumulate(count_dict: dict, items: Union[dict, Iterator[Any], Any]):
-    if isinstance(items, dict):
-        for k, v in items.items():
-            if k in count_dict:
-                if hasattr(v, '__add__') or hasattr(v, '__iadd__'):
-                    count_dict[k] += v
-                else:
-                    count_dict[k] |= v
-            else:
-                count_dict[k] = v
-    elif nonstr_iterable(items):
-        for item in items:
-            if item in count_dict:
-                count_dict[item] += 1
-            else:
-                count_dict[item] = 1
-    elif items in count_dict:
-        count_dict[items] += 1
-    else:
-        count_dict[items] = 1
-
-
-def count_reduce(count_dict, items: Union[dict, Iterator[Any], Any]):
-    if isinstance(items, dict):
-        for k, v in items.items():
-            if k in count_dict:
-                count_dict[k] -= v
-    elif nonstr_iterable(items):
-        for item in items:
-            if item in count_dict:
-                count_dict[item] -= 1
-    elif items in count_dict:
-        count_dict[items] -= 1
-
-    return count_dict
-
-
-class XCounter(dict):
-    """
-    A subclass of :class:`dict` designed for counting/accumulating items.
-    It is similar to :class:`~collections.Counter`, while designed to be compatible with tuples, lists, sets and dictionaries.
-    This class also runs faster than the build-in counter class.
-    """
-
-    def __init__(self, init: dict):
-        super().__init__()
-        self.update(init)
-
-    def __abs__(self):
-        """
-        Makes every value in this counter be their absolute values if possible. Error will not be thrown if the absolute value is not valid for some values in this counter.
-        :return: the current counter.
-        """
-        for k, v in self.items():
-            if hasattr(v, '__abs__'):
-                self[k] = abs(v)
-        return self
-
-    def __add__(self, other: Union[dict, Iterator[Any], Any]):
-        """
-        If `other` is a dictionary, then merges the `other` dictionary into this counter.
-        For each key in the dictionary `other` to add,
-        if the key exists in this counter,
-        then the value associated with the key in the other dictionary is first added to this counter's value of the same key,
-        by trying to invoke the `+=` operator, or the `|=` operator.
-        Error will be thrown if `+=` operator and `|=` operators are both not valid for a value.
-
-        Otherwise, if `other` is a non-string iterable, then treat all items in this iterable as keys, and adds count 1 for each item in this iterable.
-
-        Otherwise, treat `other` as a key, and adds count 1 for `other` if it is in this counter.
-
-        :param other: another dictionary, whose values are to be merged into this counter; or an iterable of keys to count; or just the key to count.
-        :return: the current counter.
-        """
-        return count_or_accumulate(self.copy(), other)
-
-    def __iadd__(self, other):
-        return count_or_accumulate(self, other)
-
-    def __sub__(self, other: Union[dict, Iterator[Any], Any]):
-        """
-        If `other` is a dictionary, then subtracts this counter by the `other` dictionary.
-        For each key in the dictionary `other` to subtract,
-        if the key exists in this counter,
-        then the value associated with the key in this counter is subtracted by the corresponding value in the other dictionary of the same key,
-        by trying to invoke the `-=` operator. Error will be thrown if `-=` operator is not valid for a value.
-
-        Otherwise, if `other` is a non-string iterable, then treat all items in this iterable as keys, and reduces count 1 for each item in this iterable; the count after eduction can be negative.
-
-        Otherwise, treat `other` as a key, and reduces count 1 for `other` if it is in this counter.
-
-        :return: the current counter.
-        """
-        return count_reduce(self.copy(), other)
-
-    def __isub__(self, other):
-        return count_reduce(self, other)
-
-    def __truediv__(self, divisor):
-        """
-        Tries to fields_div each value in this counter by the provided divisor by invoking the `/=` operator. Error will not be thrown if this operator is not valid.
-        :param divisor: the divisor.
-        :return: the current counter.
-        """
-        return dict_try_div(self.copy(), divisor)
-
-    def __itruediv__(self, divisor):
-        return dict_try_div(self, divisor)
-
-    def __floordiv__(self, divisor):
-        """
-        Tries to floor-fields_div each value in this counter by the provided divisor by invoking the `//=` operator. Error will not be thrown if this operator is not valid.
-        :param divisor: the divisor.
-        :return: the current counter.
-        """
-        return dict_try_floor_div(self.copy(), divisor)
-
-    def __ifloordiv__(self, divisor):
-        return dict_try_floor_div(self, divisor)
-
-    def __missing__(self, key):
-        return None
 
 
 # endregion
@@ -866,10 +1021,10 @@ class CategorizedStat(dict, _StatTypes):
     def count(self, category: str, stat_name: str, value: Any = 1, overall_only: bool = False):
         self._names_for_cnt.add(stat_name)
         if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
-            self[category].count(stat_name, value)
+            self[category].cnt(stat_name, value)
 
         if self._overall_count_name:
-            self[self._overall_count_name].count(stat_name, value)
+            self[self._overall_count_name].cnt(stat_name, value)
 
     def count_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1, overall_only=False):
         self._names_for_cnt.add(stat_name)
@@ -880,10 +1035,10 @@ class CategorizedStat(dict, _StatTypes):
         if not overall_only:
             for category in categories:
                 if category != self._overall_count_name or self._category_filter is None or category in self._category_filter:
-                    self[category].count(stat_name, value)
+                    self[category].cnt(stat_name, value)
 
         if self._overall_count_name:
-            self[self._overall_count_name].count(stat_name, value)
+            self[self._overall_count_name].cnt(stat_name, value)
 
     def average(self, category: str, stat_name: str, value=1, overall_only=False):
         self._names_for_avg.add(stat_name)
@@ -955,4 +1110,33 @@ class CategorizedStat(dict, _StatTypes):
                 count_dict[category] = _get_stat(self[category], self, name)
         return count_dict
 
+
 # endregion
+
+PAIRWISE_METRICS_MAP = {
+    'cos': sklearn_pairwise_metrics.cosine_similarity,
+    'dot': lambda x, y: x @ y.T,
+    'l2': sklearn_pairwise_metrics.euclidean_distances,
+    'l1': sklearn_pairwise_metrics.manhattan_distances,
+    'lk': sklearn_pairwise_metrics.laplacian_kernel,
+    'pk': sklearn_pairwise_metrics.polynomial_kernel,
+    'rbfk': sklearn_pairwise_metrics.rbf_kernel,
+    'sk': sklearn_pairwise_metrics.sigmoid_kernel,
+    'l1min': lambda x, y: np.min(np.abs(x - y), axis=1),
+    'l1max': lambda x, y: np.max(np.abs(x - y), axis=1),
+}
+
+
+def get_pairwise_metrics(X, Y, metric_names, flatten=False, unpack_single=False, decimals=6):
+    out = {}
+    for metric_name in metric_names:
+        if metric_name in PAIRWISE_METRICS_MAP:
+            metric_val = PAIRWISE_METRICS_MAP[metric_name](X, Y)
+            if unpack_single and not isinstance(metric_val, float) and (metric_val.shape == (1, 1) or metric_val.shape == (1,)):
+                metric_val = round(float(metric_val), decimals) if decimals is not None else float(metric_val)
+            elif flatten:
+                metric_val = [round(float(x), decimals) for x in metric_val.flatten()] if decimals is not None else [float(x) for x in metric_val.flatten()]
+            elif decimals is not None:
+                metric_val = np.round(metric_val, decimals=decimals)
+            out[metric_name] = metric_val
+    return out

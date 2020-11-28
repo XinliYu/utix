@@ -1,4 +1,4 @@
-from _util.stat_util import Stat
+from utix._util.stat_util import Stat
 
 stat = Stat()
 stat.count(stat_name='buy', increase=3)

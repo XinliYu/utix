@@ -1,1 +1,1 @@
-from utilx.general_ext import *
+from utix.general import *

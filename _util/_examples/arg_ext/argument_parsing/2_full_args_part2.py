@@ -1,6 +1,6 @@
 # this script shows an example how to use `argx.get_parsed_args` for general argument setup, using the ArgInfo objects
 
-import utilx.arg_ext as argx
+import utix.arg_ext as argx
 
 args = argx.get_parsed_args(argx.ArgInfo(full_name='para1_is_int', short_name='p', default_value=1),
                             argx.ArgInfo(full_name='para2_is_str', short_name='p', default_value='value'),

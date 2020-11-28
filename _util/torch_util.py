@@ -9,12 +9,49 @@ from torch import optim
 from torch.nn import parallel
 import torch.nn.parallel as nnP
 
-from _util.general_ext import iterable__
-from _util.list_ext import nested_lists_regular_shape, nested_lists_get
+import utix.general as gx
+from utix.listex import nested_lists_regular_shape, nested_lists_get
 from allennlp.data.iterators.data_iterator import TensorDict
 from allennlp.models import Model
-from framework.constants import LOSS_KEY
 from pytorch_pretrained_bert import BertAdam
+
+LOSS_KEY = 'loss'
+
+
+def info_value_of_dtype(dtype: torch.dtype):
+    """
+    Returns the `finfo` or `iinfo` object of a given PyTorch data type. Does not allow torch.bool.
+    """
+    if dtype == torch.bool:
+        raise TypeError("Does not support torch.bool")
+    elif dtype.is_floating_point:
+        return torch.finfo(dtype)
+    else:
+        return torch.iinfo(dtype)
+
+
+def min_value_of_dtype(dtype: torch.dtype):
+    """
+    Returns the minimum value of a given PyTorch data type. Does not allow torch.bool.
+    """
+    return info_value_of_dtype(dtype).min
+
+
+def tiny_value_of_dtype(dtype: torch.dtype):
+    """
+    Returns a moderately tiny value for a given PyTorch data type that is used to avoid numerical
+    issues such as division by zero.
+    This is different from `info_value_of_dtype(dtype).tiny` because it causes some NaN bugs.
+    Only supports floating point dtypes.
+    """
+    if not dtype.is_floating_point:
+        raise TypeError("Only supports floating point dtypes.")
+    if dtype == torch.float or dtype == torch.double:
+        return 1e-13
+    elif dtype == torch.half:
+        return 1e-4
+    else:
+        raise TypeError("Does not support dtype " + str(dtype))
 
 
 def log_avoid_nan(tensor: torch.Tensor, fill_for_zero: float = 1e-13) -> torch.Tensor:
@@ -128,6 +165,15 @@ def batch_weighted_sum_of_features(batch_features: torch.Tensor, weights: torch.
     return (weights.unsqueeze(-2) @ batch_features).squeeze()
 
 
+def parse_gpu_index(gpu_index):
+    if isinstance(gpu_index, str):
+        if gpu_index == '*':
+            gpu_index = list(range(torch.cuda.device_count()))
+        else:
+            gpu_index = list(int(x) for x in gpu_index.split(','))
+    return gpu_index[0] if isinstance(gpu_index, (list, tuple)) and len(gpu_index) == 1 else gpu_index
+
+
 def config_torch_cuda(model, cuda_device_index: Union[int, List[int]], parallel_init):
     if (isinstance(cuda_device_index, int) and cuda_device_index >= 0) or (isinstance(cuda_device_index, list) and len(cuda_device_index) != 0):
         gpu_count = torch.cuda.device_count()
@@ -160,7 +206,7 @@ def first_torch_cuda_device(cuda_device_index: Union[int, List[int]]):
     return None, -1
 
 
-def get_adam_optimizer(model, lr=0.001, **kwargs):
+def get_adam_optimizer(model, lr=0.0004, **kwargs):
     """
     A convenient function to get the Adam optimizer.
     :param model: the model to apply this optimizer on.
@@ -213,9 +259,9 @@ def move_tensor_dict_to_device(tensor_dict: Mapping, device_id: int, non_blockin
     #   the original tensor dict might be cached;
     #   if we replace CPU tensors by GPU tensors in-place, it can cause memory overflow
     if device_id < 0:
-        return {k: v.cpu() for k, v in tensor_dict.items() if isinstance(v, torch.Tensor)}
+        return {k: (v.cpu() if isinstance(v, torch.Tensor) else v) for k, v in tensor_dict.items()}
     else:
-        return {k: v.cuda(device_id, non_blocking=non_blocking) for k, v in tensor_dict.items() if isinstance(v, torch.Tensor)}
+        return {k: (v.cuda(device_id, non_blocking=non_blocking) if isinstance(v, torch.Tensor) else v) for k, v in tensor_dict.items()}
 
 
 def parallel_tensor_dict(tensor_dicts: List[Mapping],
@@ -264,7 +310,7 @@ def parallel_tensor_dict(tensor_dicts: List[Mapping],
         else:
             if isinstance(v, torch.Tensor):
                 result[k] = [nnP.gather([output[k]], target_device=used_device_ids[0], dim=0) for output in outputs]
-            elif iterable__(v, atom_types=atom_types):
+            elif gx.iterable__(v, atom_types=atom_types):
                 result[k] = tuple(chain([output[k] for output in outputs]))
             else:
                 result[k] = tuple(output[k] for output in outputs)
@@ -335,3 +381,61 @@ def allen_data_parallel(batch_group: List[TensorDict],
         elif key != LOSS_KEY:
             result[key] = [nnP.gather([output[key]], target_device=used_device_ids[0], dim=0) for output in outputs]
     return result
+
+
+def masked_max(x: torch.Tensor,
+               mask: torch.Tensor,
+               dim: int,
+               keepdim: bool = False) -> torch.Tensor:
+    """
+    Applies the max function along a certain dimension on masked values
+
+    :param x: the tensor to calculate the max.
+    :param mask: the tensor mask; it must be broadcastable with vector.
+    :param dim: the dimension to be reduced by the max function.
+    :param keepdim: `True` to keep tensor dimension; `False` to collapse the dimension where the max function is applied.
+    :return: a ``torch.Tensor`` by applying the max function on the specified dimension.
+    """
+
+    return x.masked_fill(~mask, min_value_of_dtype(x.dtype)).max(dim=dim, keepdim=keepdim)[0]
+
+
+def masked_mean(x: torch.Tensor,
+                mask: torch.Tensor,
+                dim: int,
+                keepdim: bool = False,
+                eps: float = 1e-8) -> torch.Tensor:
+    """
+    To calculate mean along certain dimensions on masked values
+
+    Parameters
+    ----------
+    x : ``torch.Tensor``
+        The vector to calculate mean.
+    mask : ``torch.Tensor``
+        The mask of the vector. It must be broadcastable with vector.
+    dim : ``int``
+        The dimension to calculate mean
+    keepdim : ``bool``
+        Whether to keep dimension
+    eps : ``float``
+        A small value to avoid zero division problem.
+
+    Returns
+    -------
+    A ``torch.Tensor`` of including the mean values.
+    """
+    replaced_vector = x.masked_fill(~mask, 0.0)
+
+    value_sum = torch.sum(replaced_vector, dim=dim, keepdim=keepdim)
+    value_count = torch.sum(mask, dim=dim, keepdim=keepdim)
+    return value_sum / value_count.float().clamp(min=tiny_value_of_dtype(torch.float))
+
+
+def torch_merge_func(first, iterables):
+    if isinstance(first, torch.Tensor):
+        return torch.cat(iterables, dim=0)
+
+
+def iterable_merge(iterables):
+    return gx.iterable_merge(iterables=iterables, merge_funcs=(torch_merge_func, gx.default_merge_func))

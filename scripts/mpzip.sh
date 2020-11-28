@@ -1,0 +1,1 @@
+tar cf - $1 | pigz -9 > archive.tar.gz

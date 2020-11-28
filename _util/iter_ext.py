@@ -1,9 +1,22 @@
 from itertools import chain, islice
 from typing import Callable, Iterator, Iterable, Union, List, Tuple, Any
 
-from utilx.general import tqdm_wrap, sliceable
-from utilx.listex import split_list, beam_find_first
+from utix.general import tqdm_wrap, sliceable
+from utix.listex import split_list, beam_find_first
 import numpy as np
+import uuid
+
+
+def with_uuid(it, prefix='', suffix=''):
+    yield from ((prefix + str(uuid.uuid4()) + suffix, x) for x in it)
+
+
+def with_names(it, name_format: str = None, name_prefix='', name_suffix=''):
+    if name_format is None or name_format == 'uuid':
+        return with_uuid(it=it, prefix=name_prefix, suffix=name_suffix)
+    else:
+        for i, x in enumerate(it):
+            yield name_prefix + name_format.format(i) + name_suffix, x
 
 
 def next__(it, n):
@@ -26,6 +39,7 @@ def chunk_iter(it: Union[Iterator, Iterable], chunk_size: int, as_list=False) ->
     :param chunk_size: the size of each chunk.
     :return: an iterator that iterates through chunks of the provided iterator.
     """
+    it = iter(it)
     if as_list:
         while True:
             cur = list(islice(it, chunk_size))
@@ -137,7 +151,7 @@ def slices(iterable: Iterator, slice_size: int) -> Iterator[Tuple]:
     """
     An iterator through slices of the provided iterable, where each slice is a tuple of the size `slice_size` except for the last slice can be of a smaller size.
 
-    >>> import utilx.iter_ext as itx
+    >>> import utix.iter_ext as itx
     >>> print(list(itx.slices(range(11), slice_size=2)) == [(0,1),(2,3),(4,5),(6,7),(8,9),(10,)])
 
     If the `slice_size` is `None`, this method yields a single tuple with all elements in `iterable`.
@@ -155,7 +169,7 @@ def sliceable_slices(sliceable, slice_size: int):
     """
     The same as `slices`, but only takes a sliceable object in order for speed up.
 
-    >>> import utilx.iter_ext as itx
+    >>> import utix.iter_ext as itx
     >>> # note this result is different from `itx.slices`, because the normal slicing of `range` object still returns a `range` object.
     >>> print(list(itx.sliceable_slices(range(11), slice_size=2)) == [range(0, 2), range(2, 4), range(4, 6), range(6, 8), range(8, 10), range(10, 11)])
     >>> # this will return the same result as `itx.slices` on the range object
@@ -199,7 +213,7 @@ def slices_by_break_criterion(iterable: Iterator, slice_size: int, break_criteri
         the actual slice size might be larger than `slice_size` but not exceeding the `max_slice_size`,
         and might also be smaller than the `slice_size` if a longer slice violates the `max_slice_size`.
 
-    >>> import utilx.iter_ext as itx
+    >>> import utix.iter_ext as itx
     >>> a = list(range(100))
     >>> print(list(itx.slices_by_break_criterion(iterable=a,
     >>>                                          slice_size=32,
@@ -274,7 +288,7 @@ def apply_on_slices_but_yield_first(func: Callable, iterable, slice_size: int):
     The same as `slices`, function; in addition, apply a function `func` on each yielded slice; the function is applied AFTER the slice is yielded.
     The `func` here is usually for post-processing. Any returned value of that function will be discarded.
 
-    >>> import utilx.iter_ext as itx
+    >>> import utix.iter_ext as itx
     >>> sums = []
     >>> print(list(itx.apply_on_slices_but_yield_first(lambda x: sums.append(sum(x)), range(11), slice_size=2)) == [(0,1),(2,3),(4,5),(6,7),(8,9),(10,)])
     >>> print(sums == [1, 5, 9, 13, 17, 10])

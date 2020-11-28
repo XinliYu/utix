@@ -1,5 +1,5 @@
 # examples for rouge score calculations
-from _util.nlp_util import rouge_n, rouge_n_batch
+from utix._util.nlp_util import rouge_n, rouge_n_batch
 from nltk.tokenize import word_tokenize
 
 hypothesis = "the #### transcript is a written version of each day 's cnn student news program use this transcript to help students with reading comprehension and vocabulary use the weekly news quiz to test your knowledge of story s you saw on cnn student news"

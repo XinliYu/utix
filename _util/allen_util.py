@@ -8,7 +8,7 @@ from typing import Tuple, List, Union, Iterator
 from numpy import iterable
 from os import path
 
-from _util.general_ext import can_dict_like_read
+from utix._util.general_ext import can_dict_like_read
 from allennlp.modules.token_embedders import PretrainedBertEmbedder
 from pytorch_transformers import AutoModel
 
@@ -16,9 +16,9 @@ import allennlp
 import allennlp.data.token_indexers as indexers
 from allennlp.data import DatasetReader
 from allennlp.data.token_indexers import PosTagIndexer, TokenCharactersIndexer, NerTagIndexer, SingleIdTokenIndexer, PretrainedBertIndexer, PretrainedTransformerIndexer
-from _util.path_ext import solve_multi_path, get_files_by_pattern
-from _util.str_ext import bisplit, split_by_cap_letters
-import _util.msg_ext as msgex
+from utix.pathex import solve_multi_path, get_files_by_pattern
+from utix.strex import bisplit, split_by_cap_letters
+import utix.msgex as msgex
 
 _AVAILABLE_INDEXERS = None
 

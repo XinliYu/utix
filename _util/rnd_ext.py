@@ -1,26 +1,41 @@
 import random
-from collections import Callable
 from functools import partial
 from itertools import chain
 from typing import Union, Tuple, Callable, List
 
 import numpy as np
-import utilx.npex as npx
-import pyro
 
-from _util.general_ext import shape_after_broadcast, shape_after_broadcast__, is_list_or_tuple, is_num
-from _util.np_ext import make_symmetric_matrix
+import utix.npex as npx
+from utix.general import shape_after_broadcast__, is_list_or_tuple, is_num, unzip
+from utix.npex import make_symmetric_matrix
 
 
-def shuffle__(_iterable):
+def shuffle__(_iterable, return_labels=False):
     """
-    A variant of the `random.shuffle` with simple support for an iterable (e.g. a tuple).
+    A variant of the `random.shuffle` with support for an iterable (e.g. a tuple).
+    In addition, it allows an option `return_labels` to return labels for the shuffle. The labels is a tuple such that `labels[i]` is the new position of the originally `i`th element in the `_iterable`.
+
+    >>> import utix.rndex as rndex
+    >>> # prints out something similar to `((3, 4, 2, 5, 1), (4, 2, 0, 1, 3))`
+    >>> # about the labels, for example, the first label `4` means the original element `1` is now at position 4.
+    >>> rndex.shuffle__([1, 2, 3, 4, 5], return_labels=True)
+
     NOTE this function has a return, while `random.shuffle` has no return.
     """
-    if not isinstance(_iterable, list):
-        _iterable = list(_iterable)
-    random.shuffle(_iterable)
-    return _iterable
+
+    if return_labels:
+        _iterable = list(enumerate(_iterable))
+        random.shuffle(_iterable)
+        labels = [0] * len(_iterable)
+        for j, (i, x) in enumerate(_iterable):
+            labels[i] = j
+        return unzip(_iterable, 1), tuple(labels)
+    else:
+        if not isinstance(_iterable, list):
+            _iterable = list(_iterable)
+
+        random.shuffle(_iterable)
+        return _iterable
 
 
 def rnd_partial(func, *args, **kwargs):
@@ -214,7 +229,7 @@ class UniformGen(RndGen):
     """
     An uniform random number generator that wraps around the `numpy.random.uniform`. Its `low` and `high` can be composed with a random scalar.
 
-    >>> import utilx.rnd_ext as rndx
+    >>> import utix.rnd_ext as rndx
     >>> unigen1 = rndx.UniformGen(low=0, high=1)
     >>> print(unigen1((2, 3)))
     >>> unigen2 = rndx.UniformGen(low=rndx.UniformScalar(0, 5), high=rndx.UniformScalar(5, 10))
@@ -236,7 +251,7 @@ class CategoricalGen(RndGen):
     """
     An random category generator that wraps around the `numpy.random.choice`.
 
-    >>> import utilx.rnd_ext as rndx
+    >>> import utix.rnd_ext as rndx
     >>> catgen = rndx.CategoricalGen(range(10))
     >>> print(catgen((2, 3)))
     """
@@ -260,7 +275,7 @@ class NormalGen(RndGen):
         """
         An normal random number generator. Its `mean` and `var` can be composed with a random scalar.
 
-        >>> import utilx.rnd_ext as rndx
+        >>> import utix.rnd_ext as rndx
         >>> ngen = rndx.NormalGen(mean=0, var=1)
         >>> print(ngen((2, 3)))
         >>> ngen = rndx.NormalGen(mean=rndx.UniformScalar(1, 3), var=rndx.UniformScalar(0, 5))
@@ -293,7 +308,7 @@ def random_fill_diagonal(mat: np.ndarray, dist: Union[Tuple, RndGen], first_k: i
     """
     Fills the diagonal of the matrix with random numbers.
 
-    >>> import utilx.rnd_ext as rndx
+    >>> import utix.rnd_ext as rndx
     >>> import numpy as np
     >>> a = np.zeros((5, 5))
     >>> rndx.random_fill_diagonal(a, dist=(0, 3), first_k=3)

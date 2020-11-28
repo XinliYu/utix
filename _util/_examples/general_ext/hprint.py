@@ -4,8 +4,8 @@
 
 import timeit
 
-from _utilc.general_ext import hprint_message, hprint
-# from _utilc.test import hprint
+from utix._utilc.general_ext import hprint_message, hprint
+# from utix._utilc.test import hprint
 
 def target():
     hprint('test for `short` highlight')

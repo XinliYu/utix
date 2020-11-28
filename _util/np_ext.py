@@ -1,13 +1,15 @@
+import types
 import warnings
 from itertools import product
-import numpy as np
-from sklearn.decomposition import PCA, SparsePCA
-from sklearn.preprocessing import StandardScaler
-from scipy.sparse import issparse
-import types
-from utilx.general import getattr2, bool2obj, hasattr_or_exec
-from utilx.listex import nested_lists_regular_shape, nested_lists_get
 from typing import Callable, Union
+
+import numpy as np
+from scipy.sparse import issparse
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+from utix.general import bool2obj, hasattr_or_exec
+from utix.listex import nested_lists_regular_shape, nested_lists_get
 
 """
 Numpy-related utilities.
@@ -57,7 +59,7 @@ def sequential(shape, start=0, step=1, order='C'):
     """
     Creates a numpy array of the specified shape filled with sequential integers.
     
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> print(sequential((2, 3))
     >>>       == np.array([[0, 1, 2],
     >>>                    [3, 4, 5]]))
@@ -75,11 +77,17 @@ def sequential(shape, start=0, step=1, order='C'):
     return np.arange(start, start + _len, step).reshape(shape, order=order)
 
 
+def shuffle_rows__(x):
+    idx = np.arange(len(x))
+    idx_shuf = np.random.shuffle(idx)
+    return x[idx_shuf], idx_shuf
+
+
 def shuffle_transpose(x) -> None:
     """
     Shuffles the transpose (columns if `x` is a 2D array) of a numpy array in-place.
 
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> a = npx.sequential((2, 3))
     >>> npx.shuffle_transpose(a)
     >>> print(a)
@@ -95,7 +103,7 @@ shuffle_columns.__doc__ = "Alias for `shuffle_transpose`."
 def vstack__(*x):
     """
     A convenient version for `vstack` where you could pass in arrays to stack as variable positional parameters.
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> import numpy as np
     >>> a = npx.vstack__(npx.sequential((1,2)), npx.sequential((2,2)))
     >>> print(a == np.array([[0, 1],
@@ -109,7 +117,7 @@ def vstack__(*x):
 def hstack__(*x):
     """
     A convenient version for `hstack` where you could pass in arrays to stack as variable positional parameters.
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> import numpy as np
     >>> a = npx.vstack__(npx.sequential((2,1)), npx.sequential((2,2)))
     >>> print(a == np.array([[0, 0, 1],
@@ -155,21 +163,22 @@ def array__(x, padding=0, dtype=None, **kwargs):
     A variant of `numpy.array` that accepts ragged nested lists, padding it so that to have a regular-shaped array.
 
     For example,
-    >>> import utilx.np_ext as npx
-    >>> print(npx.array__([[1,2], [3]])) # [[1 2] [3 0]]
-    >>> print(npx.array__([[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]]))
-    >>> # the above prints out
-    >>> # [[[ 1  0  0]
-    >>> #  [ 2  3  0]
-    >>> #  [ 4  5  6]]
-    >>> #
-    >>> # [[ 7  0  0]
-    >>> #  [ 8  9 10]
-    >>> #  [ 0  0  0]]
-    >>> #
-    >>> # [[11  0  0]
-    >>> #  [12 13  0]
-    >>> #  [ 0  0  0]]]
+    >>> import utix.npex as npx
+    >>> npx.array__([[1,2], [3]])
+    array([[1, 2],
+           [3, 0]])
+    >>> npx.array__([[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]])
+    array([[[ 1,  0,  0],
+            [ 2,  3,  0],
+            [ 4,  5,  6]],
+    <BLANKLINE>
+           [[ 7,  0,  0],
+            [ 8,  9, 10],
+            [ 0,  0,  0]],
+    <BLANKLINE>
+           [[11,  0,  0],
+            [12, 13,  0],
+            [ 0,  0,  0]]])
 
     :param x: the list, or a nested list to convert to a numpy array.
     :param padding: the padding value.
@@ -179,7 +188,7 @@ def array__(x, padding=0, dtype=None, **kwargs):
     """
     shape = nested_lists_regular_shape(x)
     result = np.full(shape, fill_value=padding, dtype=dtype, **kwargs)
-    for index in product(*(range(x) for x in shape[:-1])):
+    for index in product(*(range(_) for _ in shape[:-1])):
         row = nested_lists_get(x, index)
         if row is not None:
             result[index][:len(row)] = row
@@ -230,7 +239,7 @@ def iter_slices(x, dim):
     """
     Iterates through slices at the specified dimensions of the numpy array.
 
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> a = npx.sequential((2, 2, 3)) # array([[[ 0,  1,  2],
     >>>                               #         [ 3,  4,  5]],
     >>>                               #        [[ 6,  7,  8],
@@ -259,7 +268,7 @@ def apply_to_slices(x, func, dim, func_return_shape=None, in_place=True, dtype=N
     """
     Applies a function `func` to slices at the specified dimensions of the numpy array, which either update values in-place, or creates a new array with the return values of `func`.
 
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> x = npx.sequential((2, 2, 3)) # array([[[ 0,  1,  2],
     >>>                               #         [ 3,  4,  5]],
     >>>                               #        [[ 6,  7,  8],
@@ -319,7 +328,7 @@ def reduce_by_pca(x, n_components: int, sample_dim: int = -2, feature_dim: int =
 
     The default.
     ------------
-    >>> import utilx.np_ext as npx
+    >>> import utix.np_ext as npx
     >>> import numpy as np
     >>> from sklearn.decomposition import PCA
     >>> from sklearn.preprocessing import StandardScaler

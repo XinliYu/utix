@@ -1,7 +1,7 @@
 import timeit
 
-from _util.general_ext import xsum, hprint_message, xmin, xmax
-from _util.dict_ext import xfdict
+from utix._util.general_ext import xsum, hprint_message, xmin, xmax
+from utix._util.dict_ext import xfdict
 
 obj1 = xfdict({'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5})
 obj2 = xfdict({'a': 2, 'b': 0, 'c': 4, 'd': 5, 'e': 1, 'f': 3})

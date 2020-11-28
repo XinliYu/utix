@@ -103,3 +103,10 @@ def iter_entities_by_pos_pattern__(text_or_tokens: Union[str, Iterator[str]], po
         for match in pos_pattern.finditer(tag_str):
             start, end = match.span()
             yield tokens[start:end], tags[start:end], start
+
+
+def create_ngram_text(txt: str, n, tokenizer=None):
+    input_sequence = [i for i in nltk.ngrams(['('] + txt.split() if tokenizer is None else tokenizer(txt) + [')'], n)]
+    input_sequence = ["#".join(i) for i in input_sequence]
+    input_sequence = " ".join(input_sequence)
+    return input_sequence

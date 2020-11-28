@@ -1,4 +1,4 @@
-from _util.general_ext import Accumulative, FieldsRepr
+from utix._util.general_ext import Accumulative, FieldsRepr
 
 
 class Test(Accumulative, FieldsRepr):

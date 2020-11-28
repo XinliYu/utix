@@ -4,10 +4,9 @@ from itertools import cycle, islice
 from os import path
 from typing import List, Union, Tuple, Iterator, Callable, Mapping
 import numpy as np
-import utilx.pathex as paex
-from utilx.general import is_list_or_tuple, nonstr_iterable, iterable__, iterable, is_mapping
-
-from utilx.msgex import ensure_positive_arg, ensure_sum_to_one_arg
+import utix.pathex as paex
+from utix.general import iterable__, iterable, zip__, count_and_rank, count
+from utix.msgex import ensure_positive_arg, ensure_sum_to_one_arg
 
 
 # region shuffle
@@ -16,7 +15,7 @@ def shuffle_together(*lists):
     """
     Randomly shuffles multiple lists altogether, so that elements at the same position of each list still have the same indices after shuffle.
 
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> lix.shuffle_together([1,2,3,4],['i', 'ii', 'iii', 'iv']) # one possible result: ((2, 1, 3, 4), ('ii', 'i', 'iii', 'iv'))
 
     :param lists: the lists to shuffle together.
@@ -34,7 +33,7 @@ def shuffle_list_iter(ls: List, num_shuffles_to_generate: int = 1, random_seed: 
         if not path.exists(index_file_dir):
             paex.ensure_dir_existence(index_file_dir, verbose=verbose)
         else:
-            from utilx.io_ext import pickle_load
+            from utix.ioex import pickle_load
             for i in range(num_shuffles_to_generate):
                 idx_file_path = path.join(index_file_dir, index_file_name_pattern.format(i))
                 if path.exists(idx_file_path):
@@ -51,7 +50,7 @@ def shuffle_list_iter(ls: List, num_shuffles_to_generate: int = 1, random_seed: 
 
     rng = random if random_seed < 0 else random.Random(random_seed)
     idxes = list(range(ls_len))
-    from utilx.io_ext import pickle_save__
+    from utix.ioex import pickle_save__
     for i in range(num_shuffles_to_generate):
         idx_file_path = path.join(index_file_dir, index_file_name_pattern.format(i))
         rng.shuffle(idxes)
@@ -87,12 +86,23 @@ def iter_split_list(list_to_split: List, num_splits) -> Iterator[List]:
         for item in list_to_split:
             yield [item]
     else:
-        chunk_size = round(len(list_to_split) / num_splits)
-        begin, end = 0, chunk_size
-        for i in range(0, num_splits - 1):
+        list_len = len(list_to_split)
+        chunk_size = int(list_len / num_splits)
+        remainder = int(list_len - chunk_size * num_splits)
+
+        if remainder > 1:
+            begin, end = 0, chunk_size + 1
+            for i in range(0, remainder - 1):
+                yield list_to_split[begin:end]
+                begin, end = end, end + chunk_size + 1
+        else:
+            begin, end = 0, chunk_size
+
+        for i in range(remainder - 1, num_splits - 1):
             yield list_to_split[begin:end]
             begin, end = end, end + chunk_size
-        yield list_to_split[begin:]
+        if begin < list_len:
+            yield list_to_split[begin:]
 
 
 def iter_split_list_by_size(list_to_split: List, split_size: int) -> Iterator[List]:
@@ -180,7 +190,7 @@ def join_list(connector, lists: Iterator[List]):
     """
     Connects a sequence of lists into a single list, with an element `connector` inserted between every two adjacent lists.
 
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> print(lix.join_list(0, [[1, 2], [3, 4], [5, 6, 7]]) == [1, 2, 0, 3, 4, 0, 5, 6, 7])
     >>> print(lix.join_list(0, [[1, 2]]) == [1, 2])
 
@@ -200,7 +210,7 @@ def join_chain(connector, *iterables):
     """
     Chains a sequence of iterables, and in addition yield the `connector` object between every two iterables if it is not `None`.
 
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> from itertools import product
     >>> print(list(lix.join_chain(0, [1, 2], 'abc', product((3, 4), (5, 6)))) == [1, 2, 0, 'a', 'b', 'c', 0, (3, 5), (3, 6), (4, 5), (4, 6)])
     >>> print(list(lix.join_chain(0, [1, 2])) == [1, 2])
@@ -222,7 +232,7 @@ def join_chain__(connector, *iterables, atom_types=(str,)):
     """
     The same as `join_chain`, and supports atom types (i.e. a type that is iterable by Python, but should be treated as atoms in terms of data processing, for example, a string).
 
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> from itertools import product
     >>> print(list(lix.join_chain__(0, [1, 2], 'abc', product((3, 4), (5, 6)))) == [1, 2, 0, 'abc', 0, (3, 5), (3, 6), (4, 5), (4, 6)])
 
@@ -279,7 +289,7 @@ def find_first_larger_than(_iterable, target):
     """
     Searches the provided sequence for the index of the first element larger than the specified `target`.
     For example, the following returns 3, because the element `5` at index `3` is the first element in the list larger than `4`
-    >>> import utilx.list_ext as lx
+    >>> import utix.listex as lx
     >>> lx.find_first_larger_than([1,3,1,5,5,6], 4)
 
     :param _iterable: the sequence to search
@@ -339,7 +349,7 @@ def beam_find_first(src, start_idx: int, condition: Callable, max_forward: int =
         if the search is not successful, then it looks backward down to the position `start_idx - max_backward` (inclusive).
     If `first_forward_then_backward` is set `False`, then it searches backward first, and then searches forward.
 
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> condition = lambda x: x % 5 == 0
     >>> print(lix.beam_find_first(list(range(20)), start_idx=7, condition=condition, max_forward=5, max_backward=5) == 10)  # forward search succeeds
     >>> print(lix.beam_find_first(list(range(20)), start_idx=7, condition=condition, max_forward=5, max_backward=5, search_forward_then_backward=False) == 5)  # backward search runs first and succeeds
@@ -412,6 +422,38 @@ def obsolete_find_sub_list(src_list, tgt_list, tag=None):
 
 # region misc
 
+def list__(it, max_length: int = None, padding=0, dtype: Callable = None):
+    """
+    Converting a sequence of objects to a list, like the build-in function `list`, with extra options.
+    :param it: the sequence of objects to convert to a list.
+    :param max_length: specifies a positive integer to limit the length of the list; otherwise no list length limit.
+    :param padding: effective if `max_length` is a positive integer; adds extra values at the end to ensure the list
+    :param dtype: the objects are converted to this type in the returned list.
+    :return: a list objects from `it`.
+    """
+    if max_length > 0:
+        if isinstance(it, (list, tuple)):
+            it = list(it[:max_length]) if dtype is None else list(islice(map(dtype, it), max_length))
+        else:
+            it = list(islice(it, max_length)) if dtype is None else list(islice(map(dtype, it), max_length))
+
+        return it if padding == 'no padding' else it + [padding] * (max_length - len(it))
+    elif dtype is None:
+        return list(it)
+    else:
+        return [dtype(_x) for _x in it]
+
+
+def onehot_list(dim, hots):
+    l = [0] * dim
+    if isinstance(hots, int):
+        l[hots] = 1
+    else:
+        for hot in hots:
+            l[hot] = 1
+    return l
+
+
 def ensure_list(obj, atom_types=(str,)):
     """
     A convenient function that returns a possible list equivalent of `obj`. This function is usually applied to process parameters, allowing inputs being either an iterable or a non-iterable element.
@@ -422,7 +464,7 @@ def ensure_list(obj, atom_types=(str,)):
     Otherwise, returns a singleton list with `obj` as the only element.
 
     For example,
-    >>> import utilx.list_ext as lx
+    >>> import utix.listex as lx
     >>> a = [1,2,3,4]
     >>> print(lx.ensure_list(a)) # [1,2,3,4]
     >>> print(lx.ensure_list(a) is a) # True
@@ -470,12 +512,12 @@ def ensure_list__(obj, atom_types=(str,)):
     The same as `ensure_list`, except for that an error will be thrown if `obj` cannot be converted to a non-singleton list.
 
     For example,
-    >>> from utilx.list_ext import ensure_list__
+    >>> from utix.listex import ensure_list__
     >>> a = 1
     >>> print(ensure_list__(a)) # ! error
 
     For another example,
-    >>> from utilx.list_ext import ensure_list__
+    >>> from utix.listex import ensure_list__
     >>> a = (1,2,3,4)
     >>> print(ensure_list__(a, atom_types=(str, tuple))) # ! error
     """
@@ -522,7 +564,43 @@ def make_list_of_type(objs, type):
     )
 
 
-def make_tuple_of_type(objs, type):
+def make_tuple_of_type(objs, type, atom_types=(str,)):
+    """
+    This function is used to create a tuple of objects ob type `type` from the provided `objs`, after applying intuitive conversions.
+
+    Makes a tuple of the specified `type` out of the provided `objs`. The rule is
+    1) if `objs` is of type `type`, then returns a one-element tuple `(objs,)`;
+    2) otherwise, if `objs` is a mapping, then returns a one-element tuple `(type(**objs),)`,
+    3) otherwise, if `objs` is iterable, then for each `obj` in `objs`,
+        3a) if `obj` is of type `type`, then keeps what it is;
+        3b) if `type` is a mapping, then converts `obj` to `type(**obj)`;
+        3c) if `type` is a list or tuple, then converts `obj` to `type(*obj)`;
+       then returns a tuple of `obj` in `objs` after applying rule 3a), 3b) and 3c).
+    4) otherwise, returns a single-element tuple `(type(objs),)`.
+
+    Straightforward Creation.
+    -------------------------
+    >>> import utix.listex as lx
+    >>> print(lx.make_tuple_of_type(33, int) == (33, ))
+    >>> print(lx.make_tuple_of_type('33', int) == (33, ))
+    >>> print(lx.make_tuple_of_type(('33', '34', '35'), int) == (33, 34, 35))
+
+    Each in `objs` is the initalizer parameters or `type`.
+    ------------------------------------------------------
+    >>> class A:
+    >>>     def __init__(self, para1, para2):
+    >>>         self.a = para1
+    >>>         self.b = para2
+    >>> tups = lx.make_tuple_of_type(({ 'para1': 1, 'para2': 2}, { 'para1': 3, 'para2': 4}), A)
+    >>> print(tups[0].a == 1 and tups[0].b == 2 and tups[1].a == 3 and tups[1].b == 4)
+    >>> tups = lx.make_tuple_of_type(([5, 6], [7, 8]), A)
+    >>> print(tups[0].a == 5 and tups[0].b == 6 and tups[1].a == 7 and tups[1].b == 8)
+
+    :param objs: the objects to be converted as a tuple.
+    :param type: the object type for elements in the returned tuple.
+    :param atom_types: used to determine if `objs` is an iterable; see also `utix.general.iterable__`.
+    :return: a tuple of objects of type `type`; the objects are from `objs`, after applying rule-based conversions as detailed above.
+    """
     return (
         None if objs is None
         else ((objs,) if isinstance(objs, type)
@@ -531,7 +609,7 @@ def make_tuple_of_type(objs, type):
                                else (type(**x) if isinstance(x, Mapping)
                                      else (type(*x) if isinstance(x, (tuple, list))
                                            else type(x))) for x in objs
-                               )))
+                               )) if iterable__(objs, atom_types=atom_types) else (type(objs),))
     )
 
 
@@ -541,7 +619,7 @@ def seg_tags(seg_end_idxes, seq_len: int):
     this method returns a list of integers that can be viewed as segmentation labels for the list.
 
     For example, the following list `a` can be viewed as a list with several sub-lists as its 'segments', and the delimiter is two consecutive 0s,
-    >>> import utilx.list_ext as lix
+    >>> import utix.listex as lix
     >>> a = [2, 3, 6, 0, 0, 2, 5, 1, 5, 0, 0, 3, 1, 3, 4, 0, 0, 2, 5]
     >>> needle = [0, 0]
     >>> needle_idxes = lix.find_sub_list(a, needle, return_sub_end=True) # yield the positions of the segmentation needles
@@ -569,7 +647,7 @@ def slide_window(seq: Union[List, Tuple], window_len, step_size, offsets=None, m
     Iterates through sub lists by a sliding window.
 
     For example,
-    >>> import utilx.list_ext as lx
+    >>> import utix.listex as lx
     >>> seq = list(range(0, 21))
     >>> offsets = [0, 3, 4, 8, 15, 17]
     >>> sub_lists = list(lx.slide_window(seq, window_len=5, step_size=2, offsets=offsets))
@@ -619,7 +697,7 @@ def slide_window__(seq: Union[List, Tuple], window_len, step_size, offsets=None,
     This same as `slide_window`, but yields the `start` and the `end` of the windows.
 
     For example,
-    >>> from utilx.list_ext import slide_window__
+    >>> from utix.listex import slide_window__
     >>> seq = list(range(0, 21))
     >>> offsets = [0, 3, 4, 8, 15, 17]
     >>> sub_lists = list(slide_window__(seq, window_len=5, step_size=2, offsets=offsets))
@@ -667,25 +745,11 @@ def slide_window__(seq: Union[List, Tuple], window_len, step_size, offsets=None,
                                                                                   step_size))
 
 
-# endregion
+def arrange(ls, order):
+    return [ls[x] for x in order]
 
-def iter__(it: Iterator, filter: Callable = None, sentinel: Callable = None):
-    if sentinel:
-        if filter:
-            for x in it:
-                if sentinel(x) if callable(sentinel) else (x == sentinel):
-                    return
-                elif filter(x):
-                    yield x
-        else:
-            for x in it:
-                if sentinel(x) if callable(sentinel) else (x == sentinel):
-                    return
-                yield x
-    elif filter:
-        yield from (x for x in it if filter(x))
-    else:
-        yield from it
+
+# endregion
 
 
 def alternating_merge(*iterables):
@@ -735,12 +799,15 @@ def nested_lists_dim(nl: list, _top_level_dim=0):
     Gets the dimension of a nested list.
 
     For example,
-    >>> import utilx.list_ext as lx
+    >>> import utix.listex as lx
     >>> a = [[1,2,3], [4, 5], [6,7]]
-    >>> print(lx.nested_lists_dim(a)) # 2, meaning `a` is a 2-D list.
+    >>> lx.nested_lists_dim(a)
+    2
     >>> a = [[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]] # can be a ragged list
-    >>> print(lx.nested_lists_dim(a)) # 3, meaning `a` is a 3-D list.
-    >>> print(lx.nested_lists_dim(a, _top_level_dim=1)) # 4, add `1` to the dimension of the input nested list
+    >>> lx.nested_lists_dim(a)
+    3
+    >>> lx.nested_lists_dim(a, _top_level_dim=1) # add `1` to the dimension of the input nested list
+    4
 
     :param nl: the nested list.
     :param _top_level_dim: the default top level dimension number is 0; otherwise, this number will add to the dimension of the input nested list.
@@ -753,10 +820,11 @@ def nested_lists_regular_shape(nl: list):
     """
     Gets the regular shape of a nested list, i.e. the shape where each dimension size is the maximum length of the nested list in that dimension.
 
-    For example,
-    >>> import utilx.list_ext as lx
-    >>> lx.nested_lists_regular_shape([[1,2], [3]]) # (2,2)
-    >>> lx.nested_lists_regular_shape([[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]]) # (3,3,3)
+    >>> import utix.listex as lx
+    >>> lx.nested_lists_regular_shape([[1,2], [3]])
+    (2, 2)
+    >>> lx.nested_lists_regular_shape([[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]])
+    (3, 3, 3)
 
     :param nl: get the regular shape of this nested list.
     :return: the regular shape of the provided nested list.
@@ -769,10 +837,109 @@ def nested_lists_regular_shape(nl: list):
     return tuple(shape)
 
 
+def nested_lists_regularize(nl: list, padding=0, dtype=None, **kwargs):
+    """
+    Make a nested list regular-shaped.
+    Internally, this function is a simple wrap around the `utix.npex.array__` function.
+
+    >>> import utix.listex as lx
+    >>> lx.nested_lists_regularize([[1,2], [3]])
+    [[1, 2], [3, 0]]
+    >>> lx.nested_lists_regularize([[[1],[2,3],[4,5,6]], [[7], [8, 9, 10]], [[11],[12, 13]]])
+    [[[1, 0, 0], [2, 3, 0], [4, 5, 6]], [[7, 0, 0], [8, 9, 10], [0, 0, 0]], [[11, 0, 0], [12, 13, 0], [0, 0, 0]]]
+
+    :param nl: a nested list.
+    :param padding: the padding value.
+    :param dtype: the numpy data type; the nested list is first converted to a numpy array and then converted back to a nested list; therefore we may specify the `dtype` to convert value types in the nested list.
+    :param kwargs: other arguments for `numpy.array` function.
+    :return: a regular-shaped list with all the values from `nl` by padding it with the `padding`.
+    """
+    from utix.npex import array__
+    return array__(nl, padding=padding, dtype=dtype, **kwargs).tolist()
+
+
 def nested_lists_get(lists: list, index: Union[List, Tuple]):
+    """
+    Recursive retrieval from a nested list. The `index` parameter specifies a 'path' to retrieve the target data.
+
+    >>> import utix.listex as lx
+    >>> lx.nested_lists_get([[1, 2, [3, 4]], [5, 6, [7, [8, 9]]]], index=[0, 2, 0]) == 3
+    True
+    >>> lx.nested_lists_get([[1, 2, [3, 4]], [5, 6, [7, [8, 9]]]], index=[1, 2, 1]) == [8, 9]
+    True
+
+    """
     for i in index:
         if i < len(lists):
             lists = lists[i]
         else:
             return None
     return lists
+
+
+def agg(key_list, value_list, agg_func=None, include_rank=None):
+    d = {}
+    if include_rank is None:
+        for key, val in zip(key_list, value_list):
+            rec = d.get(key, None)
+            if rec:
+                rec[0] += 1
+                rec[1].append(val)
+            else:
+                d[key] = [1, [val]]
+    elif include_rank is min or include_rank == 'min':
+        for i, (key, val) in enumerate(zip(key_list, value_list)):
+            rec = d.get(key, None)
+            if rec:
+                rec[0] += 1
+                rec[2].append(val)
+            else:
+                d[key] = [1, i, [val]]
+    elif include_rank is max or include_rank == 'max':
+        for i, (key, val) in enumerate(zip(key_list, value_list)):
+            rec = d.get(key, None)
+            if rec:
+                rec[0] += 1
+                rec[1] = i
+                rec[2].append(val)
+            else:
+                d[key] = [1, i, [val]]
+    else:
+        raise ValueError('include_rank can only be None, min or max')
+    if agg_func is None:
+        for key in d:
+            d[key] = tuple(d[key])
+    else:
+        if include_rank is None:
+            for key in d:
+                rec = d[key]
+                d[key] = tuple((rec[0], agg_func(rec[1])))
+        else:
+            for key in d:
+                rec = d[key]
+                d[key] = tuple((rec[0], rec[1], agg_func(rec[2])))
+    return d
+
+
+def agg_multiple(key_list, values, agg_funcs=None):
+    d = {}
+
+    for key, vals in zip(key_list, zip__(*values)):
+        rec = d.get(key, None)
+        if rec:
+            rec[0] += 1
+            for i, val in enumerate(vals):
+                if callable(val):
+                    rec[i + 1].append(val(key))
+                else:
+                    rec[i + 1].append(val)
+        else:
+            d[key] = [1, *([val(key)] if callable(val) else [val] for val in vals)]
+    if agg_funcs is None:
+        for key in d:
+            d[key] = tuple(d[key])
+    else:
+        for key in d:
+            rec = d[key]
+            d[key] = tuple((rec[0], *((agg_func(rec[i + 1]) if agg_func else rec[i + 1]) for i, agg_func in enumerate(agg_funcs))))
+    return d

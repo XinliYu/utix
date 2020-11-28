@@ -1,3 +1,7 @@
+"""
+Utility functions related to argument parsing, object checking and object type conversion.
+"""
+
 import argparse
 import ast
 import inspect
@@ -13,21 +17,17 @@ from gettext import gettext as _
 from os import path
 from pydoc import locate
 from sys import argv
-from typing import Tuple, Union, List, Callable, Dict, Any, Iterator
+from typing import Tuple, Union, List, Callable, Dict, Any, Iterator, Mapping
 
 from numpy import iterable
 
-import utilx.strex as strex
-from utilx.dictex import tup2dict
-from utilx.general import is_str, value_type, nonstr_iterable
-from utilx.msgex import ensure_arg_not_empty, ensure_arg_not_none, ensure_key_exist, ensure_valid_python_name
-
-"""
-Utility functions related to argument parsing, object checking and object type conversion.
-"""
+import utix.strex as strex
+from utix.dictex import tup2dict
+from utix.general import is_str, value_type, nonstr_iterable, SlotsTuple, path_import, convert_values
+from utix.msgex import ensure_arg_not_empty, ensure_arg_not_none, ensure_key_exist, ensure_valid_python_name
 
 
-# region json obj initialization
+# region json obj initialization; ! WORK IN PROGRESS DO NOT USE
 
 def get_obj_from_json_dict(jobj: dict, vars: dict = None, base_callable: callable = None, always_try_python_name_parse: bool = True, args=None):
     kwargs = {}
@@ -96,7 +96,7 @@ def get_obj_from_json_file(file_path: str, base_callable: callable = None, alway
         jobj: dict = json.loads(next(fin)) if multi_objs else json.load(fin)
         args: Union[dict, None] = jobj.get('args', None)
         vars: Union[dict, None] = jobj.get('vars', None)
-        modes: Union[dict, None] = jobj.get('modes', None)
+        modes: Union[dict, None] = jobj.get('mods', None)
         _get_vars()
         _get_args()
         mode = _get_mode()
@@ -193,12 +193,11 @@ def fast_init_obj(init_str: str, obj_dict: Dict[str, Callable]):
 
 # region common arg parsing
 
-
 def solve_name_conflict(name: str, current_names: set, suffix_sep='', name_suffix_gen: Iterator = None):
     """
     Solves name conflict by automatically appending a suffix.
 
-    >>> import utilx.argex as argx
+    >>> import utix.argex as argx
     >>> print(argx.solve_name_conflict(name='para', current_names={'para', 'para1', 'para2', 'para3'}) == 'para4')
     >>> def suffix_gen():
     >>>     for x in range(1, 5):
@@ -341,17 +340,58 @@ def get_obj_from_args(obj_args: Union[Callable, Tuple]):
         raise ValueError("The provided object argument `obj_args` is not supported.")
 
 
-ArgInfo = namedtuple('ArgInfo', ('full_name', 'short_name', 'default_value', 'description', 'converter'), defaults=('', '', None, '', None))
-ArgInfo.__doc__ = "Namedtuple for argument definition. Used for argument definition in `get_parsed_args`. "
+def dict_to_namespace(d):
+    return Namespace(**{k: (dict_to_namespace(v) if isinstance(v, Mapping) else v) for k, v in d.items()})
+
+class ArgInfo(SlotsTuple):
+    """
+    Namedtuple for argument definition. Used for argument definition in `get_parsed_args`.
+    """
+    __slots__ = ('full_name', 'short_name', 'default_value', 'description', 'converter', '_tup')
+
+    def __init__(self, full_name='', short_name='', default_value=None, description='', converter=None):
+        self.full_name = full_name
+        self.short_name = short_name
+        self.default_value = default_value
+        self.description = description
+        self.converter = converter
+        super(ArgInfo, self).__init__()
+
+
+def _solve_preset(preset_path):
+    def _inner_solve_preset_path(preset_path):
+        if not path.isfile(preset_path):
+            _preset_path = f'{preset_path}.json'
+            if path.isfile(_preset_path):
+                return _preset_path, False
+            else:
+                _preset_path = f'{preset_path}.py'
+                if path.isfile(_preset_path):
+                    return _preset_path, True
+                else:
+                    return None, False
+        else:
+            return preset_path, preset_path.endswith('.py')
+
+    _preset_path, is_python = _inner_solve_preset_path(preset_path)
+    if _preset_path is not None:
+        preset_path = _preset_path
+        preset_keys = None
+    else:
+        preset_keys = path.basename(preset_path).split(':')
+        preset_path = path.dirname(preset_path)
+        preset_path, is_python = _inner_solve_preset_path(preset_path)
+    return preset_path, preset_keys, is_python
 
 
 def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict[str, Any], str]] = None, short_full_name_sep='/', return_seen_args=False, default_value_prefix: str = 'default_', **kwargs):
     """
     Parses terminal argument input. Suitable for both simple and complicated argument parsing. Also supports list and dictionary parsing.
+    The argument priority is terminal input > preset > default values.
 
     Simple argument parsing setup.
     ------------------------------
-    >>> import utilx.argex as argx
+    >>> import utix.argex as argx
     >>> # by simply specifying the default values, it tells the function there should be three terminal arguments `para1`, `para2` and `para3`,
     >>> # and it hints the function that `para1` is of type `int`, `para2` is of type `str`, and `para3` is of type `list`
     >>> args = argx.get_parsed_args(default_para1=1, default_para2='value', default_para3=[1, 2, 3, 4])
@@ -364,7 +404,7 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
 
     Simple argument parsing setup without default values (not recommended).
     -----------------------------------------------------------------------
-    >>> import utilx.argex as argx
+    >>> import utix.argex as argx
     >>> # if no default values are needed, we could just specify the names;
     >>> # NOTE that without default values, there is no way to infer the type of each argument, unless it can be recognized as list, a tuple, a set or a dictionary;
     >>> # all other arguments will be of string type;
@@ -377,7 +417,7 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
 
     Use 2-tuples to setup argument parsing.
     ---------------------------------------
-    >>> import utilx.argex as argx
+    >>> import utix.argex as argx
     >>> # we can provide argument info tuples;
     >>> # here every tuple is a 2-tuple, 1) the first being the name in the format of `fullname/shortname`, or just the `fullname`, and 2) the second being the default value;
     >>> # NOTE if the 'shortname' is not specified, the default is to use the first letter of the 'parts' of the full name as the short name.
@@ -389,14 +429,14 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
     >>> # 3) set arguments `--para1_is_int 2 --para2_is_str 3 -para3_is_list '[4,5,6,7]'` and this will print out "2 3 [4, 5, 6, 7]", where the '3' is of string type,
     >>> print(args.para1_is_int, args.para2_is_str, args.para3_is_list)
     >>> print(type(args.para1_is_int), type(args.para2_is_str), type(args.para3_is_list))
-    
+
     Use more explicit ArgInfo namedtuple to setup argument parsing.
     --------------------------------------------------------
-    >>> import utilx.argex as argx
-    >>> args = argx.get_parsed_args(argx.ArgInfo(full_name='para1_is_int', short_name='p', default_value=1), 
+    >>> import utix.argex as argx
+    >>> args = argx.get_parsed_args(argx.ArgInfo(full_name='para1_is_int', short_name='p', default_value=1),
     >>>                             argx.ArgInfo(full_name='para2_is_str', short_name='p', default_value='value'),
     >>>                             argx.ArgInfo(full_name='para3_is_list', default_value=[1, 2, 3, 4]))
-    >>> 
+    >>>
     >>> # try `-p 2 -p1 3 -pil '[4,5,6,7]'` and `--para1_is_int 2 --para2_is_str 3 --para3_is_list '[4,5,6,7]'` again, and it should print out '2 3 [4, 5, 6, 7]'
     >>> # try `-p 2 -p1 3 -pil 5`
     >>> print(args.para1_is_int, args.para2_is_str, args.para3_is_list)
@@ -405,13 +445,13 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
 
     Use converters.
     ---------------
-    >>> import utilx.argex as argx
+    >>> import utix.argex as argx
     >>> args = argx.get_parsed_args(argx.ArgInfo(full_name='para1_is_int', short_name='p', default_value=1),
     >>>                             argx.ArgInfo(full_name='para2_is_str', short_name='p', default_value='value', converter=lambda x: '_' + x.upper()),
     >>>                             argx.ArgInfo(full_name='para3_is_list', default_value=[1, 2, 3, 4], converter=lambda x: x ** 2),
     >>>                             argx.ArgInfo(full_name='para4_is_dict', default_value={'a': 1, 'b': 2}, converter=lambda k, v: (k, k + str(v))))
     >>> # 1) without any argument, this will print out "1 _VALUE [1, 4, 9, 16] {'a': 'a1', 'b': 'b2'}";
-    >>> # 2) try `-p 2 -p1 3 -pil '[4,5,6,7]' -pid "{'a':2, 'b':3}"` and `--para1_is_int 2 --para2_is_str 3 --para3_is_list '[4,5,6,7]' --para3_is_dict "{'a':2, 'b':3}"` again, 
+    >>> # 2) try `-p 2 -p1 3 -pil '[4,5,6,7]' -pid "{'a':2, 'b':3}"` and `--para1_is_int 2 --para2_is_str 3 --para3_is_list '[4,5,6,7]' --para3_is_dict "{'a':2, 'b':3}"` again,
     >>> #       and it should print out '2 _3 [16, 25, 36, 49] {'a': 'a2', 'b': 'b3'}'
     >>> print(args.para1_is_int, args.para2_is_str, args.para3_is_list, args.para4_is_dict)
     >>> print(type(args.para1_is_int), type(args.para2_is_str), type(args.para3_is_list), type(args.para4_is_dict))
@@ -433,7 +473,9 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
                             2) Otherwise, the inferred type is just the the type of the default value.
                             3) to change the above typing inference behavior, provide a `converter` for the argument in the `arg_info_objs`.
     :param preset_root: the path to the directory that stores presets of arguments.
-    :param preset: the path/name of the preset relative to `preset_root`; a preset is a json file with predefined argument values; if `preset_root` is specified, then `preset` should be relative to the `preset_root`.
+    :param preset: the path/name of the preset relative to `preset_root`; a preset is a json file with predefined argument values; if `preset_root` is specified, then `preset` should be relative to the `preset_root`;
+                    the values from the `preset` will be used as the default values of corresponding arguments, and they are the highest-priority default values, overriding those specified by `default_xxx` arguments;
+                    the values in `preset` will be added to the returned argumetns even if they are not specified by any `arg_info_objs` or any `default_xxx` argument.
     :param short_full_name_sep: optional; the separator used to separate fullname and shortname in the `arg_info_objs`; the default is '/'.
     :param return_seen_args: optional; `True` to return the names of the arguments actually specified in the terminal; otherwise `False`.
     :param default_value_prefix: any named argument starting with this prefix will be treated as the default value for an argument of the same name without the prefix; the default is 'default_';
@@ -443,16 +485,50 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
     :param kwargs: specify the default values as named arguments.
     :return: just the parsed arguments if `return_seen_args` is `False`; otherwise, a tuple, the first being the parsed args, and the second being
     """
+
+    # region pre-process the preset
+    _argv = argv[1:]
+    if _argv and _argv[0] == 'preset':
+        preset = ast.literal_eval(_argv[1])
+        _argv = _argv[2:]
+
+    if isinstance(preset, str):
+        _preset = {}
+        for preset_path in preset.split(','):
+            _preset_path, preset_keys, is_python = _solve_preset(preset_path)
+            if _preset_path is None:
+                preset_path, preset_keys, is_python = _solve_preset(path.join(preset_root, preset_path))
+            else:
+                preset_path = _preset_path
+
+            if preset_path is not None:
+                if is_python:
+                    preset_obj = {k: (dict_to_namespace(v) if isinstance(v, Mapping) else v) for k, v in path_import(path.abspath(preset_path)).config.items()}
+                else:
+                    preset_obj = json.load(open(preset_path))
+                if preset_keys is None:
+                    _preset.update(preset_obj)
+                else:
+                    for preset_key in preset_keys:
+                        _preset.update(preset_obj[preset_key])
+        preset = _preset
+    elif isinstance(preset, (tuple, list)):
+        return [get_parsed_args(
+            arg_info_objs=arg_info_objs,
+            preset_root=preset_root,
+            preset=_preset,
+            short_full_name_sep=short_full_name_sep,
+            return_seen_args=return_seen_args,
+            default_value_prefix=default_value_prefix,
+            **kwargs
+        ) for _preset in preset]
+
+    # endregion
+
     arg_parser = ArgumentParser()
     arg_full_name_dd = set()
     arg_short_name_dd = set()
     converters = {}
-
-    if type(preset) is str:
-        if preset_root:
-            preset = path.join(preset_root, preset)
-        assert path.exists(preset), f"The argument preset file does not exits at {preset}."
-        preset = json.load(open(preset))
 
     def _solve_arg_names(arg_name):
         arg_name, arg_short_name = strex.birsplit(arg_name, short_full_name_sep)
@@ -468,12 +544,12 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
     def _default_converter_multiple_values(x, ctype, vtype, converter):
         if converter is None:
             if nonstr_iterable(x):
-                return ctype(vtype(xx) for xx in x)
+                return ctype(convert_values(x, vtype))
             else:
                 return ctype([vtype(x)])
         else:
             if nonstr_iterable(x):
-                return ctype(converter(xx) for xx in x)
+                return ctype(convert_values(x, vtype))
             else:
                 return ctype([converter(x)])
 
@@ -504,9 +580,9 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
             default_value = description = ''
             converter = None
             arg_name, arg_short_name = _solve_arg_names(arg_name)
-        elif isinstance(arg_info_obj, tuple):
-            if len(arg_info_obj) == 5:  # the case when the _short name_ is separately specified.
-                arg_name, arg_short_name, default_value, description, converter = arg_info_obj
+        elif hasattr(arg_info_obj, '__len__') and hasattr(arg_info_obj, '__getitem__'):
+            if len(arg_info_obj) >= 5:  # the case when the _short name_ is separately specified.
+                arg_name, arg_short_name, default_value, description, converter = arg_info_obj[:5]
                 if not arg_short_name:
                     arg_name, arg_short_name = _solve_arg_names(arg_name)
                 else:
@@ -582,18 +658,23 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
     # endregion
 
     # region argument value conversion
-    args, seen_actions = arg_parser.parse_args(argv[1:])
+    args, seen_actions = arg_parser.parse_args(_argv)
     for arg_name, arg_val in vars(args).items():
         if isinstance(arg_val, str):
             arg_val = arg_val.strip()
             if arg_val and arg_val[0] in ('\'', '"') and arg_val[-1] in ('\'', '"'):  # 'de-quote' the argument string
                 arg_val = arg_val[1:-1]
-            if len(arg_val) >= 2 and ((arg_val[0] == '[' and arg_val[-1] == ']') or (arg_val[0] == '(' and arg_val[-1] == ')')):
+            if len(arg_val) >= 2 and arg_val[0] == '(' and arg_val[-1] == ')':  # a tuple
                 arg_val = ast.literal_eval(arg_val)
                 converter = converters.get(arg_name, None)
                 if converter is not None:
                     arg_val = converter(arg_val)
-            elif len(arg_val) >= 2 and (arg_val[0] == '{' and arg_val[-1] == '}'):
+            elif len(arg_val) >= 2 and (arg_val[0] == '[' and arg_val[-1] == ']'):  # a list
+                arg_val = ast.literal_eval(arg_val)
+                converter = converters.get(arg_name, None)
+                if converter is not None:
+                    arg_val = converter(arg_val)
+            elif len(arg_val) >= 2 and (arg_val[0] == '{' and arg_val[-1] == '}'):  # a dictionary
                 arg_val = ast.literal_eval(arg_val)
                 converter = converters.get(arg_name, None)
                 if converter is not None:
@@ -611,18 +692,20 @@ def get_parsed_args(*arg_info_objs, preset_root: str = None, preset: [Union[Dict
         setattr(args, arg_name, arg_val)
 
     # endregion
+    # if preset_path:
+    #     setattr(args, 'preset', preset_path)
     if return_seen_args:
         return args, tuple(x.dest for x in seen_actions)
     else:
         return args
 
 
-def args2str(args, active_arg_name_info_tuples: Union[Tuple, List], default_short_name_map: dict = None, default_value_formatter: Callable = None, name_val_delimiter='_', name_parts_delimiter='-',
+def args2str(args, active_argname_info: Union[Tuple, List], default_short_name_map: dict = None, default_value_formatter: Callable = None, name_val_delimiter='_', name_parts_delimiter='-',
              prefix: str = None, suffix: str = None, extension_name=None):
     """
     Generates a string representation for the given arguments. This string representation can be used in file names or field names for quick identification of the argument setup.
     :param args: the arguments.
-    :param active_arg_name_info_tuples: provides what arguments should be included in the string representation, and provides short-name and value-formatting function for these arguments. Can be:
+    :param active_argname_info: provides what arguments should be included in the string representation, and provides short-name and value-formatting function for these arguments. Can be:
                                         1) a three-tuple of the 'full name', the 'short name' and the 'value formatter';
                                             the 'short name' for an argument will appear in the string representation;
                                             the 'value format' should be a callable;
@@ -663,7 +746,7 @@ def args2str(args, active_arg_name_info_tuples: Union[Tuple, List], default_shor
         return get_short_name(full_name=arg_full_name, current_short_names=short_name_dd) if default_short_name_map is None or arg_full_name not in default_short_name_map else default_short_name_map[arg_full_name]
 
     name_parts = [prefix] if prefix else []
-    for info_tup in active_arg_name_info_tuples:
+    for info_tup in active_argname_info:
         if len(info_tup) == 1:
             info_tup = info_tup[0]
 
@@ -704,6 +787,28 @@ def args2str(args, active_arg_name_info_tuples: Union[Tuple, List], default_shor
         return main_name + extension_name
     else:
         return main_name
+
+
+def getname(args=None, active_argname_info=None, name=None, name_prefix=None, name_suffix=None, name_val_delimiter='', name_parts_delimiter='-', **kwargs):
+    """
+    A convenient function to construct a name simply from the specified name parts `name`, `name_prefix`, `name_suffix`, or construct the name from the arguments, using the `arg2str` function.
+    :param args: provides the arguments, used by `arg2str`.
+    :param active_argname_info: provides the active arguments used in the name construction; used by `arg2str`.
+    :param name: manually specify the main name; if this is specified, then this function simply returns a concatenation of the 3-tuple (`name_prefix`, `name`, `name_suffix`), and the `args`, `active_argname_info`, `name_val_delimiter`, `kwargs` are not used.
+    :param name_prefix: provides the name prefix.
+    :param name_suffix: provides the name suffix.
+    :param name_val_delimiter: used to concatenate the name/value pair of each argument; used by `arg2str`.
+    :param name_parts_delimiter: used to concatenate name parts.
+    :param kwargs: extra parameters to pass to the `arg2str`.
+    :return: a name, either a simple concatenation of (`name_prefix`, `name`, `name_suffix`) if `name` is specified, or constructed from the provided `args`.
+    """
+    return name_parts_delimiter.join((x for x in (name_prefix, name, name_suffix) if x is not None)) if name \
+        else (args2str(args=args,
+                       active_argname_info=active_argname_info,
+                       name_val_delimiter=name_val_delimiter,
+                       prefix=name_prefix,
+                       suffix=name_suffix,
+                       **kwargs) if args is not None else name_parts_delimiter.join((name_prefix, name_suffix)))
 
 
 def tuple_arg_parser(arg_or_args, target_class, positional_arg_types: Union[Tuple, List]):

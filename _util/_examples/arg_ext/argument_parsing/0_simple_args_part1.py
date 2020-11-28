@@ -1,6 +1,6 @@
 # this script shows an example how to use `argx.get_parsed_args` to quickly setup terminal arguments
 
-import utilx.arg_ext as argx
+import utix.arg_ext as argx
 
 # by simply specifying the default values, it tells the function there should be three terminal arguments `para1`, `para2` and `para3`,
 # and it hints the function that `para1` is of type `int`, `para2` is of type `str`, and `para3` is of type `list`

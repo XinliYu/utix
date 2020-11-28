@@ -10,9 +10,10 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
 
-from utilx.dictex import IndexDict
-from utilx.general import is_list_or_tuple, make_range, hprint_message, iterable, value__, zip__
-import utilx.npex as npx
+from utix.dictex import IndexDict
+from utix.general import is_list_or_tuple, make_range, hprint_message, iterable, value__, zip__
+import utix.npex as npx
+import utix.pathex as pathex
 
 
 class Markers(Enum):
@@ -201,6 +202,9 @@ def get_cmap(_n: Union[str, ColorMaps]):
 
 
 def get_color(color, cmap=ColorMaps.Tab10, cmap_norm=None):
+    if isinstance(color, str):
+        return color
+
     if cmap is None:
         return None
 
@@ -218,17 +222,20 @@ def get_color(color, cmap=ColorMaps.Tab10, cmap_norm=None):
 def get_colors(it: Iterator, cmap=ColorMaps.Tab10, cmap_norm=None):
     cmap = get_cmap(cmap)
     if cmap_norm is None:
+        return [x if isinstance(x, str) else cmap(x) for x in it]
+    elif cmap_norm == 'index':
         d = IndexDict()
         if is_discrete_color_map(cmap):
-            return [cmap(d.index(x)) for x in it]
+            return [x if isinstance(x, str) else cmap(d.index(x)) for x in it]
         else:
             if not is_list_or_tuple(it):
                 it = list(it)
             d.add_all(it)
             d = d.get_normalized_index_dict()
-            return [cmap(d[x]) for x in it]
+            return [x if isinstance(x, str) else cmap(d[x]) for x in it]
+
     else:
-        return [cmap(cmap_norm(x)) for x in it]
+        return [x if isinstance(x, str) else cmap(cmap_norm(x)) for x in it]
 
 
 def savefig__(fname, dpi: int = 1200, format=None, clear=False, verbose=__debug__, *args, **kwargs):
@@ -328,7 +335,7 @@ class PCAInfo:
 class ColorbarInfo:
     __slots__ = ('ticks', 'ticks_labelsize', 'shrink', 'show_colorbar')
 
-    def __init__(self, ticks, ticks_labelsize=None, shrink=1.0, show_colorbar=True):
+    def __init__(self, ticks=None, ticks_labelsize=None, shrink=1.0, show_colorbar=True):
         self.ticks = ticks
         self.ticks_labelsize = ticks_labelsize
         self.shrink = shrink
@@ -388,7 +395,9 @@ def set_legends(ax=plt, labels=None, loc: Union[str, int, Locs] = None, ncol: in
 
 def set_legends__(ax=plt, legends=None, *args, **kwargs):
     if legends is not None:
-        if callable(legends):
+        if legends is True:
+            ax.legend()
+        elif callable(legends):
             legends(ax, *args, **kwargs)
         else:
             set_legends(ax, labels=legends, *args, **kwargs)
@@ -505,17 +514,17 @@ class PlotInfo:
                 else:
                     if self.markers is not None and len(self.markers) > 1:
                         if data.shape[0] == 2:
-                            lines = [ax.plot(sub_data[0], sub_data[1], marker=marker, markersize=self.marker_size, color=get_color(color or i, cmap=self.cmap, cmap_norm=self.cmap_norm))
-                                     for i, (sub_data, marker, marker_size, color) in enumerate(zip__(data.T, self.markers, self.marker_size, self.color))]
+                            lines = [ax.plot(sub_data[0], sub_data[1], marker=marker, markersize=self.marker_size, fillstyle=fillstyle, color=get_color(color or i, cmap=self.cmap, cmap_norm=self.cmap_norm))
+                                     for i, (sub_data, marker, marker_size, color, fillstyle) in enumerate(zip__(data.T, self.markers, self.marker_size, self.color, self.fillstyle))]
                         elif data.shape[1] == 2:
-                            lines = [ax.plot(sub_data[0], sub_data[1], marker=marker, markersize=self.marker_size, color=get_color(color or i, cmap=self.cmap, cmap_norm=self.cmap_norm))
-                                     for i, (sub_data, marker, marker_size, color) in enumerate(zip__(data, self.markers, self.marker_size, self.color))]
+                            lines = [ax.plot(sub_data[0], sub_data[1], marker=marker, markersize=self.marker_size, fillstyle=fillstyle, color=get_color(color or i, cmap=self.cmap, cmap_norm=self.cmap_norm))
+                                     for i, (sub_data, marker, marker_size, color, fillstyle) in enumerate(zip__(data, self.markers, self.marker_size, self.color, self.fillstyle))]
 
                     else:
                         if data.shape[0] == 2:
-                            lines = ax.scatter(data[0], data[1], marker=self.markers, cmap=self.cmap, norm=self.cmap_norm, c=self.color, s=self.marker_size)
+                            lines = ax.scatter(data[0], data[1], marker=self.markers, fillstyle=self.fillstyle, cmap=self.cmap, norm=self.cmap_norm, c=self.color, s=self.marker_size)
                         elif data.shape[1] == 2:
-                            lines = ax.scatter(data.T[0], data.T[1], marker=self.markers, cmap=self.cmap, norm=self.cmap_norm, c=self.color, s=self.marker_size)
+                            lines = ax.scatter(data.T[0], data.T[1], marker=self.markers, fillstyle=self.fillstyle, cmap=self.cmap, norm=self.cmap_norm, c=self.color, s=self.marker_size)
             else:
                 raise ValueError(f'the scatter plot does not support data of shape `{data.shape}`')
         else:
@@ -606,14 +615,18 @@ def init_figure(*X, figsize=None, max_nrows=None, max_ncols=None, sharex=True, s
         return plt.subplots(nrows=nrows, ncols=ncols, sharex=sharex, sharey=sharey, figsize=figsize)
 
 
-def imshow__(*data, imshow_info: ImShowInfo = None, figsize=None, max_nrows=None, max_ncols=None, sharex=True, sharey=True, shared_colorbar=None, share_vmin=True, share_vmax=True):
+def imshow__(*data, imshow_info: ImShowInfo = None, figsize=None, max_nrows=None, max_ncols=None, sharex=True, sharey=True, share_vmin=True, share_vmax=True, shared_colorbar=None):
     fig_info = init_figure(*data, figsize=figsize, max_nrows=max_nrows, max_ncols=max_ncols, sharex=sharex, sharey=sharey)
     if len(data) == 1:
         data = data[0]
         if imshow_info is None:
-            plt.imshow(data)
+            im = plt.imshow(data)
         else:
-            imshow_info(plt, data)
+            im = imshow_info(plt, data)
+        if callable(shared_colorbar):
+            shared_colorbar(plt, fig=im)
+        else:
+            set_colorbar(ax=plt, fig=im)
     else:
         fig, axes = fig_info
 
@@ -654,7 +667,63 @@ def imshow__(*data, imshow_info: ImShowInfo = None, figsize=None, max_nrows=None
         if shared_colorbar is True:
             set_colorbar(ax=plt, fig=im, ref_ax=axes, shrink=0.5 if nrows == 1 else 1.0)
         elif callable(shared_colorbar):
-            shared_colorbar(plt, fig=im, ref_ax=axes, shrink=0.5 if nrows == 1 else 1.0)
+            shared_colorbar(plt, fig=im, ref_ax=axes)
+
+
+class BarInfo:
+    __slots__ = ('title', 'width', 'axis_info', 'cmap', 'cmap_norm', 'color', 'legends', 'labels')
+
+    def __init__(self, title=None, width=None, axis_info=None, cmap=None, cmap_norm=None, color=None, legends=None, labels=None):
+        self.title = title
+        self.width = width
+        self.axis_info = axis_info
+        self.cmap = get_cmap(cmap)
+        self.cmap_norm = cmap_norm
+        self.color = color
+        self.legends = legends
+        self.labels = labels
+
+    def __call__(self, ax, data):
+        colors = get_colors(self.color)
+        x = np.arange(data.shape[1]) if len(data.shape) == 2 else 0
+        b = tuple(ax.bar(x + self.width * i, data[i], color=colors[i], width=self.width, label=self.labels[i] if self.labels is not None else None) for i in range(data.shape[0]))
+        set_title__(ax, self.title)
+        set_legends__(ax, self.legends)
+        if callable(self.axis_info):
+            self.axis_info(ax)
+        return b
+
+    def new(self, **kwargs):
+        for k in self.__slots__:
+            if k not in kwargs:
+                kwargs[k] = getattr(self, k)
+        return BarInfo(**kwargs)
+
+
+def bar__(*data, bar_info=None, figsize=None, max_nrows=None, max_ncols=None, sharex=True, sharey=True, shared_legends=None,
+          wspace=None, hspace=None,
+          adjust_top=None, adjust_bottom=None, adjust_left=None, adjust_right=None):
+    fig_info = init_figure(*data, figsize=figsize, max_nrows=max_nrows, max_ncols=max_ncols, sharex=sharex, sharey=sharey)
+    if len(data) == 1:
+        data = data[0]
+        if bar_info is None:
+            im = plt.bar(data)
+        else:
+            im = bar_info(plt, data)
+    else:
+        fig, axes = fig_info
+        fig.subplots_adjust(bottom=adjust_bottom, top=adjust_top, left=adjust_left, right=adjust_right, wspace=wspace, hspace=hspace)
+        if bar_info is None:
+            for ax, _data in zip(axes.flat, data):
+                ax.plot(_data)
+        elif callable(bar_info):
+            for ax, _data in zip(axes.flat, data):
+                bar_info(ax, _data)
+        else:
+            for ax, _data, _plot_info in zip(axes.flat, data, bar_info):
+                _plot_info(ax, _data)
+
+        set_legends__(fig, shared_legends)
 
 
 def check_legends(X, legends=None):
@@ -666,7 +735,11 @@ def check_legends(X, legends=None):
             warnings.warn(f'plot one sequence with {len(legends)} legends')
 
 
-def plot__(*data, x=None, plot_info=None, figsize=None, max_nrows=None, max_ncols=None, sharex=True, sharey=True, common_xlabel=None, common_ylabel=None, common_xlabelpad=None, common_ylabelpad=None, wspace=None, hspace=None, shared_legends=None, adjust_top=None, adjust_bottom=None, adjust_left=None, adjust_right=None):
+def plot__(*data, x=None, plot_info=None,
+           figsize=None, max_nrows=None, max_ncols=None,
+           sharex=True, sharey=True,
+           common_xlabel=None, common_ylabel=None, common_xlabelpad=None, common_ylabelpad=None,
+           wspace=None, hspace=None, shared_legends=None, adjust_top=None, adjust_bottom=None, adjust_left=None, adjust_right=None):
     fig_info = init_figure(*data, figsize=figsize, max_nrows=max_nrows, max_ncols=max_ncols, sharex=sharex, sharey=sharey)
 
     if len(data) == 1:
@@ -691,10 +764,6 @@ def plot__(*data, x=None, plot_info=None, figsize=None, max_nrows=None, max_ncol
         set_common_labels(fig=fig, common_xlabel=common_xlabel, common_ylabel=common_ylabel, common_xlabelpad=common_xlabelpad, common_ylabelpad=common_ylabelpad)
         if shared_legends is not None:
             shared_legends(fig)
-
-
-# def scatter(*X, ):
-#     pass
 
 
 def set_colorbar(ax=plt, fig=None, ref_ax=None, show_colorbar=True, ticks=None, ticks_labelsize=None, shrink=1.0):
@@ -727,3 +796,62 @@ def set_xticks_labelsize(ax=plt, labelsize=14):
 def set_yticks_labelsize(ax=plt, labelsize=14):
     if labelsize is not None:
         ax.tick_params(axis="y", labelsize=labelsize)
+
+
+def pd_series_plot(df, output_path, series_col, index_col, value_cols, group_cols=None, groups=None, remove_zero_vals=True, title=None, plot_args=None, plot_mode='subplots', xlabel=None):
+    # TODO: 'ylabel' does not work
+    if group_cols is not None:
+        pathex.ensure_dir_existence(output_path)
+        if isinstance(group_cols, str):
+            group_cols = (group_cols,)
+        if isinstance(value_cols, str):
+            value_cols = (value_cols,)
+
+        for group_idx, group in enumerate(groups):
+            hprint_message(f'generating plot for group {group_idx}', group)
+            _df = df
+            for group_col, val in zip(group_cols, group):
+                _df = _df.loc[_df[group_col] == val]
+            if remove_zero_vals:
+                for value_col in value_cols:
+                    _df[value_col] = _df[value_col].replace(0, np.nan)
+
+            if title is None:
+                _title = "_".join(map(str, group))
+            elif isinstance(title, str):
+                _title = title
+            else:
+                _title = title[group_idx]
+
+            plt.clf()
+
+            if plot_mode == 'same_fig':
+                value_col = value_cols[0]
+                __df = _df.pivot(index=index_col, columns=series_col, values=value_col)
+                _plot_args = plot_args[value_col]
+                ylabel = _plot_args.pop('ylabel', None)
+                ax = __df.plot(title=_title, **_plot_args)
+                if ylabel is not None:
+                    ax.set_ylabel(ylabel)
+                for value_col in value_cols[1:]:
+                    __df = _df.pivot(index=index_col, columns=series_col, values=value_col)
+                    _plot_args = plot_args[value_col]
+                    ylabel = _plot_args.pop('ylabel', None)
+                    ax = __df.plot(ax=ax, **_plot_args)
+                    if ylabel is not None:
+                        ax.set_ylabel(ylabel)
+                fig=None
+            elif plot_mode == 'subplots':
+                fig, axes = init_figure(*value_cols, max_ncols=1, sharex=True)
+                for value_col, ax in zip(value_cols, axes):
+                    _plot_args = plot_args[value_col]
+                    ylabel = _plot_args.pop('ylabel', None)
+                    __df = _df.pivot(index=index_col, columns=series_col, values=value_col)
+                    ax = __df.plot(ax=ax, **_plot_args)
+                    if ylabel is not None:
+                        ax.set_ylabel(ylabel)
+            if xlabel is not None:
+                plt.xlabel(xlabel)
+            plt.savefig(path.join(output_path, f'{_title}.png'))
+            plt.clf()
+            plt.close(fig=fig)

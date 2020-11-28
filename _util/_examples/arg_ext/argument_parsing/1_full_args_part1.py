@@ -1,6 +1,6 @@
 # this script shows an example how to use `argx.get_parsed_args` for general argument setup, using 2-tuples.
 
-import utilx.arg_ext as argx
+import utix.arg_ext as argx
 
 # we can provide argument info tuples;
 # here every tuple is a 2-tuple, 1) the first being the name in the format of `fullname/shortname`, or just the `fullname`, and 2) the second being the default value;
