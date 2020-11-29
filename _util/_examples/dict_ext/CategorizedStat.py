@@ -1,6 +1,14 @@
 from utix._util.stat_util import CategorizedStat
 
 stat = CategorizedStat()
+stat.count(category='music', stat_name='buy', value=[3, 5])
+stat.count(category='video', stat_name='buy', value=[2, 1])
+print(stat.get_stats(name='buy'))
+stat.count(category='music', stat_name='buy', value=[1, 1])
+stat.count(category='video', stat_name='buy', value=[0, -1])
+print(stat.get_stats(name='buy'))
+
+stat = CategorizedStat()
 stat.count(category='music', stat_name='buy', value=3)
 stat.count(category='video', stat_name='buy', value=5)
 print(stat.get_stats(name='buy'))

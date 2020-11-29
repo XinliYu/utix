@@ -1724,7 +1724,6 @@ def get__(d: Mapping, *keys):
         if key in d:
             return d[key]
 
-
 class XCounter(defaultdict):
     """
     A subclass of :class:`dict` designed for counting/accumulating items.

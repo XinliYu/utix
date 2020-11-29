@@ -5,7 +5,7 @@ from typing import Callable, Iterator, Mapping
 import numpy as np
 
 from utix.general import import__, has_varkw, iter__
-from utix.ioex import write_all_lines, write_all_lines_to_stream, write_all_json_objs, iter_all_json_objs
+from utix.ioex import write_all_lines, write_all_lines_to_stream, write_all_json_objs, iter_json_objs
 from utix.pathex import get_path_tail
 
 _register = {}
@@ -65,7 +65,7 @@ def simple_json_to_csv_iter(json_files, csv_fields, field_jkey_maps: Mapping, pl
         if header:
             yield sep.join(csv_fields)
         for json_file in iter__(json_files):
-            for jobj in iter_all_json_objs(json_file):
+            for jobj in iter_json_objs(json_file):
                 if preprocess is not None:
                     preprocess(jobj)
                 yield sep.join(_proc_value(jobj, jkey) for jkey in jkeys)
@@ -75,13 +75,13 @@ def simple_json_to_csv_iter(json_files, csv_fields, field_jkey_maps: Mapping, pl
         if type(save_source_path) is int:
             for json_file in iter__(json_files):
                 source = get_path_tail(json_file, save_source_path)
-                for jobj in iter_all_json_objs(json_file):
+                for jobj in iter_json_objs(json_file):
                     if preprocess is not None:
                         preprocess(jobj)
                     yield sep.join(_proc_value(jobj, jkey) for jkey in jkeys) + sep + source
         elif type(save_source_path) is bool:
             for json_file in iter__(json_files):
-                for jobj in iter_all_json_objs(json_file):
+                for jobj in iter_json_objs(json_file):
                     if preprocess is not None:
                         preprocess(jobj)
                     yield sep.join(_proc_value(jobj, jkey) for jkey in jkeys) + sep + json_file
@@ -176,5 +176,5 @@ def write_keyed_lists(keyed_lists, output_path, **kwargs):
 
 
 def iter_keyed_lists(file_path):
-    for jobj in iter_all_json_objs(file_path):
+    for jobj in iter_json_objs(file_path):
         yield next(iter(jobj.items()))
