@@ -5,24 +5,33 @@ from tqdm import tqdm
 import utix.pathex as paex
 
 from utix.dictex import IndexDict, kvswap
-from utix.general import str2val, tqdm_wrap, hprint_message, exclude_none
+from utix.general import str2val, tqdm_wrap, hprint_message, exclude_none, str2int
 from utix.ioex import pickle_load, pickle_save, read_all_lines
 
 
 # region CSV reading
 
-def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1, parse=True, use_tqdm=True, disp_msg=None, verbose=__debug__, fields_as_list=True):
+def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1, use_tqdm=True, disp_msg=None, verbose=__debug__, fields_as_list=True, parse_labels_as_ints=False, parse_feats_as_floats=False, parse=False):
     _labels_end = num_meta_data_fields + num_label_fields
     for fields in iter_csv(csv_file_path, header=False, parse=parse, use_tqdm=use_tqdm, disp_msg=disp_msg, verbose=verbose, fields_as_list=fields_as_list):
         meta_data = fields[:num_meta_data_fields] if num_meta_data_fields else None
         if num_label_fields == 1:
             labels = fields[num_meta_data_fields]
+            if parse_labels_as_ints:
+                labels = str2int(labels)
         elif num_label_fields:
             labels = fields[num_meta_data_fields:_labels_end]
+            if parse_labels_as_ints:
+                labels = list(map(str2int, labels))
         else:
             labels = None
 
-        feats = fields[_labels_end:] if _labels_end < len(fields) else None
+        if _labels_end < len(fields):
+            feats = fields[_labels_end:]
+            if parse_feats_as_floats:
+                feats = list(map(float, feats))
+        else:
+            feats = None
         yield tuple(exclude_none([meta_data, labels, feats]))
 
 
