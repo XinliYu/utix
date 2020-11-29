@@ -1,0 +1,103 @@
+import sklearn.externals.joblib as joblib
+import matplotlib
+import utix.statu as statu
+import utix.ioex as ioex
+import utix.csvex as csvex
+import utix.general as gex
+import utix.pathex as pathex
+from os import path
+from tqdm import tqdm
+
+import util_dfs.dfsv1.constants as dfsv1_consts
+
+TRAIN_ROOT = '/efs-storage/dfs_v1_index_20201019/exp_global_2020_09/L1_ranker'
+TEST_ROOT = '/efs-storage/dfs_v1_index_20201019/exp_global_2020_10/L1_ranker'
+MODELS = ['rf']
+
+train_meta_data, train_labels, train_feats = zip(*csvex.iter_feature_data(
+    csv_file_path=path.join(TRAIN_ROOT, dfsv1_consts.FILENAME_RANKER_FEATURES),
+    num_meta_data_fields=2,
+    num_label_fields=1,
+    parse=False
+))
+train_labels = list(tqdm(map(int, train_labels)))
+train_feats = list(tqdm(map(lambda x: list(map(float, x)), train_feats)))
+train_data = (train_feats, train_labels)
+train_group_keys, train_group_sizes = zip(*csvex.iter_feature_group_sizes(path.join(TRAIN_ROOT, dfsv1_consts.FILENAME_RANKER_FEATURE_GROUPS), keyed=True))
+
+test_meta_data, test_labels, test_feats = zip(*csvex.iter_feature_data(
+    csv_file_path=path.join(TEST_ROOT, dfsv1_consts.FILENAME_RANKER_FEATURES),
+    num_meta_data_fields=2,
+    num_label_fields=1,
+    parse=False
+))
+test_labels = list(tqdm(map(int, test_labels)))
+test_feats = list(tqdm(map(lambda x: list(map(float, x)), test_feats)))
+test_group_keys, test_group_sizes = zip(*csvex.iter_feature_group_sizes(path.join(TEST_ROOT, dfsv1_consts.FILENAME_RANKER_FEATURE_GROUPS), keyed=True))
+test_group_indexes = list(gex.accumulate_ranges(test_group_sizes, start=0))
+test_data = (test_feats, test_labels, test_group_indexes)
+
+
+def extract_zeroshot_feature_groups(test_feats, test_labels, test_group_keys, test_group_sizes, train_group_keys, group_index_start=0):
+    train_group_keys = set(train_group_keys)
+    out_test_feats, out_test_labels, out_test_group_keys, out_test_group_sizes = [], [], [], []
+    start = group_index_start
+    for group_key, group_size in zip(test_group_keys, test_group_sizes):
+        end = start + group_size
+        if group_key not in train_group_keys:
+            out_test_feats.extend(test_feats[start:end])
+            out_test_labels.extend(test_labels[start:end])
+            out_test_group_keys.append(group_key)
+            out_test_group_sizes.append(group_size)
+        start = end
+    return out_test_feats, out_test_labels, out_test_group_keys, out_test_group_sizes
+
+
+test_feats_zeroshot, test_labels_zeroshot, test_group_keys_zeroshot, test_group_sizes_zeroshot = extract_zeroshot_feature_groups(
+    test_feats=test_feats,
+    test_labels=test_labels,
+    test_group_keys=test_group_keys,
+    test_group_sizes=test_group_sizes,
+    train_group_keys=train_group_keys,
+    group_index_start=0
+)
+test_group_indexes_zeroshot = list(gex.accumulate_ranges(test_group_sizes_zeroshot, start=0))
+test_data_zeroshot = (test_feats_zeroshot, test_labels_zeroshot, test_group_indexes_zeroshot)
+
+WORKSPACE = path.join(TRAIN_ROOT, pathex.append_timestamp('ranker'))
+pathex.ensure_dir_existence(WORKSPACE)
+model_files = statu.build_binary_classification_models(
+    models={name: statu.get_predefined_model(name) for name in MODELS},
+    use_existing_models=True,
+    train_data={'2020_09': train_data},
+    test_data={'2020_10': test_data, '2020_10_z': test_data_zeroshot},
+    model_save_dir=TRAIN_ROOT,
+    result_file_path=path.join(WORKSPACE, 'result.csv'),
+    test_data_filter=None,
+    score_th_mode='line_search',
+    score_th=(0, 0.95, 20),
+    group_types_to_eval=None,
+    group_eval_only=True,
+    group_best_item_eval_funcs=statu.get_predefined_eval_funcs('precision'),
+    group_label_eval_funcs=statu.get_predefined_eval_funcs('recall'),
+    plot_output_path=None
+)
+
+model_file = list(model_files.values())[0]
+model = joblib.load(model_file)
+scores = model.predict_proba(test_feats)[:, 1]
+reqs, hyps = zip(*test_meta_data)
+out = []
+for query, index in tqdm(zip(test_group_keys, test_group_indexes)):
+    jobj = {'query': query}
+    _hyps = hyps[index[0]: index[1]]
+    _scores = scores[index[0]: index[1]]
+    _scores_sorted, _hyps_sorted = zip(*sorted(zip(_scores, _hyps), reverse=True))
+    jobj['retrievals'] = _hyps_sorted
+    jobj['scores'] = _scores_sorted
+    out.append(jobj)
+ioex.write_all_json_objs(out, output_path=path.join(TEST_ROOT, 'L1_join_output.json'), use_tqdm=True)
+
+# def gen_l1_joint_results(model_file, feats, hyps, group_keys, group_indexes):
+#     model = joblib.load(model_file)
+#     scores = model.predict_proba(feats)
