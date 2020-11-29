@@ -57,7 +57,9 @@ def write_keyed_lists(keyed_lists, output_path, sep='\t', append=False, use_tqdm
 
 # endregion
 
-def write_dicts_to_csv(row_dicts, output_path, append=False):
+def write_dicts_to_csv(row_dicts, output_path, append=False, create_dir=True):
+    if create_dir:
+        paex.ensure_dir_existence(path.dirname(output_path), verbose=False)
     if not path.exists(output_path):
         append = False
     with open(output_path, 'a+' if append else 'w+') as csv_fout:

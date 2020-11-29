@@ -693,10 +693,11 @@ def eval_binary_classification_by_score_threshold(scores,
     result_item_base = {} if result_item_base is None else result_item_base.copy()
 
 
-    def _eval_threshold(s_th):
+    def _eval_threshold(_score_th):
         result_item = result_item_base.copy()
-        result_item['threshold_pos'] = s_th
-        predictions = score2pred_func(scores=scores, score_th=s_th, pos_label=pos_label, neg_label=neg_label)
+        result_item['threshold_pos'] = _score_th
+        predictions = score2pred_func(scores=scores, score_th=_score_th, pos_label=pos_label, neg_label=neg_label)
+        result_item['trigger_rate'] = sum(predictions) / len(predictions)
         if isinstance(labels, Mapping):
             for label_key, _labels in labels.items():
                 for eval_name, eval_func in eval_funcs[label_key].items():
