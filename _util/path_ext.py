@@ -23,6 +23,13 @@ DEFAULT_MULTI_PATH_DELIMITER = ':'
 
 # region basic path operations
 
+def join__(root_dir, *parts, verbose=False):
+    paths = tuple(path.join(root_dir, part) if isinstance(part, str) else path.join(root_dir, *part) for part in parts)
+    if verbose:
+        print_basic_path_info(paths)
+    return paths
+
+
 def sort_paths(paths, sort, sort_by_basename=False):
     if sort_by_basename:
         if sort is True or sort == 'alphabetic':

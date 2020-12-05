@@ -5,7 +5,7 @@ from tqdm import tqdm
 import utix.pathex as paex
 
 from utix.dictex import IndexDict, kvswap
-from utix.general import str2val, tqdm_wrap, hprint_message, exclude_none, str2int
+from utix.general import str2val, tqdm_wrap, hprint_message, exclude_none, str2int, str2float
 from utix.ioex import pickle_load, pickle_save, read_all_lines
 
 
@@ -29,7 +29,7 @@ def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1,
         if _labels_end < len(fields):
             feats = fields[_labels_end:]
             if parse_feats_as_floats:
-                feats = list(map(float, feats))
+                feats = list(map(str2float, feats))
         else:
             feats = None
         yield tuple(exclude_none([meta_data, labels, feats]))
@@ -48,11 +48,19 @@ def iter_feature_group_sizes(csv_file_path, keyed=True, use_tqdm=True, disp_msg=
 
 # region CSV writing
 
-def write_keyed_lists(keyed_lists, output_path, sep='\t', append=False, use_tqdm=True, disp_msg=None, verbose=__debug__):
-    with open(output_path, 'a+' if append else 'w+') as csv_fout:
-        for k, l in tqdm_wrap(keyed_lists, use_tqdm=use_tqdm, tqdm_msg=disp_msg, verbose=verbose):
-            csv_fout.write(str(k) + sep + sep.join(map(str, l)))
-            csv_fout.write('\n')
+def write_keyed_lists(keyed_lists, output_path, sep='\t', append=False, use_tqdm=True, disp_msg=None, verbose=__debug__, output_path_keys=None):
+    if output_path_keys is not None:
+        with open(output_path, 'a+' if append else 'w+') as csv_fout, open(output_path_keys, 'a+' if append else 'w+') as csv_out_keys:
+            for k, l in tqdm_wrap(keyed_lists, use_tqdm=use_tqdm, tqdm_msg=disp_msg, verbose=verbose):
+                csv_fout.write(str(k) + sep + sep.join(map(str, l)))
+                csv_fout.write('\n')
+                csv_out_keys.write(k)
+                csv_out_keys.write('\n')
+    else:
+        with open(output_path, 'a+' if append else 'w+') as csv_fout:
+            for k, l in tqdm_wrap(keyed_lists, use_tqdm=use_tqdm, tqdm_msg=disp_msg, verbose=verbose):
+                csv_fout.write(str(k) + sep + sep.join(map(str, l)))
+                csv_fout.write('\n')
 
 
 # endregion

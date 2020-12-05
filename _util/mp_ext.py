@@ -38,7 +38,6 @@ def get_num_p(num_p=None):
         return min(num_p, cpu_count())
 
 
-
 class MPResultTuple(tuple):
     pass
 
@@ -168,6 +167,7 @@ class MPTarget:
             return dump_path
         else:
             return output
+
 
 # class MPWriteOutput:
 #     def __init__(self, target, output_path):
@@ -357,7 +357,6 @@ def mp_read_write_files(num_p, input_file_paths, output_path, target, args=(), o
         target = MPTarget(target=partial(ioex.read_all_lines_from_all_files, use_tqdm=True), pass_pid=False)
 
 
-
 # def mp_read(input_path, num_p, base_iter, args, cache_size=100000, chunk_size=1000, no_chunking=False):
 #     if no_chunking:
 #         pass
@@ -475,7 +474,14 @@ def parallel_process_by_pool(num_p,
         rst = target(*job_args[0])
     else:
         pool = Pool(processes=num_p)
-        rst = pool.starmap(target, job_args)
+        try:
+            rst = pool.starmap(target, job_args)
+        except Exception as err:
+            pool.close()
+            pool.join()
+            raise err
+        pool.close()
+        pool.join()
     if debug == 1:
         raise ValueError('debug is set True or 1, in this case the result merge will not work; change debug to an integer higher than 2')
 

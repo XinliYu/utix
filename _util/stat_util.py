@@ -25,7 +25,7 @@ import utix.iterex as iterex
 import utix.general as gex
 from utix.dictex import prioritize_keys
 from utix.timex import tic, toc
-from utix.pathex import ensure_dir_existence
+from utix.pathex import ensure_dir_existence, get_main_name
 import utix.msgex as msgex
 import utix.plotex as plotex
 import pandas as pd
@@ -75,25 +75,107 @@ def get_sklearn_models(**kwargs):
 
 
 class XgBoostSklearnWrapper:
+    def __init__(self, params=None, max_rounds=1000, early_stopping_rounds=50, use_gpu=None, model_path=None, **kwargs):
+        if isinstance(params, str):
+            if params == 'rank':
+                self._params = {'objective': 'rank:pairwise', 'learning_rate': 0.2, 'min_split_loss': 1.0, 'min_child_weight': 0.1, 'max_depth': 10, 'eval_metric': 'ndcg@10'}
+        elif params is None:
+            self._params = params if params else {'objective': 'binary:logistic', 'eta': 0.2, 'gamma': 1.5, 'min_child_weight': 1.5, 'max_depth': 5}
 
-    def __init__(self, params=None):
-        self._params = params if params else {'objective': 'binary:logistic', 'eta': 0.2, 'gamma': 1.5,
-                                              'min_child_weight': 1.5, 'max_depth': 5}
+        if use_gpu is not None:
+            self._params['gpu_id'] = use_gpu
+            self._params['tree_method'] = 'gpu_hist'
+        if kwargs:
+            self._params.update(kwargs)
+
+        self._max_rounds = max_rounds
         self._model = None
+        self._early_stopping_rounds = early_stopping_rounds
+        if model_path is not None:
+            self.load_model(model_path)
 
+    def fit(self, X, y, group=None, max_rounds=None, evals: Dict = None, early_stopping_rounds=None, verbose_eval=True):
+        if max_rounds is None:
+            max_rounds = self._max_rounds
+        if early_stopping_rounds is None:
+            early_stopping_rounds = self._early_stopping_rounds
 
-    def fit(self, X, y, num_rounds=20):
-        if isinstance(X, list):
-            X = np.array(X)
-        if isinstance(y, list):
-            y = np.array(y)
-        self._model = xgb.train(params=self._params, dtrain=xgb.DMatrix(X, label=y), num_boost_round=num_rounds)
+        def _proc_input(_X, _y, _group=None):
+            if isinstance(_X, (list, tuple)):
+                _X = np.array(_X)
+            if isinstance(_y, (list, tuple)):
+                _y = np.array(_y)
+                _y = np.array(_y)
+            data = xgb.DMatrix(_X, label=_y)
+            if _group is not None:
+                if isinstance(_group[0], tuple):
+                    _group = [x[1] - x[0] for x in _group]
+                data.set_group(_group)
+            return data
 
+        train_data = _proc_input(X, y, group)
+        if evals is not None:
+            evals_has_train = 'train' in evals
+            evals = [((_proc_input(*v) if isinstance(v, (list, tuple)) else v), k) for k, v in evals.items()]
+            if not evals_has_train:
+                evals = [(train_data, 'train')] + evals
+        else:
+            evals = [(train_data, 'train')]
 
-    def predict_proba(self, data):
-        if isinstance(data, list):
+        self._model = xgb.train(
+            params=self._params,
+            dtrain=train_data,
+            num_boost_round=max_rounds,
+            evals=evals,
+            early_stopping_rounds=early_stopping_rounds,
+            verbose_eval=verbose_eval
+        )
+
+    def predict_proba(self, data, group=None):
+        if isinstance(data, (list, tuple)):
             data = np.array(data)
-        return self._model.predict(xgb.DMatrix(data))
+        data = xgb.DMatrix(data)
+        if group is not None:
+            data.set_group(group)
+        return self._model.predict(data)
+
+    @staticmethod
+    def _feature_info_path(model_path):
+        return path.join(path.dirname(model_path), f'{get_main_name(model_path)}_features.txt')
+
+    def save_model(self, model_path):
+        xgb_model = self._model
+        xgb_model.save_model(model_path)
+        feature_importance = self._model.get_score(importance_type='gain')
+        csvex.write_csv(
+            ((name, feat_type, feature_importance.get(name, None)) for name, feat_type in gex.zip__(xgb_model.feature_names, xgb_model.feature_types)),
+            output_csv_path=self._feature_info_path(model_path),
+            header=('name', 'type', 'importance')
+        )
+
+    def load_model(self, model_path):
+        self._model = xgb_model = xgb.Booster()
+        tic(f'Loading xgboost model from path {model_path}.')
+        xgb_model.load_model(model_path)
+        feature_info_path = self._feature_info_path(model_path)
+        feat_names, feat_types = [], []
+        if path.exists(feature_info_path):
+            for feat_name, feat_type, _ in csvex.iter_csv(feature_info_path):
+                if feat_name == 'None':
+                    warnings.warn('invalid feature name as `None`')
+                    feat_names = None
+                    break
+
+                feat_names.append(feat_name)
+                if feat_type != 'None':
+                    feat_types.append(feat_type)
+        if feat_names:
+            xgb_model.feature_names = feat_names
+            if feat_types:
+                if len(feat_types) == len(feat_names):
+                    xgb_model.feature_types = feat_types
+                else:
+                    warnings.warn(f'expected {len(feat_types)} feature types; got {len(feat_names)}')
 
 
 # endregion
@@ -254,9 +336,11 @@ def binary_predict_pos_by_below_or_equal_threshold(pos_scores: np.ndarray, thres
 
 # endregion
 
-def get_predefined_model(model_name):
+def get_predefined_model(model_name, **kwargs):
     if model_name == 'rf' or model_name == 'random_forest':
-        return partial(RandomForestClassifier, n_jobs=70, random_state=0)
+        return partial(RandomForestClassifier, n_jobs=70, random_state=0, **kwargs)
+    if model_name == 'rf_entropy' or model_name == 'random_forest':
+        return partial(RandomForestClassifier, n_jobs=70, random_state=0, criterion='entropy', **kwargs)
     if model_name == 'rf_md03' or model_name == 'random_forest_md03':
         return partial(RandomForestClassifier, n_jobs=-1, max_depth=3)
     if model_name == 'rf_md05' or model_name == 'random_forest_md05':
@@ -283,6 +367,8 @@ def get_predefined_model(model_name):
         return partial(LogisticRegression, n_jobs=-1, max_iter=200, solver='saga')
     if model_name == 'xgboost':
         return XgBoostSklearnWrapper
+    if model_name == 'xgb_rank':
+        return partial(XgBoostSklearnWrapper, params='rank', **kwargs)
 
 
 def get_predefined_eval_funcs(name):
@@ -301,12 +387,57 @@ def get_predefined_eval_funcs(name):
         }
 
 
+def extracts_grouped_data(data: Union[List, Tuple], group_keys, group_sizes, exclusion_keys, group_data: Union[List, Tuple] = None, group_index_start=0):
+    if not isinstance(exclusion_keys, set):
+        exclusion_keys = set(exclusion_keys)
+    out_feature_data = [[] for _ in range(len(data))]
+    out_feature_group_data = [[] for _ in range(len(group_data))] if group_data else None
+    out_group_keys, out_group_sizes = [], []
+    start = group_index_start
+    for group_idx, (group_key, group_size) in enumerate(zip(group_keys, group_sizes)):
+        end = start + group_size
+        if group_key not in exclusion_keys:
+            for i, _data in enumerate(data):
+                out_feature_data[i].extend(_data[start:end])
+            if out_feature_group_data is not None:
+                for i, _data in enumerate(group_data):
+                    out_feature_group_data[i].append(_data[group_idx])
+            out_group_keys.append(group_key)
+            out_group_sizes.append(group_size)
+        start = end
+    return out_feature_data, out_feature_group_data, out_group_keys, out_group_sizes
+
+
+def bisplit_grouped_data(data: Union[List, Tuple], group_sizes, group_data: Union[List, Tuple] = None, split_ratio=0.8):
+    num_groups = len(group_sizes)
+    split1_size = int(num_groups * split_ratio)
+    group_sizes1 = group_sizes[:split1_size]
+    group_sizes2 = group_sizes[split1_size:]
+
+    data_size1 = sum(group_sizes1)
+    data_size2 = sum(group_sizes2)
+    data1, data2 = [], []
+    for i, item in enumerate(data):
+        if data_size1 + data_size2 != len(item):
+            raise ValueError(f'the {i}th data size is {len(item)}, expected {data_size1 + data_size2}')
+        data1.append(item[:data_size1])
+        data2.append(item[data_size1:])
+    if group_sizes is None:
+        gp_data1 = gp_data2 = None
+    else:
+        gp_data1, gp_data2 = [], []
+        for item in group_data:
+            gp_data1.append(item[:split1_size])
+            gp_data2.append(item[split1_size:])
+    return data1, data2, gp_data1, gp_data2, group_sizes1, group_sizes2
+
+
 def build_binary_classification_models(models: dict,
                                        data: Union[Callable, Iterator[Tuple[Dict, Dict]]] = None,
                                        eval_funcs: Dict[str, Callable] = None,
                                        overwrite=True,
                                        train_data: Dict = None,
-                                       test_data: Dict = None,
+                                       eval_data: Dict = None,
                                        score2pred_func: Callable = binary_predict_pos_by_above_threshold,
                                        pos_label=1,
                                        neg_label=0,
@@ -323,14 +454,17 @@ def build_binary_classification_models(models: dict,
                                        group_label_eval_funcs=None,
                                        print_out=__debug__,
                                        print_ignore=('model', 'train', 'test'),
-                                       plot_output_path=None):
+                                       plot_output_path=None,
+                                       is_ranking=False,
+                                       runtime_evals=None,
+                                       model_loader=None):
     """
     Trains a set of binary classification models on the provided training sets and then test them on the provided test sets.
     :param data:
     :param models: a dictionary; a key is a string as customized model names; a value is a binary classification model class, or a tuple of the model class and their initialization arguments.
                     A model will be initialized for each argument provided
     :param train_data: a dictionary of training data sets keyed by data set names; a model will be trained on each of these training sets.
-    :param test_data: a dictionary of test data sets keyed by names; the values are tuples of features and labels, and optionally the group index;
+    :param eval_data: a dictionary of test data sets keyed by names; the values are tuples of features and labels, and optionally the group index;
                         when group index is provided, the evaluation will be also be done on the collection of the top-score predictions from each group.
     :param eval_funcs: provides evaluation functions; each function must take two positional arguments, the first being the labels, and the second being the predictions.
     :param score2pred_func: provides a function that converts scores to a label prediction based given the threshold;
@@ -350,15 +484,39 @@ def build_binary_classification_models(models: dict,
     """
     if not models:
         raise ValueError(msgex.msg_arg_none_or_empty(arg_name='models', extra_msg='no model is specified to build'))
-    if not any((data, train_data, test_data)):
+    if not any((data, train_data, eval_data)):
         raise ValueError(msgex.msg_at_least_one_arg_should_avail(arg_names=('data', 'train_data', 'test_data'),
                                                                  extra_msg='no data is provided'))
 
     if not data:
-        data = ((train_data, test_data),)
+        data = ((train_data, eval_data),)
+
+    def _fit(_X, _y, _group, _is_ranking, _runtime_evals):
+        if _runtime_evals is not None:
+            if _is_ranking:
+                if _group is None:
+                    raise ValueError('groups sizes must be provided for ranking')
+                _model_inst.fit(_X, _y, group=_group, evals=_runtime_evals)
+            elif _group is None:
+                _model_inst.fit(_X, _y, evals=_runtime_evals)
+            else:
+                _is_ranking = True
+                _model_inst.fit(_X, _y, group=_group, evals=_runtime_evals)
+        else:
+            if _is_ranking:
+                if _group is None:
+                    raise ValueError('groups sizes must be provided for ranking')
+                _model_inst.fit(_X, _y, group=_group)
+            elif _group is None:
+                _model_inst.fit(_X, _y)
+            else:
+                _is_ranking = True
+                _model_inst.fit(_X, _y, group=_group)
+        return _is_ranking
 
     results, trained_models, data_idx = [], {}, 0
     model_files = {}
+    # model_name, model_args = next(iter( models.items()))
     for model_name, model_args in models.items():
         is_threshold = False
         if isinstance(model_args, tuple) and len(model_args) == 2 and isinstance(model_args[0], int):
@@ -368,9 +526,22 @@ def build_binary_classification_models(models: dict,
             model_inst = argex.get_obj_from_args(model_args)
             trained_models[model_name] = model_inst
 
-        for train_data, test_data in (data() if callable(data) else data):
+        for train_data, eval_data in (data() if callable(data) else data):
             tic(f'model: {model_name}', verbose=print_out)
+
+            if runtime_evals is not None:
+                runtime_evals = {k: eval_data[k] for k in runtime_evals}
+
             for train_data_name, train_data_tup in train_data.items():
+
+                if len(train_data_tup) == 2:
+                    X, y = train_data_tup
+                    group = None
+                elif len(train_data_tup) == 3:
+                    X, y, group = train_data_tup
+                else:
+                    raise ValueError(f'unexpected train data format for `{train_data_name}`')
+
                 if print_out:
                     gex.hprint_pairs(("train data", train_data_name), ("size", len(train_data_tup[0])))
                 _model_inst = model_inst
@@ -382,20 +553,23 @@ def build_binary_classification_models(models: dict,
                         model_files[(model_name, train_data_name, data_idx)] = model_save_path
                         model_save_path_exists = path.exists(model_save_path)
                         if use_existing_models and model_save_path_exists:
-                            _model_inst = joblib.load(model_save_path)
+                            _model_inst = joblib.load(model_save_path) if model_loader is None else model_loader(model_save_path)
                         else:
                             if not overwrite and model_save_path_exists:
                                 raise ValueError(
                                     f'model file \'{model_save_path}\' already exists; specify the `overwrite` as `True` to overwrite')
-                            _model_inst.fit(*train_data_tup)
-                            joblib.dump(_model_inst, model_save_path)
+                            is_ranking = _fit(X, y, group, is_ranking, runtime_evals)
+                            if hasattr(_model_inst, 'save_model'):
+                                _model_inst.save_model(model_save_path)
+                            else:
+                                joblib.dump(_model_inst, model_save_path)
 
                     else:
-                        _model_inst.fit(*train_data_tup)
+                        is_ranking = _fit(X, y, group, is_ranking, runtime_evals)
 
                 eval_binary_classification(
                     model=_model_inst,
-                    test_data=test_data,
+                    test_data=eval_data,
                     eval_funcs=eval_funcs,
                     score2pred_func=score2pred_func,
                     pos_label=pos_label,
@@ -412,7 +586,8 @@ def build_binary_classification_models(models: dict,
                     print_ignore=print_ignore,
                     group_eval_only=group_eval_only,
                     group_best_item_eval_funcs=group_best_item_eval_funcs,
-                    group_label_eval_funcs=group_label_eval_funcs
+                    group_label_eval_funcs=group_label_eval_funcs,
+                    is_ranking=is_ranking
                 )
             data_idx += 1
             toc(print_out=print_out)
@@ -446,6 +621,26 @@ def build_binary_classification_models(models: dict,
     return model_files
 
 
+def _parse_test_data_tupe(test_data_name, test_data_tup):
+    if len(test_data_tup) == 2:
+        test_features, test_labels = test_data_tup
+        group_indices = group_types = None
+    elif len(test_data_tup) == 3:
+        test_features, test_labels, group_indices = test_data_tup
+        group_types = None
+    elif len(test_data_tup) == 4:
+        test_features, test_labels, group_indices, group_types = test_data_tup
+    else:
+        raise ValueError(f"unexpected test data format for `{test_data_name}`")
+
+    group_sizes = None
+    if group_indices is not None and isinstance(group_indices[0], int):  # converts group sizes to group indices
+        group_sizes = group_indices
+        group_indices = list(tqdm(gex.accumulate_ranges(group_sizes, start=0), desc=''))
+
+    return test_features, test_labels, group_sizes, group_indices, group_types
+
+
 def eval_binary_classification(
         model,
         test_data: Dict[str, Tuple],
@@ -462,7 +657,8 @@ def eval_binary_classification(
         group_best_item_eval_funcs: Dict[str, Callable] = None,
         group_label_eval_funcs: Dict[str, Callable] = None,
         print_out=True,
-        print_ignore=None
+        print_ignore=None,
+        is_ranking=False
 ):
     """
     Evaluates a binary classification model on the provided data sets. Supports threshold line search, and grouped evaluation.
@@ -502,22 +698,18 @@ def eval_binary_classification(
 
         result_item_base['test'] = test_data_name
 
-        if len(test_data_tup) == 2:
-            test_features, test_labels = test_data_tup
-            group_indices = group_types = None
-        elif len(test_data_tup) == 3:
-            test_features, test_labels, group_indices = test_data_tup
-            group_types = None
-        elif len(test_data_tup) == 4:
-            test_features, test_labels, group_indices, group_types = test_data_tup
-        else:
-            raise ValueError("The format of `test_data` is not recognized.")
+        test_features, test_labels, group_sizes, group_indices, group_types = _parse_test_data_tupe(test_data_name, test_data_tup)
 
         if isinstance(model, tuple):
             feature_idx, score_th = model
             scores = np.array([x[feature_idx] for x in test_features])
         else:
-            scores = model.predict_proba(test_features)
+            if is_ranking:
+                if group_sizes is None:
+                    raise ValueError('group sizes must be provided for ranking')
+                scores = model.predict_proba(test_features, group=group_sizes) if hasattr(model, 'predict_proba') else model.predict(test_features, group=group_sizes)
+            else:
+                scores = model.predict_proba(test_features) if hasattr(model, 'predict_proba') else model.predict(test_features)
             if len(scores.shape) > 1:
                 scores = scores[:, pos_label]
             if score_th_mode == 'line_search':
@@ -577,12 +769,12 @@ def eval_binary_classification(
                 group_start -= all_group_start
                 group_end -= all_group_start
                 best_score, best_score_label = \
-                sorted(zip(scores[group_start:group_end], test_labels[group_start:group_end]), key=lambda x: x[0],
-                       reverse=True)[0]
+                    sorted(zip(scores[group_start:group_end], test_labels[group_start:group_end]), key=lambda x: x[0],
+                           reverse=True)[0]
                 best_group_scores.append(best_score)
                 best_group_item_labels.append(best_score_label)
                 group_label = (best_score_label if best_score_label == pos_label else (
-                            pos_label in test_labels[group_start:group_end]))
+                        pos_label in test_labels[group_start:group_end]))
                 group_labels.append(group_label)
                 if group_type_eval_enabled:
                     group_type = group_types[group_idx]
@@ -692,12 +884,21 @@ def eval_binary_classification_by_score_threshold(scores,
 
     result_item_base = {} if result_item_base is None else result_item_base.copy()
 
+<<<<<<< HEAD
+    def _eval_threshold(s_th):
+        result_item = result_item_base.copy()
+        result_item['threshold_pos'] = s_th
+        predictions = score2pred_func(scores=scores, score_th=s_th, pos_label=pos_label, neg_label=neg_label)
+        result_item['total'] = len(predictions)
+        result_item['trig'] = sum(predictions) / len(predictions)
+=======
 
     def _eval_threshold(_score_th):
         result_item = result_item_base.copy()
         result_item['threshold_pos'] = _score_th
         predictions = score2pred_func(scores=scores, score_th=_score_th, pos_label=pos_label, neg_label=neg_label)
         result_item['trigger_rate'] = sum(predictions) / len(predictions)
+>>>>>>> 8f8fa16eb2092d37a52745cfca9a932e63ef7f17
         if isinstance(labels, Mapping):
             for label_key, _labels in labels.items():
                 for eval_name, eval_func in eval_funcs[label_key].items():
@@ -719,7 +920,6 @@ def eval_binary_classification_by_score_threshold(scores,
         else:
             gex.hprint_pairs(*result_item.items())
         result_output_list.append(result_item)
-
 
     if isinstance(score_th, Iterable):
         score_ths = score_th
@@ -749,11 +949,9 @@ def eval_binary_classification_by_score_threshold(scores,
 class AvgInfo:
     __slots__ = ('sum', 'count')
 
-
     def __init__(self, init_value):
         self.sum = init_value
         self.count = 1
-
 
     def __add__(self, other):
         if isinstance(other, AvgInfo):
@@ -764,7 +962,6 @@ class AvgInfo:
             self.count += 1
         return self
 
-
     def __sub__(self, other):
         if isinstance(other, AvgInfo):
             self.sum -= other.sum
@@ -773,7 +970,6 @@ class AvgInfo:
             self.sum -= other
             self.count -= 1
         return self
-
 
     def __call__(self):
         return self.sum / self.count
@@ -802,7 +998,6 @@ class AvgTracker(dict):
 
         return self
 
-
     def __sub__(self, other: Union[dict, Iterator[Union[Tuple[Any, Any], List]]]):
         """
         For each key/value from the provided iterable,
@@ -821,7 +1016,6 @@ class AvgTracker(dict):
                     self[k] -= v
 
         return self
-
 
     def __call__(self):
         return {k: v() for k, v in self.items()}
@@ -849,19 +1043,16 @@ class _Stat(dict):
             else:
                 self[stat_name] = increase
 
-
     def average(self, stat_name: str, value: Any):
         if stat_name in self:
             self[stat_name] += value
         else:
             self[stat_name] = AvgInfo(value)
 
-
     def aggregate(self, stat_name: str, value: Any):
         if stat_name not in self:
             self[stat_name] = []
         self[stat_name].append(value)
-
 
     def aggregate_many(self, stat_name: str, values: Iterator):
         if stat_name not in self:
@@ -869,19 +1060,16 @@ class _Stat(dict):
         else:
             self[stat_name].extend(values)
 
-
     def aggregate_unique(self, stat_name: str, value: Any):
         if stat_name not in self:
             self[stat_name] = set()
         self[stat_name].add(value)
-
 
     def aggregate_unique_many(self, stat_name: str, values: Iterator):
         if stat_name not in self:
             self[stat_name] = set(values)
         else:
             self[stat_name].update(values)
-
 
     def aggregate_count(self, stat_name: str, value: Any, increase: Any = 1):
         if stat_name not in self:
@@ -891,7 +1079,6 @@ class _Stat(dict):
             d[value] += increase
         else:
             d[value] = increase
-
 
     def aggregate_count_many(self, stat_name: str, values: Iterator, increase: Any = 1, increases: Iterator = None):
         if stat_name not in self:
@@ -945,11 +1132,9 @@ class Stat(_Stat, _StatTypes):
     A convenient all-in-one class for simple statistics including counting, averaging, aggregation and unique aggregation.
     """
 
-
     def __init__(self):
         _Stat.__init__(self)
         _StatTypes.__init__(self)
-
 
     def count(self, stat_name: str, increase: Any = 1) -> None:
         """
@@ -961,7 +1146,6 @@ class Stat(_Stat, _StatTypes):
         self._names_for_cnt.add(stat_name)
         super().count(stat_name, increase)
 
-
     def average(self, stat_name: str, value: Any):
         """
         Adds the `value` to the average statistic of the specified `stat_name`.
@@ -970,7 +1154,6 @@ class Stat(_Stat, _StatTypes):
         """
         self._names_for_avg.add(stat_name)
         super().average(stat_name, value)
-
 
     def aggregate(self, stat_name: str, value: Any, agg_func: Callable[[List], Any] = None):
         """
@@ -984,7 +1167,6 @@ class Stat(_Stat, _StatTypes):
         self._names_for_agg[stat_name] = agg_func
         super().aggregate(stat_name, value)
 
-
     def aggregate_many(self, stat_name: str, values: Iterator, agg_func: Callable[[List], Any] = None):
         """
         Aggregate multiple values to the statistic of the specified `stat_name`.
@@ -992,7 +1174,6 @@ class Stat(_Stat, _StatTypes):
         """
         self._names_for_agg[stat_name] = agg_func
         super().aggregate_many(stat_name, values)
-
 
     def aggregate_unique(self, stat_name: str, value: Any, agg_func: Callable[[Set], Any] = None):
         """
@@ -1003,7 +1184,6 @@ class Stat(_Stat, _StatTypes):
         self._names_for_agg[stat_name] = agg_func
         super().aggregate_unique(stat_name, value)
 
-
     def aggregate_unique_many(self, stat_name: str, values: Iterator, agg_func: Callable[[Set], Any] = None):
         """
         Aggregate each of the multiple values to the statistic of the specified `stat_name` if they do not currently exist in the aggregation.
@@ -1011,7 +1191,6 @@ class Stat(_Stat, _StatTypes):
         """
         self._names_for_agg[stat_name] = agg_func
         super().aggregate_unique_many(stat_name, values)
-
 
     def aggregate_count(self, stat_name: str, value: Any, increase: Any = 1, agg_func: Callable[[Dict], Any] = None):
         """
@@ -1023,7 +1202,6 @@ class Stat(_Stat, _StatTypes):
         self._names_for_agg[stat_name] = agg_func
         super().aggregate_count(stat_name=stat_name, value=value, increase=increase)
 
-
     def aggregate_count_many(self, stat_name: str, values: Iterator, agg_func: Callable[[Dict], Any] = None,
                              increase: Any = 1, increases: Iterator = None):
         """
@@ -1034,14 +1212,12 @@ class Stat(_Stat, _StatTypes):
         self._names_for_agg[stat_name] = agg_func
         super().aggregate_count_many(stat_name=stat_name, values=values, increase=increase, increases=increases)
 
-
     def get_stat(self, stat_name: str):
         """
         Retrieves the statistic for the specified `stat_name`.
         :param stat_name: provides the statistic name.
         """
         return _get_stat(self, self, stat_name)
-
 
     def get_all_stats(self, top_names: list = None, output: dict = None) -> dict:
         """
@@ -1064,12 +1240,10 @@ class CategorizedStat(dict, _StatTypes):
         if overall_count_name:
             self[self._overall_count_name] = _Stat()
 
-
     def __missing__(self, key):
         if key not in self:
             self[key] = _Stat()
         return self[key]
-
 
     def _count(self, category: str, name: str, value: Any):
         if category not in self:
@@ -1079,7 +1253,6 @@ class CategorizedStat(dict, _StatTypes):
             d = self[category]
         d.count(name, value)
 
-
     def count(self, category: str, stat_name: str, value: Any = 1, overall_only: bool = False):
         self._names_for_cnt.add(stat_name)
         if (not overall_only) and category != self._overall_count_name and (
@@ -1088,7 +1261,6 @@ class CategorizedStat(dict, _StatTypes):
 
         if self._overall_count_name:
             self[self._overall_count_name].count(stat_name, value)
-
 
     def count_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1,
                                overall_only=False):
@@ -1105,7 +1277,6 @@ class CategorizedStat(dict, _StatTypes):
         if self._overall_count_name:
             self[self._overall_count_name].count(stat_name, value)
 
-
     def average(self, category: str, stat_name: str, value=1, overall_only=False):
         self._names_for_avg.add(stat_name)
 
@@ -1115,7 +1286,6 @@ class CategorizedStat(dict, _StatTypes):
 
         if self._overall_count_name:
             self[self._overall_count_name].average(stat_name, value)
-
 
     def average_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1,
                                  overall_only=False):
@@ -1132,7 +1302,6 @@ class CategorizedStat(dict, _StatTypes):
         if self._overall_count_name:
             self[self._overall_count_name].average(stat_name, value)
 
-
     def aggregate(self, category: str, stat_name: str, value: Any, agg_func: Callable[[List], Any] = None,
                   overall_only=False):
         self._names_for_agg[stat_name] = agg_func
@@ -1143,7 +1312,6 @@ class CategorizedStat(dict, _StatTypes):
 
         if self._overall_count_name:
             self[self._overall_count_name].aggregate(stat_name, value)
-
 
     def aggregate_unique(self, category: str, stat_name: str, value: Any, agg_func: Callable[[Set], Any] = None,
                          overall_only=False):
@@ -1156,7 +1324,6 @@ class CategorizedStat(dict, _StatTypes):
         if self._overall_count_name:
             self[self._overall_count_name].aggregate_unique(stat_name, value)
 
-
     def aggregate_count(self, category: str, stat_name: str, value: Any, increase: Any = 1,
                         agg_func: Callable[[Dict], Any] = None, overall_only=False):
         self._names_for_agg[stat_name] = agg_func
@@ -1168,10 +1335,8 @@ class CategorizedStat(dict, _StatTypes):
         if self._overall_count_name:
             self[self._overall_count_name].aggregate_count(stat_name=stat_name, value=value, increase=increase)
 
-
     def count_unique(self, category: str, name: str, value, overall_only=False):
         self.aggregate_unique(category=category, stat_name=name, value=value, agg_func=len, overall_only=overall_only)
-
 
     def get_all_stats(self, top_names: list = None):
         results = {}
@@ -1179,7 +1344,6 @@ class CategorizedStat(dict, _StatTypes):
             results[category] = _get_all_stats(self=self[category], stat_types=self, top_names=top_names)
 
         return results
-
 
     def get_stats(self, name: str, categories=None):
         count_dict = {}

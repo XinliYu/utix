@@ -20,6 +20,7 @@ import json
 import os
 import random
 from contextlib import contextmanager
+import inspect
 
 """
 This file contains commonly and frequently used utility functions.
@@ -833,6 +834,10 @@ def str2bool(s: str):
 def str2int(s: str):
     _s = s.lower()
     return 1 if _s in _STRS_TRUE else (0 if _s in _STRS_FALSE else int(s))
+
+def str2float(s: str):
+    _s = s.lower()
+    return 1.0 if _s in _STRS_TRUE else (0.0 if _s in _STRS_FALSE else float(s))
 
 
 def str2bool__(s: str):
@@ -2232,6 +2237,12 @@ def iter_pairs(_x):
             yield from items() if callable(items) else _x
 
 # region internal standardized print outs
+
+
+# endregion
+
+# region parameter handling
+
 
 
 # endregion

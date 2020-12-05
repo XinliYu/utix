@@ -87,7 +87,6 @@ class open__:
     Provides more options for opening a file, including automatically creating the parent directory, and tqdm wrap.
     """
 
-
     def __init__(self, file: str, mode: str = 'r', encoding=None, use_tqdm: bool = False, display_msg: str = None,
                  verbose=__debug__, create_dir=True, *args, **kwargs):
         self._file = file
@@ -122,10 +121,8 @@ class open__:
         self._f = open(self._file, mode=mode, encoding=encoding, *args, **kwargs)
         self._tqdm_wrap = tqdm_wrap(it=self._f, use_tqdm=use_tqdm, tqdm_msg=display_msg, verbose=verbose)
 
-
     def __enter__(self):
         return self._tqdm_wrap
-
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._f.close()
@@ -221,27 +218,22 @@ def remove_files_from_iter(file_path_iter, verbose=False):
                 os.remove(file_path)
 
 
-def remove_if_exists(file_or_dir_path, verbose=False):
-    def _remove():
-        if path.exists(file_or_dir_path):
-            if path.isdir(file_or_dir_path):
-                shutil.rmtree(file_or_dir_path)
+def remove_if_exists(*file_or_dir_paths, verbose=False):
+    def _remove(_path):
+        if path.exists(_path):
+            if path.isdir(_path):
+                shutil.rmtree(_path)
                 if verbose:
-                    hprint_message("directory removed", file_or_dir_path)
+                    hprint_message("directory removed", _path)
             else:
-                os.remove(file_or_dir_path)
+                os.remove(_path)
                 if verbose:
-                    hprint_message("file removed", file_or_dir_path)
+                    hprint_message("file removed", _path)
         elif verbose:
-            hprint_message("no need to remove (path not exist)", file_or_dir_path)
+            hprint_message("no need to remove (path not exist)", _path)
 
-
-    if isinstance(file_or_dir_path, str):
-        _remove()
-    else:
-        file_or_dir_paths = file_or_dir_path
-        for file_or_dir_path in file_or_dir_paths:
-            _remove()
+    for _path in file_or_dir_paths:
+        _remove(_path)
 
 
 # endregion
@@ -389,7 +381,6 @@ def write_all_lines_to_stream(fout, iterable: Iterator[str], to_str: Callable[[A
             if not avoid_repeated_new_line or text[-1] != '\n':
                 fout.write('\n')
 
-
     if to_str is None:
         to_str = str
 
@@ -476,7 +467,6 @@ def iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, 
     :return: a json object iterator.
     """
 
-
     def _iter_single_input(json_input):
         lines, fin = _get_input_file_stream(file=json_input, encoding=encoding, top=top, use_tqdm=use_tqdm,
                                             display_msg=disp_msg or 'read json object from {}', verbose=verbose)
@@ -495,7 +485,6 @@ def iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, 
                         print(line)
                         raise ex
         fin.close()
-
 
     if isinstance(json_input, str):
         if path.isfile(json_input):
@@ -585,13 +574,11 @@ def _update_json_objs_internal(pid, file_paths, stats, jobj_iter_creator, update
         pre_load_jobjs = [list(jobj_iter_creator(data_file)) for data_file in file_paths]
         pre_load_results = pre_loader(pid, pre_load_jobjs, *args, **kwargs)
 
-
         def _get_jobj_iter(file_idx):
             return pre_load_jobjs[file_idx]
 
     for file_idx, file_path in enumerate(file_paths):  # updates each file in the source data
         this_total = this_update_count = 0
-
 
         def _iter():
             nonlocal this_total, this_update_count
@@ -607,7 +594,6 @@ def _update_json_objs_internal(pid, file_paths, stats, jobj_iter_creator, update
                     yield jobj
                 else:
                     yield from update_result
-
 
         stats[0] += this_total
         stats[1] += this_update_count
@@ -710,11 +696,9 @@ def unpack_text_file(data_path, output_path, use_tqdm=False, display_msg=None, v
         hprint_message('data size', len(data))
         hprint_message('vocab size', len(vocab))
 
-
     def _line_iter():
         for fields in tqdm_wrap(data, use_tqdm=use_tqdm, tqdm_msg=display_msg, verbose=verbose):
             yield sep.join(vocab[field] for field in fields)
-
 
     if verbose:
         tic(f"Unpacking pickle file {data_path} to text.")
@@ -738,18 +722,14 @@ def pack_json_file(file_path, output_path, key_sep='|', top=None, use_tqdm=False
     if verbose:
         tic(f"Packing json file {file_path} by pickle.")
 
-
     def _vocab_key(k):
         _k = k.split(key_sep)
         return vocab.add(k) if len(_k) == 1 else tuple(vocab.add(x) for x in _k)
 
-
     def _replace_keys(d):
         return {_vocab_key(k): (_replace_keys(v) if isinstance(v, Mapping) else v) for k, v in d.items()}
 
-
     chunk_number = 1
-
 
     def _save_chunk():
         nonlocal chunk_number
@@ -762,7 +742,6 @@ def pack_json_file(file_path, output_path, key_sep='|', top=None, use_tqdm=False
         pickle_save(data, chunk_path, compressed=True)
         chunk_number += 1
         data.clear()
-
 
     for jobj in iter_json_objs(json_input=file_path, use_tqdm=use_tqdm, disp_msg=display_msg, verbose=verbose,
                                top=top):
@@ -801,22 +780,18 @@ def unpack_json_file(data_path, output_path, use_tqdm=False, display_msg=None, v
     :param verbose: `True` to print out as much internal message as possible.
     """
 
-
     def _vocab_key(k):
         if isinstance(k, int):
             return vocab[k]
         else:
             return key_sep.join(vocab[x] for x in k)
 
-
     def _replace_keys(d):
         return {_vocab_key(k): _replace_keys(v) if isinstance(v, Mapping) else v for k, v in d.items()}
-
 
     def _jobj_iter():
         for jobj in tqdm_wrap(data, use_tqdm=use_tqdm, tqdm_msg=display_msg, verbose=verbose):
             yield _replace_keys(jobj)
-
 
     if verbose:
         tic(f"Unpacking pickle file {data_path} to text.")
@@ -850,7 +825,6 @@ def unpack_json_file(data_path, output_path, use_tqdm=False, display_msg=None, v
                     chunk_file = paex.append_to_main_name(data_path, chunk_suffix)
                     data = pickle_load(chunk_file, compressed=True)
                     yield from _jobj_iter()
-
 
             write_all_json_objs(_jobj_iter2(), output_path=output_path, use_tqdm=use_tqdm, disp_msg=display_msg,
                                 verbose=verbose)
@@ -1221,7 +1195,6 @@ class Cache:
     def __call__(self, obj, prefix=''):
         self.save(obj, prefix=prefix)
 
-
     # def __iter__(self):
     #     return self
     #
@@ -1231,45 +1204,35 @@ class Cache:
     def load(self, file_name):
         raise NotImplementedError
 
-
     def save(self, obj, file_name, prefix, **kwargs):
         raise NotImplementedError
-
 
     def exists(self, file_name):
         raise NotImplementedError
 
-
     def iter_cache(self, prefix):
         raise NotImplementedError
-
 
     def has_cache(self, prefix):
         raise NotImplementedError
 
-
     def mark_complete(self, prefix: str):
         raise NotImplementedError
-
 
     def unmark_complete(self, prefix: str):
         raise NotImplementedError
 
-
     def is_complete(self, prefix: str):
         raise NotImplementedError
 
-
     def remove_cache(self, prefix: str, hard_remove=False):
         raise NotImplementedError
-
 
     def remove_cache_if_incomplete(self, prefix: str, hard_remove=False) -> bool:
         if self.has_cache(prefix) and not self.is_complete(prefix):
             self.remove_cache(prefix=prefix, hard_remove=hard_remove)
             return True
         return False
-
 
     def clear_removed(self):
         raise NotImplementedError
@@ -1281,7 +1244,6 @@ class SimpleFileCache(Cache):
     """
     COMPLETION_MARK_FILE_EXTENSION = '.complete'
     REMOVAL_BACKUP_FOLDER = '.removed'
-
 
     def __init__(self, cache_dir, iter_file_ext_name='.bat', compressed=False, shuffle_file_order=False):
         super(SimpleFileCache, self).__init__()
@@ -1307,7 +1269,6 @@ class SimpleFileCache(Cache):
         #         self.available = False
         self.cache_compressed = compressed
 
-
     # def __next__(self):
     #     try:
     #         cache_file = next(self._cache_file_iterator)
@@ -1320,7 +1281,6 @@ class SimpleFileCache(Cache):
     def _get_file_iter(self, pattern):
         return paex.iter_files_by_pattern(self.cache_dir, pattern=pattern, full_path=True, recursive=False)
 
-
     def _get_cache_files(self, prefix=''):
         pattern = add_prefix(prefix, f'*{self._iter_file_ext_name}')
         cache_files = list(self._get_file_iter(pattern))
@@ -1330,11 +1290,9 @@ class SimpleFileCache(Cache):
             shuffle(cache_files)
         return cache_files
 
-
     def iter_cache(self, prefix: str):
         for cache_file in self._get_cache_files(prefix):
             yield pickle_load(cache_file, compressed=self.cache_compressed)
-
 
     def remove_cache(self, prefix: str, hard_remove=False):
         pattern = add_prefix(prefix, f'*{self._iter_file_ext_name}')
@@ -1348,10 +1306,8 @@ class SimpleFileCache(Cache):
             for cache_file in self._get_file_iter(pattern):
                 os.rename(cache_file, paex.replace_dir(cache_file, backup_dir))
 
-
     def clear_removed(self):
         shutil.rmtree(path.join(self.cache_dir, SimpleFileCache.REMOVAL_BACKUP_FOLDER))
-
 
     def has_cache(self, prefix: str) -> bool:
         pattern = add_prefix(prefix, f'*{self._iter_file_ext_name}')
@@ -1361,22 +1317,17 @@ class SimpleFileCache(Cache):
         except:
             return False
 
-
     def _complete_mark_file(self, prefix: str) -> str:
         return path.join(self.cache_dir, prefix + SimpleFileCache.COMPLETION_MARK_FILE_EXTENSION)
-
 
     def mark_complete(self, prefix: str):
         make_empty_file(self._complete_mark_file(prefix))
 
-
     def unmark_complete(self, prefix: str):
         remove_if_exists(self._complete_mark_file(prefix))
 
-
     def is_complete(self, prefix: str) -> bool:
         return path.exists(self._complete_mark_file(prefix))
-
 
     def load(self, file_name):
         file_name = path.join(self.cache_dir, file_name)
@@ -1393,10 +1344,8 @@ class SimpleFileCache(Cache):
                 output.append(pickle_load(file_name, compressed=self.cache_compressed))
             return output
 
-
     def exists(self, file_name):
         return path.exists(path.join(self.cache_dir, file_name))
-
 
     def save(self, obj, file_name=None, prefix='', auto_timestamp=False, random_stamp=False,
              ensure_no_conflict=False):  # TODO clumsy function parameters
@@ -1429,7 +1378,6 @@ def read_dict_from_text(file_path, keytype=None, valtype=None, sep='\t', strip_k
             k = k.strip() if strip_key else k
             v = v.strip() if strip_value else v
             return k, v
-
 
         with open(file_path, 'r') as fin:
             fin = tqdm_wrap((line.rstrip('\n') for line in fin), use_tqdm=use_tqdm,

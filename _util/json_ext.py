@@ -175,6 +175,11 @@ def write_keyed_lists(keyed_lists, output_path, **kwargs):
     write_all_json_objs(({k: v} for k, v in keyed_lists.items()), output_path=output_path, **kwargs)
 
 
-def iter_keyed_lists(file_path):
-    for jobj in iter_json_objs(file_path):
-        yield next(iter(jobj.items()))
+def iter_keyed_lists(file_path, apply_on_value=None):
+    if apply_on_value is None:
+        for jobj in iter_json_objs(file_path):
+            yield next(iter(jobj.items()))
+    else:
+        for jobj in iter_json_objs(file_path):
+            k, v = next(iter(jobj.items()))
+            yield k, apply_on_value(v)
