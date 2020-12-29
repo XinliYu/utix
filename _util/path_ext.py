@@ -54,7 +54,7 @@ def make_ext_name(ext_name: str):
         return '.' + ext_name if ext_name[0] != '.' else ext_name
 
 
-def make_file_name(s: str, special_chr_rep='', space_rep='_'):
+def make_file_name(s: str, special_chr_rep='', space_rep='_', include_dot_as_special_chr=False):
     """
     Makes a valid file name out of any given string.
 
@@ -69,10 +69,16 @@ def make_file_name(s: str, special_chr_rep='', space_rep='_'):
     'whatsonmycostolist'
 
     """
-    if special_chr_rep == space_rep:
-        return re.sub(r'[^a-zA-Z0-9_\-\.]+', special_chr_rep, s)
+    if include_dot_as_special_chr:
+        if special_chr_rep == space_rep:
+            return re.sub(r'[^a-zA-Z0-9_\-]+', special_chr_rep, s)
+        else:
+            return re.sub(r'\s+', space_rep, re.sub(r'[^a-zA-Z0-9_\-\s]+', special_chr_rep, s))
     else:
-        return re.sub(r'\s+', space_rep, re.sub(r'[^a-zA-Z0-9_\-\.\s]+', special_chr_rep, s))
+        if special_chr_rep == space_rep:
+            return re.sub(r'[^a-zA-Z0-9_\-\.]+', special_chr_rep, s)
+        else:
+            return re.sub(r'\s+', space_rep, re.sub(r'[^a-zA-Z0-9_\-\.\s]+', special_chr_rep, s))
 
 
 def abspath__(pathstr):

@@ -1,9 +1,10 @@
 import csv
+from functools import partial
 from itertools import islice, chain
 from os import path
 from tqdm import tqdm
 import utix.pathex as paex
-
+import utix.timex as timex
 from utix.dictex import IndexDict, kvswap
 from utix.general import str2val, tqdm_wrap, hprint_message, exclude_none, str2int, str2float
 from utix.ioex import pickle_load, pickle_save, read_all_lines
@@ -11,7 +12,7 @@ from utix.ioex import pickle_load, pickle_save, read_all_lines
 
 # region CSV reading
 
-def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1, use_tqdm=True, disp_msg=None, verbose=__debug__, fields_as_list=True, parse_labels_as_ints=False, parse_feats_as_floats=False, parse=False):
+def _iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1, use_tqdm=True, disp_msg=None, verbose=__debug__, fields_as_list=True, parse_labels_as_ints=False, parse_feats_as_floats=False, parse=False, replace_nan=None):
     _labels_end = num_meta_data_fields + num_label_fields
     for fields in iter_csv(csv_file_path, header=False, parse=parse, use_tqdm=use_tqdm, disp_msg=disp_msg, verbose=verbose, fields_as_list=fields_as_list):
         meta_data = fields[:num_meta_data_fields] if num_meta_data_fields else None
@@ -20,19 +21,66 @@ def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1,
             if parse_labels_as_ints:
                 labels = str2int(labels)
         elif num_label_fields:
-            labels = fields[num_meta_data_fields:_labels_end]
             if parse_labels_as_ints:
-                labels = list(map(str2int, labels))
+                labels = [str2int(fields[i]) for i in range(num_meta_data_fields, _labels_end)]
+            else:
+                labels = fields[num_meta_data_fields:_labels_end]
         else:
             labels = None
 
         if _labels_end < len(fields):
-            feats = fields[_labels_end:]
             if parse_feats_as_floats:
-                feats = list(map(str2float, feats))
+                feats = [str2float(fields[i], replace_nan=replace_nan) for i in range(_labels_end, len(fields))]
+            else:
+                feats = fields[_labels_end:]
         else:
             feats = None
         yield tuple(exclude_none([meta_data, labels, feats]))
+
+
+def iter_feature_data(csv_file_path, num_meta_data_fields=0, num_label_fields=1, use_tqdm=True, disp_msg=None, verbose=__debug__, fields_as_list=True, parse_labels_as_ints=False, parse_feats_as_floats=False, parse=False, replace_nan=None, num_p=1):
+    """
+
+    NOTE this is multi-processing wrap for the actual csv-based feature data reading by the private `_iter_feature_data` method.
+    """
+    if num_p <= 1:
+        return _iter_feature_data(
+            csv_file_path=csv_file_path,
+            num_meta_data_fields=num_meta_data_fields,
+            num_label_fields=num_label_fields,
+            use_tqdm=use_tqdm,
+            disp_msg=disp_msg, verbose=verbose,
+            fields_as_list=fields_as_list,
+            parse_labels_as_ints=parse_labels_as_ints,
+            parse_feats_as_floats=parse_feats_as_floats,
+            parse=parse,
+            replace_nan=replace_nan
+        )
+    else:
+        import utix.mpex as mpex
+        timex.tic(f"Loading L1 feature file at {csv_file_path} with multi-processing")
+        rst = mpex.mp_read_from_files(
+            num_p=num_p,
+            input_path=csv_file_path,
+            target=mpex.MPTarget(
+                target=partial(_iter_feature_data,
+                               num_meta_data_fields=num_meta_data_fields,
+                               num_label_fields=num_label_fields,
+                               use_tqdm=use_tqdm,
+                               disp_msg=disp_msg, verbose=verbose,
+                               fields_as_list=fields_as_list,
+                               parse_labels_as_ints=parse_labels_as_ints,
+                               parse_feats_as_floats=parse_feats_as_floats,
+                               parse=parse,
+                               replace_nan=replace_nan),
+                pass_pid=False,
+                pass_each=True,
+                is_target_iter=True
+            ),
+            result_merge='chain'
+        )
+        timex.toc()
+        return rst
 
 
 def iter_feature_group_sizes(csv_file_path, keyed=True, use_tqdm=True, disp_msg=None, verbose=__debug__):
@@ -184,7 +232,7 @@ def unpack_csv(data_path, output_csv_path, use_tqdm=False, display_msg=None, ver
     write_csv(_tup_iter(), output_csv_path=output_csv_path, sep=sep, header=header)
 
 
-def write_csv(tup_iter, output_csv_path, sep='\t', header=None, append=False, encoding='utf-8', create_dir=True):
+def write_csv(tup_iter, output_csv_path, sep='\t', header=None, append=False, encoding='utf-8', create_dir=True, flatten=False):
     """
     Writes tuples/lists to a csv file.
 
@@ -199,20 +247,28 @@ def write_csv(tup_iter, output_csv_path, sep='\t', header=None, append=False, en
         paex.ensure_dir_existence(path.dirname(output_csv_path), verbose=False)
 
     with open(output_csv_path, 'a' if append else 'w', encoding=encoding) as csv_f:
-        if header is not None and append is False:
-            csv_f.write(sep.join(header))
-            csv_f.write('\n')
-        for tup in tup_iter:
-            csv_f.write(sep.join(str(x) for x in tup))
-            csv_f.write('\n')
+        if flatten:
+            if header is not None and append is False:
+                csv_f.write(sep.join(((sep.join(x) if isinstance(x, (tuple, list)) else x) for x in header)))
+                csv_f.write('\n')
+            for tup in tup_iter:
+                csv_f.write(sep.join(((sep.join(map(str, x)) if isinstance(x, (tuple, list)) else str(x)) for x in tup)))
+                csv_f.write('\n')
+        else:
+            if header is not None and append is False:
+                csv_f.write(sep.join(header))
+                csv_f.write('\n')
+            for tup in tup_iter:
+                csv_f.write(sep.join(str(x) for x in tup))
+                csv_f.write('\n')
 
 
-def iter_csv(csv_input, col_idxes=None, sep='\t', encoding='utf-8', header=True, parse=False, use_tqdm=True, disp_msg=None, allow_missing_cols=False, verbose=__debug__, fields_as_list=False):
+def iter_csv(csv_input, col_index=None, sep='\t', encoding='utf-8', header=True, parse=False, use_tqdm=True, disp_msg=None, allow_missing_cols=False, verbose=__debug__, fields_as_list=False):
     """
     Iterates through each line of a csv file.
 
     :param csv_file_path: the path to the csv file.
-    :param col_idxes: only reads specific columns of the csv file.
+    :param col_index: only reads specific columns of the csv file.
     :param sep: the separator for the csv file.
     :param encoding: the encoding for the csv file.
     :param header: `True` to indicate the csv file has a header line; otherwise `False`; speically, can specify 'skip' to skip th first line, no matter whether it is a header.
@@ -238,77 +294,76 @@ def iter_csv(csv_input, col_idxes=None, sep='\t', encoding='utf-8', header=True,
         is_file = False
 
     result_type = list if fields_as_list else tuple
-    # region special process for the first line
-    is_col_idxes_int = isinstance(col_idxes, int)
+    # region converts strings in `col_idxes` to actual column indices
+    is_col_idxes_int = isinstance(col_index, int)
     if header == 'skip':
         next(f)
     elif header is not None and header is not False:
         if header is True:
-            if col_idxes is None or is_col_idxes_int:
-                next(f)
+            if col_index is None or is_col_idxes_int:
+                next(f)  # no need for the conversion, continue
             else:
                 header = next(f).split(sep)
 
-        if isinstance(col_idxes, str):
+        if isinstance(col_index, str):
             for i, col_name in enumerate(header):
-                if col_idxes == col_name:
-                    col_idxes = i
+                if col_index == col_name:
+                    col_index = i
                     is_col_idxes_int = True
                     break
             if not is_col_idxes_int:
-                raise ValueError(f"the name of the only column `{col_idxes}` does not appear in the csv header")
-        else:
+                raise ValueError(f"the name of the only column `{col_index}` does not appear in the csv header")
+        elif col_index is not None:
             header = {k: i for i, k in enumerate(header)}
-            if col_idxes is not None:
-                if allow_missing_cols:
-                    # if a column does not exist in the header, then replace the column index by `None`
-                    col_idxes = tuple((header.get(x, None) if isinstance(x, str) else x) for x in col_idxes)
-                else:
-                    try:
-                        col_idxes = tuple((header[x] if isinstance(x, str) else x) for x in col_idxes)
-                    except KeyError as keyerr:
-                        raise ValueError(f"name '{keyerr.args[0]}' does not appear in the csv header")
+            if allow_missing_cols:
+                # if a column does not exist in the header, then replace the column index by `None`
+                col_index = tuple((header.get(x, None) if isinstance(x, str) else x) for x in col_index)
+            else:
+                try:
+                    col_index = tuple((header[x] if isinstance(x, str) else x) for x in col_index)
+                except KeyError as keyerr:
+                    raise ValueError(f"name '{keyerr.args[0]}' does not appear in the csv header")
     # endregion
     f = tqdm_wrap(f, use_tqdm=use_tqdm, tqdm_msg=disp_msg, verbose=verbose)
     if parse:
-        if col_idxes is None:
+        if col_index is None:
             for line in f:
                 yield result_type(str2val(s.strip()) for s in line.split(sep))
         elif allow_missing_cols:
             for line in f:
                 splits = line.split(sep)
-                if isinstance(col_idxes, int):
-                    yield str2val(splits[col_idxes].strip()) if col_idxes < len(splits) else None,
+                if isinstance(col_index, int):
+                    yield str2val(splits[col_index].strip()) if col_index < len(splits) else None,
                 else:
-                    yield result_type((str2val(splits[col_idx].strip()) if (col_idx is not None and col_idx < len(splits)) else None) for col_idx in col_idxes)
+                    yield result_type((str2val(splits[col_idx].strip()) if (col_idx is not None and col_idx < len(splits)) else None) for col_idx in col_index)
         else:
             for line in f:
                 splits = line.split(sep)
-                if isinstance(col_idxes, int):
-                    yield str2val(splits[col_idxes].strip()),
+                if isinstance(col_index, int):
+                    yield str2val(splits[col_index].strip()),
                 else:
-                    yield result_type(str2val(splits[col_idx].strip()) for col_idx in col_idxes)
+                    yield result_type(str2val(splits[col_idx].strip()) for col_idx in col_index)
     else:
-        if col_idxes is None:
+        if col_index is None:
             for line in f:
                 yield result_type(s.strip() for s in line.split(sep))
         elif allow_missing_cols:
             for line in f:
                 splits = line.split(sep)
-                if isinstance(col_idxes, int):
-                    yield splits[col_idxes].strip() if col_idxes < len(splits) else None,
+                if isinstance(col_index, int):
+                    yield splits[col_index].strip() if col_index < len(splits) else None,
                 else:
-                    yield result_type((splits[col_idx].strip() if (col_idx is not None and col_idx < len(splits)) else None) for col_idx in col_idxes)
+                    yield result_type((splits[col_idx].strip() if (col_idx is not None and col_idx < len(splits)) else None) for col_idx in col_index)
         else:
             for line in f:
                 splits = line.split(sep)
-                if isinstance(col_idxes, int):
-                    yield splits[col_idxes].strip(),
+                if isinstance(col_index, int):
+                    yield splits[col_index].strip(),
                 else:
                     try:
                         if len(splits) < 11:
                             continue
-                        yield result_type(splits[col_idx].strip() for col_idx in col_idxes)
+                        yield result_type(splits[col_idx].strip() for col_idx in col_index)
                     except Exception as err:
                         print(splits)
                         raise err
@@ -330,7 +385,7 @@ def iter_csv_tuple(csv_file_path: str, sep='\t'):
 
 
 def filter_csv(csv_file_path, filter_func, col_idxes=None, separator='\t', skip_first_line=False, output_first_line=None):
-    for tups in iter_csv(csv_file_path=csv_file_path, col_idxes=col_idxes, sep=separator, header=skip_first_line):
+    for tups in iter_csv(csv_file_path=csv_file_path, col_index=col_idxes, sep=separator, header=skip_first_line):
         filtered_tups = filter_func(tups)
         if filtered_tups is not None:
             yield filtered_tups
@@ -340,7 +395,7 @@ def filter_csv_to_file(csv_file_path, filter_func, output_file_path=None, col_id
     with open(output_file_path, 'w') as w:
         if output_first_line:
             csv_write_first_line(w, output_first_line)
-        csv_iter = iter_csv(csv_file_path=csv_file_path, col_idxes=col_idxes, sep=separator, header=skip_first_line)
+        csv_iter = iter_csv(csv_file_path=csv_file_path, col_index=col_idxes, sep=separator, header=skip_first_line)
         if use_tqdm:
             csv_iter = tqdm(csv_iter)
         for tups in csv_iter:

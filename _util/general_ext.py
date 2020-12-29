@@ -2,32 +2,29 @@ import code
 import copy
 import importlib
 import inspect
+import json
+import os
+import random
 import sys
 import traceback
-from argparse import Namespace
-from collections import defaultdict
+from ast import literal_eval
+from collections import Counter, OrderedDict
+from contextlib import contextmanager
 from functools import partial, reduce
 from itertools import chain
-from os import path
 from typing import Tuple, Callable, Iterator, Union, Iterable, Mapping, List
-from collections import Counter, OrderedDict
+
 import tqdm
 from IPython import get_ipython
 from colorama import Fore
 from colorama import init as colorama_init
-from ast import literal_eval
-import json
-import os
-import random
-from contextlib import contextmanager
-import inspect
 
 """
 This file contains commonly and frequently used utility functions.
 """
 
 
-# region basics
+# region misc
 
 class ref:
     """
@@ -59,282 +56,307 @@ class ref:
     """
     __slots__ = ('value',)
 
-
     def __init__(self, _v):
         self.value = _v
 
-
     def __add__(self, other):
         return ref(self.value + other)
-
 
     def __iadd__(self, other):
         self.value += other
         return self
 
-
     def __radd__(self, other):
         return other + self.value
 
-
     def __sub__(self, other):
         return ref(self.value - other)
-
 
     def __isub__(self, other):
         self.value -= other
         return self
 
-
     def __rsub__(self, other):
         return other - self.value
 
-
     def __mul__(self, other):
         return ref(self.value * other)
-
 
     def __imul__(self, other):
         self.value *= other
         return self
 
-
     def __rmul__(self, other):
         return other * self.value
 
-
     def __matmul__(self, other):
         return ref(self.value @ other)
-
 
     def __imatmul__(self, other):
         self.value @= other
         return self
 
-
     def __rmatmul__(self, other):
         return other @ self.value
 
-
     def __truediv__(self, other):
         return ref(self.value / other)
-
 
     def __itruediv__(self, other):
         self.value /= other
         return self
 
-
     def __rtruediv__(self, other):
         return other / self.value
 
-
     def __floordiv__(self, other):
         return ref(self.value // other)
-
 
     def __ifloordiv__(self, other):
         self.value //= other
         return self
 
-
     def __rfloordiv__(self, other):
         return other // self.value
 
-
     def __mod__(self, other):
         return ref(self.value % other)
-
 
     def __imod__(self, other):
         self.value %= other
         return self
 
-
     def __rmod__(self, other):
         return other % self.value
-
 
     def __divmod__(self, other):
         return ref(divmod(self.value, other))
 
-
     def __rdivmod__(self, other):
         return divmod(other, self.value)
 
-
     def __pow__(self, other):
         return ref(self.value ** other)
-
 
     def __ipow__(self, other):
         self.value **= other
         return self
 
-
     def __rpow__(self, other):
         return other ** self.value
 
-
     def __or__(self, other):
         return ref(self.value | other)
-
 
     def __ior__(self, other):
         self.value |= other
         return self
 
-
     def __ror__(self, other):
         return other | self.value
 
-
     def __and__(self, other):
         return ref(self.value & other)
-
 
     def __iand__(self, other):
         self.value &= other
         return self
 
-
     def __rand__(self, other):
         return other % self.value
 
-
     def __xor__(self, other):
         return ref(self.value ^ other)
-
 
     def __ixor__(self, other):
         self.value ^= other
         return self
 
-
     def __rxor__(self, other):
         return other ^ self.value
 
-
     def __lshift__(self, other):
         return ref(self.value << other)
-
 
     def __ilshift__(self, other):
         self.value <<= other
         return self
 
-
     def __rlshift__(self, other):
         return other << self.value
 
-
     def __rshift__(self, other):
         return ref(self.value >> other)
-
 
     def __irshift__(self, other):
         self.value >>= other
         return self
 
-
     def __rrshift__(self, other):
         return other >> self.value
-
 
     def __eq__(self, other):
         return self.value == other
 
-
     def __ne__(self, other):
         return self.value != other
-
 
     def __lt__(self, other):
         return self.value < other
 
-
     def __le__(self, other):
         return self.value <= other
-
 
     def __gt__(self, other):
         return self.value > other
 
-
     def __ge__(self, other):
         return self.value >= other
-
 
     def __neg__(self):
         self.value = -self.value
         return self
 
-
     def __pos__(self):
         self.value = +self.value
         return self
-
 
     def __abs__(self):
         self.value = abs(self.value)
         return self
 
-
     def __invert__(self):
         self.value = ~self.value
         return self
-
 
     def __floor__(self):
         self.value = self.value.__floor__()
         return self
 
-
     def __ceil__(self):
         self.value = self.value.__ceil__()
         return self
 
-
     def __int__(self):
         return int(self.value)
-
 
     def __float__(self):
         return float(self.value)
 
-
     def __complex__(self):
         return complex(self.value)
-
 
     def __str__(self):
         return self.value.__str__()
 
-
     def __bool__(self):
         return self.value.__bool__()
-
 
     def __repr__(self):
         return self.value.__repr__()
 
-
     def __hash__(self):
         return self.value.__hash__()
 
-
     def __format__(self, format_spec):
         return self.value.__format__(format_spec)
-
 
     def copy(self):
         return ref(self.value)
 
 
+def equals_by_elements(x, y):
+    """
+    Uses `numpy.testing.assert_equal` to test if two objects are exactly equal in terms of their element data.
+    This ignores the objects' original definition of identity by the magic function `__eq__`; for example, two `numpy.nan` objects are always non-equal by their definition, but will be equal by this function since their members are identical.
+    Very expensive operation, typically only use this for debugging.
+    """
+    import numpy as np
+    try:
+        np.testing.assert_equal(x, y)
+        return True
+    except:
+        return False
+
+
+def equals_by_str(x, y, use_tqdm=False):
+    if iterable__(x):
+        if iterable__(y):
+            it = zip(x, y)
+            if use_tqdm:
+                it = tqdm.tqdm(it)
+            return all(str(x) == str(y) for x, y in it)
+        else:
+            return False
+    else:
+        return str(x) == str(y)
+
+
+def tuple__(x, defaults: Union[List, Tuple, int] = None, raise_err_when_length_exceeds_defaults=False):
+    x = tuple(x)
+    if isinstance(defaults, int):
+        if len(x) == defaults:
+            return x
+        elif len(x) > defaults:
+            if raise_err_when_length_exceeds_defaults is True:
+                raise ValueError(f'expected maximum tuple length {defaults}; got {len(x)}')
+            elif isinstance(raise_err_when_length_exceeds_defaults, str):
+                raise ValueError(raise_err_when_length_exceeds_defaults)
+            else:
+                return x
+        else:
+            return x + (None,) * (defaults - len(x))
+    elif defaults is None:
+        return x
+    else:
+        len_defaults = len(defaults)
+        if len(x) == len_defaults:
+            return x
+        elif len(x) > len_defaults:
+            if raise_err_when_length_exceeds_defaults is True:
+                raise ValueError(f'expected maximum tuple length {len_defaults}; got {len(x)}')
+            elif isinstance(raise_err_when_length_exceeds_defaults, str):
+                raise ValueError(raise_err_when_length_exceeds_defaults)
+            else:
+                return x
+        else:
+            return x + tuple(defaults[len(x):])
+
+
+def cpu_count():
+    """
+    Returns the number of cpus on this machine.
+    """
+    import multiprocessing
+    return multiprocessing.cpu_count()
+
+
+def divide__(x, y, default=0):
+    try:
+        return x / y
+    except:
+        return default
+
+
+def num_divide__(x, y, default=0):
+    if y == 0:
+        return default
+
+    return x / y
+
+
+def get__(d: Mapping, *keys, default=None, raise_key_error=False):
+    for key in keys:
+        if key in d:
+            return d[key]
+    if raise_key_error:
+        raise KeyError(keys)
+    return default
+
+
 # endregion
 
 # region type utilities
-
 
 @contextmanager
 def add_to_path(p):
@@ -790,10 +812,8 @@ def compose2(func2, func1):
     :return: the composed function.
     """
 
-
     def _composed(*args, **kwargs):
         return func2(func1(*args, **kwargs))
-
 
     return _composed
 
@@ -823,8 +843,8 @@ def compose(*funcs):
     return reduce(compose2, funcs)
 
 
-_STRS_TRUE = ('true', 'yes', 'y', 'ok', '1')
-_STRS_FALSE = ('false', 'no', 'n', '0')
+_STRS_TRUE = {'true', 'yes', 'y', 'ok', '1'}
+_STRS_FALSE = {'false', 'no', 'n', '0'}
 
 
 def str2bool(s: str):
@@ -835,9 +855,13 @@ def str2int(s: str):
     _s = s.lower()
     return 1 if _s in _STRS_TRUE else (0 if _s in _STRS_FALSE else int(s))
 
-def str2float(s: str):
+
+def str2float(s: str, replace_nan=None):
     _s = s.lower()
-    return 1.0 if _s in _STRS_TRUE else (0.0 if _s in _STRS_FALSE else float(s))
+    if replace_nan is None:
+        return 1.0 if _s in _STRS_TRUE else (0.0 if _s in _STRS_FALSE else float(s))
+    else:
+        return replace_nan if (s == 'nan') else (1.0 if _s in _STRS_TRUE else (0.0 if _s in _STRS_FALSE else float(s)))
 
 
 def str2bool__(s: str):
@@ -868,13 +892,11 @@ def str2numbool(s: str):
 def str2val(s: str):
     ss = s.strip()
 
-
     def _literal_eval():
         try:
             return literal_eval(ss)
         except:
             return s
-
 
     if ss[0] == '{':
         try:
@@ -925,7 +947,6 @@ def str2val__(s: str, success_label=False):
             except:
                 return s, False
 
-
         if ss[0] == '{':
             try:
                 return json.loads(ss), True
@@ -956,7 +977,6 @@ def str2val__(s: str, success_label=False):
                 return literal_eval(ss)
             except:
                 return s
-
 
         if ss[0] == '{':
             try:
@@ -1032,10 +1052,8 @@ def import__(name: str):
 class Importer:
     __slots__ = ('_cache',)
 
-
     def __init__(self):
         self._cache = {}
-
 
     def __call__(self, name: str):
         c = self._cache.get(name, None)
@@ -1059,7 +1077,6 @@ class JSerializable:
             d.update({k: getattr(self, k) for k in self._fields})
         d['__type__'] = type_str if type_str else full_cls_name(self)
         return d
-
 
     @classmethod
     def __from_dict__(cls, d: dict, factory: Callable = None):
@@ -1112,20 +1129,14 @@ def iterable_merge(iterables, merge_funcs: Tuple[Callable, ...] = (default_merge
 
 # region misc
 
-def cpu_count():
-    import multiprocessing
-    return multiprocessing.cpu_count()
-
 
 class SlotsTuple:
 
     def __init__(self):
         self._tup = tuple(getattr(self, x) for x in self.__slots__ if x != '_tup')
 
-
     def __getitem__(self, item):
         return self._tup[item]
-
 
     def __len__(self):
         return len(self._tup)
@@ -1142,11 +1153,9 @@ class Callables:
     """
     __slots__ = ('callables', 'no_return')
 
-
     def __init__(self, callables, no_return=True):
         self.callables = tuple(x for x in callables if x is not None)
         self.no_return = no_return
-
 
     def __call__(self, *args, **kwargs):
         if self.no_return:
@@ -1222,7 +1231,6 @@ def apply_tqdm(func):
             first_arg = tqdm_wrap(first_arg, use_tqdm=use_tqdm, tqdm_msg=tqdm_msg, verbose=verbose)
 
         return func(first_arg, *args, **kwargs)
-
 
     return _wrap
 
@@ -1384,8 +1392,14 @@ def debug_on_error_wrap(func):
             ns.update(frame.f_locals)
             code.interact(local=ns)
 
-
     return _wrap
+
+
+def try_apply(func, arg):
+    try:
+        return func(arg)
+    except:
+        return arg
 
 
 def try__(func: Callable, afunc: Callable, *args, post_error_raise_check: Callable = None, extra_msg: str = None, **kwargs):
@@ -1533,10 +1547,8 @@ class FieldsRepr:
     if no representation fields is specified, then the field names in `_slots__` or `_fields` (e.g. :class:`~collections.namedtuple`) and in addition the `__dict__` will be considered as the fields for representation.
     """
 
-
     def __init__(self, repr_fields: Iterator[str] = None):
         self._repr_fields = tuple(repr_fields) if repr_fields else None
-
 
     def __repr__(self):
         return fields2str(self, self._repr_fields)
@@ -1554,17 +1566,14 @@ class list_(list):
         l.__iadd__(other)
         return l
 
-
     def __iadd__(self, other):
         self.append(other)
         return self
-
 
     def __or__(self, other):
         l = copy.copy(self)
         l.extend(other)
         return l
-
 
     def __ior__(self, other):
         self.extend(other)
@@ -1584,13 +1593,11 @@ class list__(list):
 
     """
 
-
     def __add__(self, other):
         try:
             return self + other
         except TypeError:
             return self + [other]
-
 
     def __iadd__(self, other):
         try:
@@ -1598,7 +1605,6 @@ class list__(list):
         except TypeError:
             self.append(other)
         return self
-
 
     def __radd__(self, other):
         try:
@@ -1616,7 +1622,6 @@ def fields_accu(target, item, fields=None):
                     val1 += val2
                 else:
                     setattr(target, field, list_([val1, val2]))
-
 
     if fields is None:
         fields = set(get_fields(target))
@@ -1649,7 +1654,6 @@ def fields_add(target, item, fields=None):
                 else:
                     raise TypeError(f"{type(val1)} must define one of '__iadd__', '__add__', '__ior__' and '__or__' in order to be accumulative")
 
-
     if fields is None:
         fields = set(get_fields(target))
         _add()
@@ -1677,7 +1681,6 @@ def fields_max(target, item, fields=None):
                     else:
                         raise TypeError(f"{type(val1)} must define the '<' operator compatible with {type(val2)},  or {type(val1)} must define one of the '__imax__', '__max__' functions.")
 
-
     if fields is None:
         fields = set(get_fields(target))
         _max()
@@ -1704,7 +1707,6 @@ def fields_min(target, item, fields=None):
                         setattr(target, field, val1.__min__(val2))
                     else:
                         raise TypeError(f"{type(val1)} must define the '>' operator compatible with {type(val2)},  or {type(val1)} must define one of the '__imin__', '__min__' functions.")
-
 
     if fields is None:
         fields = set(get_fields(target))
@@ -1784,70 +1786,53 @@ class Accumulative:
     This class is typically used for formulating statistic classes and metric classes.
     """
 
-
     def __init__(self, accu_fields: Iterator[str] = None):
         self._accu_fields = tuple(accu_fields) if accu_fields else None
-
 
     def __or__(self, other):
         return fields_accu(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __ior__(self, other):
         return fields_accu(self, other, self._accu_fields)
-
 
     def __add__(self, other):
         return fields_add(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __iadd__(self, other):
         return fields_add(self, other, self._accu_fields)
-
 
     def __sub__(self, other):
         return fields_sub(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __isub__(self, other):
         return fields_sub(self, other, self._accu_fields)
-
 
     def __truediv__(self, other):
         return fields_div(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __itruediv__(self, other):
         return fields_div(self, other, self._accu_fields)
-
 
     def __floordiv__(self, other):
         return fields_floor_div(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __ifloordiv__(self, other):
         return fields_floor_div(self, other, self._accu_fields)
-
 
     def __mul__(self, other):
         return fields_multiply(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __imul__(self, other):
         return fields_multiply(self, other, self._accu_fields)
-
 
     def __max__(self, other):
         return fields_max(copy.deepcopy(self), other, self._accu_fields)
 
-
     def __imax__(self, other):
         return fields_max(self, other, self._accu_fields)
 
-
     def __min__(self, other):
         return fields_min(copy.deepcopy(self), other, self._accu_fields)
-
 
     def __imin__(self, other):
         return fields_min(self, other, self._accu_fields)
@@ -1981,7 +1966,7 @@ def cprint(text, color_place_holder='`', color=Fore.CYAN, bk_color=Fore.WHITE, e
 
 
 def get_cprint_message_str(title, content='', title_color=Fore.CYAN, content_color=Fore.WHITE, start='', end='\n'):
-    return f'{start}{title_color}{title}{Fore.WHITE}{end}' if content == '' or content is None \
+    return f'{start}{title_color}{title}{Fore.WHITE}{end}' if content == '' \
         else f'{start}{title_color}{title}: {content_color}{content}{Fore.WHITE}{end}'
 
 
@@ -1989,7 +1974,7 @@ def cprint_message(title, content='', title_color=Fore.CYAN, content_color=Fore.
     print(get_cprint_message_str(title, content, title_color, content_color, start, end))
 
 
-def get_cprint_pairs_str(*args, first_color=Fore.CYAN, second_color=Fore.WHITE, sep=' ', end='\n'):
+def get_cprint_pairs_str(*args, first_color=Fore.CYAN, second_color=Fore.WHITE, sep='\t', end='\n'):
     return sep.join((get_cprint_message_str(title=arg[0], content=arg[1], title_color=first_color, content_color=second_color, end='') for arg in args)) + end
 
 
@@ -2086,17 +2071,14 @@ class flogger(object):
         self.log = open(path, "w")
         self.print_to_terminal = print_terminal
 
-
     def write(self, message):
         if self.print_to_terminal:
             self.terminal.write(message)
         self.log.write(message)
 
-
     def flush(self):
         self.log.flush()
         pass
-
 
     def reset(self):
         self.flush()
@@ -2242,7 +2224,6 @@ def iter_pairs(_x):
 # endregion
 
 # region parameter handling
-
 
 
 # endregion

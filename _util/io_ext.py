@@ -1,10 +1,10 @@
 import _io
 import gzip
+import hashlib
 import json
 import os
 import pickle
 import random
-import hashlib
 import shutil
 import sys
 import urllib.request
@@ -15,18 +15,18 @@ from random import shuffle, randint
 from time import time
 from typing import Dict, Callable, Iterator, List, Iterable, Union, Any, Mapping
 from zipfile import ZipFile
-from utix.strex import add_prefix, strip__
+
 import tqdm
-import uuid
+
+import utix.pathex as pathex
 from utix.dictex import update_dict_by_addition, IndexDict, kvswap
 from utix.general import hprint_pairs, hprint, hprint_message, get_hprint_str, tqdm_wrap, eprint_message, str2val, \
     apply_tqdm
 from utix.iterex import chunk_iter, islice, next__, with_uuid, with_names
 from utix.listex import iter_split_list, split_list_by_ratios
 from utix.msgex import msg_arg_path_not_exist, msg_batch_file_writing_to_dir
+from utix.strex import add_prefix, strip__
 from utix.timex import timestamp, tic, toc
-
-import utix.pathex as paex
 
 TYPE_FILENAME_OR_STREAM = Union[str, _io.TextIOWrapper]
 
@@ -87,28 +87,39 @@ class open__:
     Provides more options for opening a file, including automatically creating the parent directory, and tqdm wrap.
     """
 
-    def __init__(self, file: str, mode: str = 'r', encoding=None, use_tqdm: bool = False, display_msg: str = None,
+    def __init__(self, file: str, mode: str = None, append=None, encoding=None, use_tqdm: bool = False, disp_msg: str = None,
                  verbose=__debug__, create_dir=True, *args, **kwargs):
         self._file = file
 
+        if append is True:
+            if mode is not None:
+                raise ValueError('cannot specify `mode` and `append` at the same time')
+            mode = 'a+'
+        elif append is False:
+            if mode is not None:
+                raise ValueError('cannot specify `mode` and `append` at the same time')
+            mode = 'w+'
+        elif mode is None:
+            mode = 'r'
+
         need_dir_exist = False
-        if display_msg is None and (use_tqdm or verbose):
+        if disp_msg is None and (use_tqdm or verbose):
             binary = 'binary ' if 'b' in mode else ''
             if 'r' in mode:
-                display_msg = f'read from {binary}file {file}'
+                disp_msg = f'read from {binary}file {file}'
             elif 'w' in mode:
                 if path.exists(file):
-                    display_msg = f'overwrite {binary}file {file}'
+                    disp_msg = f'overwrite {binary}file {file}'
                 else:
-                    display_msg = f'write to {binary}file {file}'
+                    disp_msg = f'write to {binary}file {file}'
                 need_dir_exist = True
                 use_tqdm = False
             elif 'a' in mode:
-                display_msg = f'append to {binary}file {file}'
+                disp_msg = f'append to {binary}file {file}'
                 need_dir_exist = True
                 use_tqdm = False
             elif 'x' in mode:
-                display_msg = f'write to {binary}file {file}'
+                disp_msg = f'write to {binary}file {file}'
                 need_dir_exist = True
                 use_tqdm = False
         else:
@@ -119,16 +130,21 @@ class open__:
             os.makedirs(path.dirname(self._file), exist_ok=True)
 
         self._f = open(self._file, mode=mode, encoding=encoding, *args, **kwargs)
-        self._tqdm_wrap = tqdm_wrap(it=self._f, use_tqdm=use_tqdm, tqdm_msg=display_msg, verbose=verbose)
+        self._tqdm_wrap = tqdm_wrap(it=self._f, use_tqdm=use_tqdm, tqdm_msg=disp_msg, verbose=verbose)
+
+    def flush(self):
+        self._f.flush()
 
     def __enter__(self):
         return self._tqdm_wrap
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._f.flush()
         self._f.close()
 
 
 # endregion
+
 
 # region move/copy files
 
@@ -137,7 +153,7 @@ def _batch_copy(pid, src_paths, dst_dir, solve_conflict=True, use_tqdm=True, tqd
     for src_path in tqdm_wrap(src_paths, use_tqdm, tqdm_msg):
         dst_path = path.join(dst_dir, path.basename(src_path))
         if solve_conflict:
-            dst_path = paex.ensure_path_no_conflict(dst_path)
+            dst_path = pathex.ensure_path_no_conflict(dst_path)
         if path.isdir(src_path):
             shutil.copytree(src_path, dst_path)
         else:
@@ -165,7 +181,7 @@ def batch_move(src_paths, dst_dir, solve_conflict=True, undo_move_on_failure=Tru
         for src_path in tqdm_wrap(src_paths, use_tqdm, tqdm_msg):
             dst_path = path.join(dst_dir, path.basename(src_path))
             if solve_conflict:
-                dst_path = paex.ensure_path_no_conflict(dst_path)
+                dst_path = pathex.ensure_path_no_conflict(dst_path)
             try:
                 shutil.move(src_path, dst_path)
             except Exception as e:
@@ -177,8 +193,20 @@ def batch_move(src_paths, dst_dir, solve_conflict=True, undo_move_on_failure=Tru
         for src_path in tqdm_wrap(src_paths, use_tqdm, tqdm_msg):
             dst_path = path.join(dst_dir, path.basename(src_path))
             if solve_conflict:
-                dst_path = paex.ensure_path_no_conflict(dst_path)
+                dst_path = pathex.ensure_path_no_conflict(dst_path)
             shutil.move(src_path, dst_path)
+
+
+# endregion
+
+
+# region file id
+
+def get_files_id(files, use_modification_time=False):
+    if use_modification_time:
+        return '|'.join((f'{path.abspath(file)}_{str(path.getsize(file))}_{path.getctime(file)}_{path.getmtime(file)}' for file in files))
+    else:
+        return '|'.join((f'{path.abspath(file)}_{str(path.getsize(file))}_{path.getctime(file)}' for file in files))
 
 
 # endregion
@@ -240,13 +268,18 @@ def remove_if_exists(*file_or_dir_paths, verbose=False):
 
 # region read/write lines
 
+def read_all_text(file_path: str, encoding=None):
+    with open(file_path, encoding=encoding) as f:
+        return f.read()
+
+
 def read_all_lines(file_path: str, encoding=None, use_tqdm: bool = False, disp_msg: str = None, lstrip=False,
                    rstrip=True, verbose=__debug__):
     """
     Works in the same way as `iter_all_lines` but returns everything all at once.
     """
 
-    with open__(file_path, encoding=encoding, use_tqdm=use_tqdm, display_msg=disp_msg, verbose=verbose) as fin:
+    with open__(file_path, encoding=encoding, use_tqdm=use_tqdm, disp_msg=disp_msg, verbose=verbose) as fin:
         return [strip__(line, lstrip=lstrip, rstrip=rstrip) for line in fin]
 
 
@@ -338,14 +371,14 @@ def iter_all_lines_from_all_files(input_paths, sample_rate=1.0, lstrip=False, rs
     if isinstance(input_paths, str):
         input_paths = (input_paths,)
     else:
-        input_paths = paex.sort_paths(input_paths, sort=sort, sort_by_basename=sort_by_basename)
+        input_paths = pathex.sort_paths(input_paths, sort=sort, sort_by_basename=sort_by_basename)
     if sample_rate >= 1.0:
         for file in input_paths:
-            with open__(file, use_tqdm=use_tqdm, display_msg=display_msg, verbose=verbose) as f:
+            with open__(file, use_tqdm=use_tqdm, disp_msg=display_msg, verbose=verbose) as f:
                 yield from (strip__(line, lstrip=lstrip, rstrip=rstrip) for line in f)
     else:
         for file in input_paths:
-            with open__(file, use_tqdm=use_tqdm, display_msg=display_msg, verbose=verbose) as f:
+            with open__(file, use_tqdm=use_tqdm, disp_msg=display_msg, verbose=verbose) as f:
                 for line in f:
                     if random.uniform(0, 1) < sample_rate:
                         yield strip__(line, lstrip=lstrip, rstrip=rstrip)
@@ -360,7 +393,7 @@ def iter_all_lines_from_all_sub_dirs(input_path: str, pattern: str, sample_rate:
     if path.isfile(input_path):
         all_files = [input_path]
     else:
-        all_files = paex.get_sorted_files_from_all_sub_dirs(dir_path=input_path, pattern=pattern)
+        all_files = pathex.get_sorted_files_from_all_sub_dirs(dir_path=input_path, pattern=pattern)
 
     return iter_all_lines_from_all_files(input_paths=all_files, sample_rate=sample_rate, lstrip=False, rstrip=True,
                                          use_tqdm=use_tqdm, display_msg=display_msg, verbose=verbose)
@@ -369,6 +402,11 @@ def iter_all_lines_from_all_sub_dirs(input_path: str, pattern: str, sample_rate:
 # endregion
 
 # region write lines
+
+def write_all_text(s, file_path: str, encoding=None, append=False, create_dir=True):
+    with open__(file_path, append=append, encoding=encoding, create_dir=create_dir) as f:
+        f.write(s)
+
 
 def write_all_lines_to_stream(fout, iterable: Iterator[str], to_str: Callable[[Any], str] = None,
                               remove_blank_lines: bool = False, avoid_repeated_new_line: bool = True):
@@ -400,14 +438,17 @@ def write_all_lines(iterable: Iterator, output_path: str, to_str: Callable = Non
         with open__(output_path, 'a+' if append else 'w+', encoding=encoding, create_dir=create_dir) as wf:
             write_all_lines_to_stream(fout=wf, iterable=iterable, to_str=to_str, remove_blank_lines=remove_blank_lines,
                                       avoid_repeated_new_line=avoid_repeated_new_line)
+            wf.flush()
+
     else:
-        chunked_file_ext_name = paex.make_ext_name(chunked_file_ext_name)
+        chunked_file_ext_name = pathex.make_ext_name(chunked_file_ext_name)
         for chunk_name, chunk in with_names(chunk_iter(iterable, chunk_size=chunk_size), name_format=chunk_name_format,
                                             name_suffix=chunked_file_ext_name):
             with open__(path.join(output_path, chunk_name), 'a+' if append else 'w+', encoding=encoding,
                         create_dir=create_dir) as wf:
                 write_all_lines_to_stream(fout=wf, iterable=chunk, to_str=to_str, remove_blank_lines=remove_blank_lines,
                                           avoid_repeated_new_line=avoid_repeated_new_line)
+                wf.flush()
 
 
 def write_all_lines_to_dir(line_iter: Union[Iterator, Iterable], output_dir: str, output_file_size=-1,
@@ -416,11 +457,11 @@ def write_all_lines_to_dir(line_iter: Union[Iterator, Iterable], output_dir: str
                            verbose=False, use_tqdm=True, tqdm_reading_msg=None, tqdm_writing_msg=None):
     if path.exists(output_dir):
         if not path.isdir(output_dir):
-            raise ValueError(paex.msg_arg_not_a_dir(path_str=output_dir, arg_name='output_dir'))
+            raise ValueError(pathex.msg_arg_not_a_dir(path_str=output_dir, arg_name='output_dir'))
         if overwrite:
-            paex.ensure_dir_existence(output_dir, clear_dir=True, verbose=verbose)
+            pathex.ensure_dir_existence(output_dir, clear_dir=True, verbose=verbose)
     elif make_output_dir_if_not_exists:
-        paex.ensure_dir_existence(output_dir, verbose=verbose)
+        pathex.ensure_dir_existence(output_dir, verbose=verbose)
     else:
         raise ValueError(msg_arg_path_not_exist(path_str=output_dir, arg_name='output_dir'))
 
@@ -456,17 +497,7 @@ def write_all_lines_to_dir(line_iter: Union[Iterator, Iterable], output_dir: str
 # region read/write json objs
 
 
-def iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, encoding=None, ignore_error=False,
-                   top=None) -> Iterator[Dict]:
-    """
-    Iterates through all json objects in a file, or all json objects in all '.json' files in a directory, or a text line iterator.
-    :param json_input: the path to a json file, or a text line iterator.
-    :param disp_msg: the message to display for this reading.
-    :param use_tqdm: `True` to use tqdm to display reading progress; otherwise, `False`.
-    :param verbose: `True` to print out the `display_msg` regardless of `use_tqdm`.
-    :return: a json object iterator.
-    """
-
+def _iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, encoding=None, ignore_error=False, top=None) -> Iterator[Dict]:
     def _iter_single_input(json_input):
         lines, fin = _get_input_file_stream(file=json_input, encoding=encoding, top=top, use_tqdm=use_tqdm,
                                             display_msg=disp_msg or 'read json object from {}', verbose=verbose)
@@ -490,11 +521,43 @@ def iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, 
         if path.isfile(json_input):
             yield from _iter_single_input(json_input)
         else:
-            for _json_input in paex.get_files_by_pattern(json_input, pattern='*.json', full_path=True, recursive=False,
-                                                         sort=True):
+            for _json_input in pathex.get_files_by_pattern(json_input, pattern='*.json', full_path=True, recursive=False, sort=True):
                 yield from _iter_single_input(_json_input)
     else:
         yield from _iter_single_input(json_input)
+
+
+def iter_json_objs(json_input, use_tqdm=True, disp_msg=None, verbose=__debug__, encoding=None, ignore_error=False, top=None) -> Iterator[Dict]:
+    """
+    Iterates through all json objects in a file, or all json objects in all '.json' files in a directory, or a text line iterator.
+    :param json_input: the path to a json file, or a text line iterator.
+    :param disp_msg: the message to display for this reading.
+    :param use_tqdm: `True` to use tqdm to display reading progress; otherwise, `False`.
+    :param verbose: `True` to print out the `display_msg` regardless of `use_tqdm`.
+    :return: a json object iterator.
+    """
+
+    if isinstance(json_input, (list, tuple, set)):
+        for _json_input in json_input:
+            yield from _iter_json_objs(
+                json_input=_json_input,
+                use_tqdm=use_tqdm,
+                disp_msg=disp_msg,
+                verbose=verbose,
+                encoding=encoding,
+                ignore_error=ignore_error,
+                top=top
+            )
+    else:
+        yield from _iter_json_objs(
+            json_input=json_input,
+            use_tqdm=use_tqdm,
+            disp_msg=disp_msg,
+            verbose=verbose,
+            encoding=encoding,
+            ignore_error=ignore_error,
+            top=top
+        )
 
 
 def read_all_json_objs(json_file: str, use_tqdm=False, display_msg=None, ignore_error=False, verbose=__debug__,
@@ -529,15 +592,18 @@ def iter_all_json_objs_from_all_sub_dirs(input_path: str, pattern: str = '*.json
     if path.isfile(input_path):
         all_files = [input_path]
     else:
-        all_files = paex.get_sorted_files_from_all_sub_dirs(dir_path=input_path, pattern=pattern)
+        all_files = pathex.get_sorted_files_from_all_sub_dirs(dir_path=input_path, pattern=pattern)
 
     for json_file in all_files:
         yield from iter_json_objs(json_input=json_file, use_tqdm=use_tqdm, disp_msg=display_msg, verbose=verbose,
                                   encoding=encoding, ignore_error=ignore_error, top=top)
 
 
-def write_all_json_objs(json_obj_iter, output_path, process_func=None, use_tqdm=False, disp_msg=None, append=False,
-                        indent=None, verbose=__debug__, create_dir=True, **kwargs):
+def write_json_objs(json_obj_iter, output_path, process_func=None, use_tqdm=False, disp_msg=None, append=False,
+                    indent=None, verbose=__debug__, create_dir=True, pid=None, **kwargs):
+    if pid is not None:
+        output_path = path.join(path.dirname(output_path), pathex.get_main_name(output_path), f'{pid}.{pathex.get_ext_name(output_path)}')
+
     write_all_lines(iterable=iter_all_json_strs(json_obj_iter, process_func, indent=indent, **kwargs),
                     output_path=output_path, use_tqdm=use_tqdm, display_msg=disp_msg, append=append, verbose=verbose,
                     create_dir=create_dir)
@@ -545,9 +611,9 @@ def write_all_json_objs(json_obj_iter, output_path, process_func=None, use_tqdm=
 
 def write_json(obj, file_path: str, append=False, indent=0, create_dir=True, **kwargs):
     if create_dir:
-        paex.ensure_dir_existence(path.dirname(file_path), verbose=False)
+        pathex.ensure_dir_existence(path.dirname(file_path), verbose=False)
     if isinstance(obj, (list, tuple)):
-        write_all_json_objs(json_obj_iter=obj, output_path=file_path, append=append, indent=indent, **kwargs)
+        write_json_objs(json_obj_iter=obj, output_path=file_path, append=append, indent=indent, **kwargs)
     else:
         with open__(file_path, 'a' if append else 'w') as fout:
             fout.write(json.dumps(obj if isinstance(obj, Mapping) else vars(obj), indent=indent, **kwargs))
@@ -565,35 +631,50 @@ def _update_json_objs_internal_pool_wrap(args):
     return _update_json_objs_internal(*args)
 
 
-def _update_json_objs_internal(pid, file_paths, stats, jobj_iter_creator, update_method, pre_loader, output_path,
+def _update_json_objs_internal(pid, file_paths, stats, jobj_iter_creator, update_method, batch_update, pre_loader, preload_need_data, output_path,
                                one_file_per_process, verbose, args, kwargs):
     if pre_loader is None:
-        def _get_jobj_iter(file_idx):
-            return jobj_iter_creator(file_paths[file_idx])
-    else:
+        def _get_jobj_iter(_file_idx):
+            return jobj_iter_creator(file_paths[_file_idx])
+    elif preload_need_data:
         pre_load_jobjs = [list(jobj_iter_creator(data_file)) for data_file in file_paths]
         pre_load_results = pre_loader(pid, pre_load_jobjs, *args, **kwargs)
 
-        def _get_jobj_iter(file_idx):
-            return pre_load_jobjs[file_idx]
+        def _get_jobj_iter(_file_idx):
+            return pre_load_jobjs[_file_idx]
+    else:
+        pre_load_results = pre_loader(pid, *args, **kwargs)
+
+        def _get_jobj_iter(_file_idx):
+            return jobj_iter_creator(file_paths[_file_idx])
 
     for file_idx, file_path in enumerate(file_paths):  # updates each file in the source data
         this_total = this_update_count = 0
 
         def _iter():
             nonlocal this_total, this_update_count
-            for jobj in _get_jobj_iter(file_idx):
-                update_result = update_method(jobj, *args, **kwargs) if pre_loader is None else update_method(jobj,
-                                                                                                              pre_load_results,
-                                                                                                              *args,
-                                                                                                              **kwargs)
-                if update_result:
-                    this_update_count += 1
-                this_total += 1
-                if update_result is None or isinstance(update_result, bool):
-                    yield jobj
-                else:
-                    yield from update_result
+            if batch_update:
+                jobjs = _get_jobj_iter(file_idx)
+                if not isinstance(jobjs, (list, tuple)):
+                    jobjs = list(jobjs)
+                update_result = update_method(jobjs, *args, **kwargs) if pre_loader is None else update_method(jobjs,
+                                                                                                               pre_load_results,
+                                                                                                               *args,
+                                                                                                               **kwargs)
+                yield from update_result
+            else:
+                for jobj in _get_jobj_iter(file_idx):
+                    update_result = update_method(jobj, *args, **kwargs) if pre_loader is None else update_method(jobj,
+                                                                                                                  pre_load_results,
+                                                                                                                  *args,
+                                                                                                                  **kwargs)
+                    if update_result:
+                        this_update_count += 1
+                    this_total += 1
+                    if update_result is None or isinstance(update_result, bool):
+                        yield jobj
+                    else:
+                        yield from update_result
 
         stats[0] += this_total
         stats[1] += this_update_count
@@ -601,23 +682,23 @@ def _update_json_objs_internal(pid, file_paths, stats, jobj_iter_creator, update
         if output_path:
             if one_file_per_process:
                 this_output_path = output_path.format(pid)
-                write_all_json_objs(json_obj_iter=_iter(), output_path=this_output_path, use_tqdm=True,
-                                    disp_msg=f'updating file {path.basename(this_output_path)}', append=True)
+                write_json_objs(json_obj_iter=_iter(), output_path=this_output_path, use_tqdm=True,
+                                disp_msg=f'updating file {path.basename(this_output_path)}', append=True)
             else:
                 file_base_name = path.basename(file_path)
-                write_all_json_objs(json_obj_iter=_iter(), output_path=path.join(output_path, file_base_name),
-                                    use_tqdm=True, disp_msg=f'updating file {file_base_name}')
+                write_json_objs(json_obj_iter=_iter(), output_path=path.join(output_path, file_base_name),
+                                use_tqdm=True, disp_msg=f'updating file {file_base_name}')
         else:
             op_file_with_tmp(file_path,
-                             lambda x: write_all_json_objs(json_obj_iter=_iter(), output_path=x, use_tqdm=True,
-                                                           disp_msg=f'updating file {path.basename(x)}'))
+                             lambda x: write_json_objs(json_obj_iter=_iter(), output_path=x, use_tqdm=True,
+                                                       disp_msg=f'updating file {path.basename(x)}'))
 
-        if verbose:
+        if verbose and not batch_update:
             hprint_pairs(("pid", pid), ("file", file_path), ("total", this_total), ("update", this_update_count))
 
 
 def update_json_objs(json_files: List[str],
-                     jobj_iter_creator: Callable, update_method: Callable, pre_loader: Callable = None,
+                     jobj_iter_creator: Callable, update_method: Callable, batch_update: bool = False, pre_loader: Callable = None, preload_need_data: bool = True,
                      num_p: int = 1, output_path: str = None, one_file_per_process=False, verbose=False,
                      *args, **kwargs):
     from multiprocessing import Manager
@@ -630,14 +711,13 @@ def update_json_objs(json_files: List[str],
         parallel_process_by_pool(num_p=num_p,
                                  data_iter=json_files,
                                  target=_update_json_objs_internal,
-                                 args=(
-                                     stats, jobj_iter_creator, update_method, pre_loader, output_path,
-                                     one_file_per_process,
-                                     verbose, args, kwargs))
+                                 args=(stats, jobj_iter_creator, update_method, batch_update, pre_loader, preload_need_data, output_path,
+                                       one_file_per_process,
+                                       verbose, args, kwargs))
     else:
         stats = [0, 0]
         _update_json_objs_internal(pid=0, file_paths=json_files, stats=stats, jobj_iter_creator=jobj_iter_creator,
-                                   update_method=update_method, pre_loader=pre_loader,
+                                   update_method=update_method, batch_update=batch_update, pre_loader=pre_loader, preload_need_data=preload_need_data,
                                    output_path=output_path, one_file_per_process=one_file_per_process, verbose=verbose,
                                    args=args, kwargs=kwargs)
 
@@ -733,8 +813,8 @@ def pack_json_file(file_path, output_path, key_sep='|', top=None, use_tqdm=False
 
     def _save_chunk():
         nonlocal chunk_number
-        chunk_path = paex.append_to_main_name(output_path,
-                                              ('{:0' + str(chunk_suffix_digits) + '}').format(chunk_number))
+        chunk_path = pathex.append_to_main_name(output_path,
+                                                ('{:0' + str(chunk_suffix_digits) + '}').format(chunk_number))
         if verbose:
             hprint_message('chunk number', chunk_number)
             hprint_message('chunk size', len(data))
@@ -752,7 +832,7 @@ def pack_json_file(file_path, output_path, key_sep='|', top=None, use_tqdm=False
     if chunk is not None:
         if len(data) != 0:
             _save_chunk()
-        meta_path = paex.append_to_main_name(output_path, '_meta')
+        meta_path = pathex.append_to_main_name(output_path, '_meta')
         if verbose:
             hprint_message('vocab size', len(vocab))
             hprint_message('save to', meta_path)
@@ -802,32 +882,32 @@ def unpack_json_file(data_path, output_path, use_tqdm=False, display_msg=None, v
         if verbose:
             hprint_message('data size', len(data))
             hprint_message('vocab size', len(vocab))
-        write_all_json_objs(_jobj_iter(), output_path=output_path, use_tqdm=use_tqdm, disp_msg=display_msg,
-                            verbose=verbose)
+        write_json_objs(_jobj_iter(), output_path=output_path, use_tqdm=use_tqdm, disp_msg=display_msg,
+                        verbose=verbose)
     else:
         if isinstance(chunk, int):
             chunk = (chunk,)
-        key_sep, vocab = pickle_load(paex.append_to_main_name(data_path, '_meta'), compressed=True)
+        key_sep, vocab = pickle_load(pathex.append_to_main_name(data_path, '_meta'), compressed=True)
         vocab = kvswap(vocab)
         if separate_chunk_files:
             for chunk_number in chunk:
                 chunk_suffix = ('{:0' + str(chunk_suffix_digits) + '}').format(chunk_number)
-                chunk_file = paex.append_to_main_name(data_path, chunk_suffix)
+                chunk_file = pathex.append_to_main_name(data_path, chunk_suffix)
                 data = pickle_load(chunk_file, compressed=True)
-                chunk_output_file = paex.append_to_main_name(output_path, chunk_suffix)
-                write_all_json_objs(_jobj_iter(), output_path=chunk_output_file, use_tqdm=use_tqdm,
-                                    disp_msg=display_msg, verbose=verbose)
+                chunk_output_file = pathex.append_to_main_name(output_path, chunk_suffix)
+                write_json_objs(_jobj_iter(), output_path=chunk_output_file, use_tqdm=use_tqdm,
+                                disp_msg=display_msg, verbose=verbose)
         else:
             def _jobj_iter2():
                 nonlocal data
                 for chunk_number in chunk:
                     chunk_suffix = ('{:0' + str(chunk_suffix_digits) + '}').format(chunk_number)
-                    chunk_file = paex.append_to_main_name(data_path, chunk_suffix)
+                    chunk_file = pathex.append_to_main_name(data_path, chunk_suffix)
                     data = pickle_load(chunk_file, compressed=True)
                     yield from _jobj_iter()
 
-            write_all_json_objs(_jobj_iter2(), output_path=output_path, use_tqdm=use_tqdm, disp_msg=display_msg,
-                                verbose=verbose)
+            write_json_objs(_jobj_iter2(), output_path=output_path, use_tqdm=use_tqdm, disp_msg=display_msg,
+                            verbose=verbose)
 
 
 # endregion
@@ -978,7 +1058,7 @@ def write_all_lines_split_files(output_path: str, iterable, num_split=0, use_tqd
         lines = list(iterable)
         num_lines = len(lines)
         output_dir_path = path.dirname(output_path)
-        paex.ensure_dir_existence(output_dir_path)
+        pathex.ensure_dir_existence(output_dir_path)
         output_file_name = path.basename(output_path)
         output_file_main_name, output_file_ext_name = path.splitext(output_file_name)
         num_lines_per_split = num_lines // num_split + 1
@@ -1034,6 +1114,7 @@ def pickle_load(file_path: str, compressed: bool = False, encoding=None):
     with open(file_path, 'rb') if not compressed else gzip.open(file_path, 'rb') as f:
         if encoding is None or sys.version_info < (3, 0):
             return pickle.load(f)
+
         else:
             return pickle.load(f, encoding=encoding)
 
@@ -1064,7 +1145,7 @@ def pickle_save__(data, file_or_dir_path: str, extension_name=None, compressed: 
                 ('_' + str(int(time() * 1000))) if auto_timestamp else '') + (
                             ('_' + str(randint(0, 1000))) if random_stamp else '') + file_name_split[1]
             if ensure_no_conflict:
-                file_name = paex.ensure_path_no_conflict(file_name)
+                file_name = pathex.ensure_path_no_conflict(file_name)
             file_or_dir_path = path.join(dir_name, file_name)
         if extension_name:
             file_or_dir_path += extension_name
@@ -1163,8 +1244,8 @@ def chunk_file(input_path: Union[str, List[str]], output_path, chunk_size, chunk
             f = tqdm_wrap(f, use_tqdm=use_tqdm,
                           tqdm_msg=display_msg or f'chunking the file at {input_path} with chunk size {chunk_size}',
                           verbose=verbose)
-            ext_name = paex.get_ext_name(input_path)
-            paex.ensure_dir_existence(output_path)
+            ext_name = pathex.get_ext_name(input_path)
+            pathex.ensure_dir_existence(output_path)
             it = chunk_iter(f, chunk_size=chunk_size)
             it = with_uuid(it) if use_uuid else enumerate(it)
             for chunk_idx, chunk in it:
@@ -1174,8 +1255,8 @@ def chunk_file(input_path: Union[str, List[str]], output_path, chunk_size, chunk
     else:
         if verbose:
             hprint_message(f'chunking {len(input_path)} files, chunk size', chunk_size)
-        ext_name = paex.get_ext_name(input_path[0])
-        paex.ensure_dir_existence(output_path)
+        ext_name = pathex.get_ext_name(input_path[0])
+        pathex.ensure_dir_existence(output_path)
         it = chunk_iter(
             iter_all_lines_from_all_files(input_paths=input_path, use_tqdm=use_tqdm, display_msg=display_msg,
                                           verbose=verbose), chunk_size=chunk_size)
@@ -1279,7 +1360,7 @@ class SimpleFileCache(Cache):
     #     return pickle_load(cache_file, compressed=self.cache_compressed)
 
     def _get_file_iter(self, pattern):
-        return paex.iter_files_by_pattern(self.cache_dir, pattern=pattern, full_path=True, recursive=False)
+        return pathex.iter_files_by_pattern(self.cache_dir, pattern=pattern, full_path=True, recursive=False)
 
     def _get_cache_files(self, prefix=''):
         pattern = add_prefix(prefix, f'*{self._iter_file_ext_name}')
@@ -1304,7 +1385,7 @@ class SimpleFileCache(Cache):
             backup_dir = path.join(self.cache_dir, SimpleFileCache.REMOVAL_BACKUP_FOLDER, timestamp())
             os.makedirs(backup_dir, exist_ok=True)
             for cache_file in self._get_file_iter(pattern):
-                os.rename(cache_file, paex.replace_dir(cache_file, backup_dir))
+                os.rename(cache_file, pathex.replace_dir(cache_file, backup_dir))
 
     def clear_removed(self):
         shutil.rmtree(path.join(self.cache_dir, SimpleFileCache.REMOVAL_BACKUP_FOLDER))
@@ -1338,7 +1419,7 @@ class SimpleFileCache(Cache):
             dir_path, base_name = path.dirname(file_name), path.basename(file_name)
             main_name, ext_name = path.splitext(base_name)
             pattern = f'{main_name}_*{ext_name}'
-            file_names = paex.get_files_by_pattern(dir_or_dirs=dir_path, pattern=pattern, recursive=False)
+            file_names = pathex.get_files_by_pattern(dir_or_dirs=dir_path, pattern=pattern, recursive=False)
             output = []
             for file_name in file_names:
                 output.append(pickle_load(file_name, compressed=self.cache_compressed))

@@ -67,32 +67,172 @@ def get_columns_by_pattern(df, reg_pattern):
     return [_col for _col in df.columns if re.match(reg_pattern, _col)]
 
 
+def column_as_set(df: DataFrame, col):
+    """
+    Collects the values in one column as a set.
+    """
+    return set(row[col] for row in tqdm(df.select(col).distinct().collect()))
+
+
+def columns_as_set(df: DataFrame, *cols):
+    """
+    Collects the values of several columns as a set of tuples.
+    """
+    return set(tuple(row[col] for col in cols) for row in tqdm(df.select(*cols).distinct().collect()))
+
+
+def trim_columns(df, *cols) -> DataFrame:
+    """
+    Trims texts in the specified columns.
+    """
+    for col in cols:
+        df = df.withColumn(col, F.trim(F.col(col)))
+    return df
+
+
+def compare(df_base, df_compare, success_criteria, result_save_dir, comparison_name):
+    if isinstance(success_criteria, str):
+        success_criteria = F.col(success_criteria)
+
+    df_loss = join_on_columns(
+        df1=df_base.where(success_criteria),
+        df2=df_compare.where(~success_criteria),
+        join_key_col_names1=['query'],
+        col_name_suffix=True
+    ).cache()
+    show_count(df_loss, 'df_loss')
+    write_df_as_json(df_loss, path.join(result_save_dir, f'{comparison_name}_loss' if comparison_name else 'loss'), num_files=1, repartition=True)
+
+    df_gain = join_on_columns(
+        df1=df_base.where(~success_criteria),
+        df2=df_compare.where(success_criteria),
+        join_key_col_names1=['query'],
+        col_name_suffix=True
+    ).cache()
+    show_count(df_gain, 'df_gain')
+    write_df_as_json(df_gain, path.join(result_save_dir, f'{comparison_name}_gain' if comparison_name else 'gain'), num_files=1, repartition=True)
+
+    df_both_success = join_on_columns(
+        df1=df_base.where(success_criteria),
+        df2=df_compare.where(success_criteria),
+        join_key_col_names1=['query'],
+        col_name_suffix=True
+    ).cache()
+    show_count(df_both_success, 'df_both_trig')
+    write_df_as_json(df_loss, path.join(result_save_dir, f'{comparison_name}_both_success' if comparison_name else 'both_success'), num_files=1, repartition=True)
+
+    df_both_fail = join_on_columns(
+        df1=df_base.where(~success_criteria),
+        df2=df_compare.where(~success_criteria),
+        join_key_col_names1=['query'],
+        col_name_suffix=True
+    ).cache()
+    show_count(df_both_fail, 'df_both_not_trig')
+    write_df_as_json(df_loss, path.join(result_save_dir, f'{comparison_name}_both_fail') if comparison_name else 'both_fail', num_files=1, repartition=True)
+    return df_loss, df_gain, df_both_success, df_both_fail
+
+
 # endregion
 
+# region convenient grouping & counting
 
 def group_with_cnt_column(df, *cols, cnt_col_name=None) -> Tuple[DataFrame, str]:
+    """
+    A convenient function to group the dataframe by the specified columns, and adds a counting column to count the number of items in each group.
+    """
+
     if cnt_col_name is None:
         cnt_col_name = '__'.join(cols) + '___cnt'
     return df.groupBy(*cols).agg(F.count("*").alias(cnt_col_name)), cnt_col_name
 
 
 def group_with_max_column(df, mx_trg_col, *group_cols, mx_col_name=None) -> Tuple[DataFrame, str]:
+    """
+    A convenient function to group the dataframe by the specified columns, and adds a column to save the maximum value of the `mx_trg_col` in each group.
+    """
     if mx_col_name is None:
         mx_col_name = '__'.join(group_cols) + f'__{mx_trg_col}___mx'
     return df.groupBy(*group_cols).agg(F.max(mx_trg_col).alias(mx_col_name)), mx_col_name
 
 
-def group_with_rank_column(df, group_cols, orderby_cols, ascending=True, rank_col_name=None):
+def group_with_rank_column(df, group_cols, order_cols, ascending=True, rank_col_name=None):
+    """
+    A convenient function to group the dataframe by the specified columns, order the rows in each group by columns specified in `order_cols`, and adds a column to save the ranking of each group.
+    """
     if rank_col_name is None:
-        rank_col_name = '__'.join(group_cols) + '_' + '__'.join(orderby_cols) + f'___rank'
+        rank_col_name = '__'.join(group_cols) + '_' + '__'.join(order_cols) + f'___rank'
     if not ascending:
-        orderby_cols = [F.col(colname).desc() if isinstance(colname, str) else colname for colname in orderby_cols]
-    w = Window().partitionBy(*group_cols).orderBy(*orderby_cols)
+        order_cols = [F.col(colname).desc() if isinstance(colname, str) else colname for colname in order_cols]
+    w = Window().partitionBy(*group_cols).orderBy(*order_cols)
     return df.withColumn(rank_col_name, F.row_number().over(w)), rank_col_name
 
 
+# endregion
+
+# region convenient join
+
+def join_on_columns(df1, df2, join_key_col_names1, join_key_col_names2=None, col_name_suffix=None, *args, **kwargs):
+    """
+    A convenient function to join two dataframes based on identify of columns of specific names. Supports adding suffixes to column names to avoid column name conflict.
+    """
+    if isinstance(join_key_col_names1, str):
+        join_key_col_names1 = [join_key_col_names1]
+    else:
+        join_key_col_names1 = list(join_key_col_names1)
+
+    # if the join keys for `df2` is different from the join keys of `df1`, then
+    if join_key_col_names2 is not None:
+        df2 = df2.rename(df2, {name2: name1 for name1, name2 in zip(join_key_col_names1, join_key_col_names2)})
+
+    if col_name_suffix not in (None, False):
+        # adding suffixes to the non-join-key column names
+        if col_name_suffix is True:
+            suffix1, suffix2 = '_1', '_2'
+        elif isinstance(col_name_suffix, (tuple, list)):
+            suffix1, suffix2 = col_name_suffix
+        else:
+            raise ValueError('`col_name_suffix` should be a list, or tuple of length 2, or one of `None`, `True`, `False`')
+
+        df1 = rename_by_adding_suffix(df1, suffix=suffix1, excluded_col_names=join_key_col_names1)
+        df2 = rename_by_adding_suffix(df2, suffix=suffix2, excluded_col_names=join_key_col_names1)
+    return df1.join(df2, join_key_col_names1, *args, **kwargs)
+
+
+def join_multiple_on_columns(dfs, join_key_col_names, col_name_suffix=None, *args, **kwargs):
+    """
+    A convenient function to join multiple dataframes based on identify of columns of specific names. Supports adding suffixes to column names to avoid column name conflict.
+    """
+
+    def _add_col_suffix(df, df_idx):
+        if col_name_suffix not in (None, False):
+            return df
+        elif col_name_suffix is True:
+            return rename_by_adding_suffix(df, suffix=f'_{df_idx}', excluded_col_names=join_key_col_names)
+        elif isinstance(col_name_suffix, (tuple, list)):
+            return rename_by_adding_suffix(df, suffix=col_name_suffix[df_idx], excluded_col_names=join_key_col_names)
+        else:
+            raise ValueError('`col_name_suffix` should be a list, or tuple, or one of `None`, `True`, `False`')
+
+    if isinstance(join_key_col_names, str):
+        join_key_col_names = [join_key_col_names]
+
+    df = _add_col_suffix(dfs[0], 0)
+
+    if isinstance(join_key_col_names[0], str):
+        for df_idx, df2 in enumerate(dfs[1:]):
+            df = df.join(_add_col_suffix(df2, df_idx + 1), join_key_col_names, *args, **kwargs)
+    else:
+        col_names1 = join_key_col_names[0]
+        for df_idx, (df2, col_names2) in enumerate(zip(dfs[1:], join_key_col_names[1:])):
+            df = join_on_columns(df, _add_col_suffix(df2, df_idx + 1), col_names1, col_names2, *args, **kwargs)
+    return df
+
+
+# endregion
+
+
 def deduplicate(df, *keycols, top=1) -> DataFrame:
-    dff, rankcol = group_with_rank_column(df, group_cols=keycols, orderby_cols=keycols)
+    dff, rankcol = group_with_rank_column(df, group_cols=keycols, order_cols=keycols)
     return dff.where(F.col(rankcol) <= top).drop(rankcol)
 
 
@@ -105,23 +245,6 @@ def deduplicate2(df, *keycols):
             dd.add(k)
             unique_rows.append(k)
     return spark.createDataFrame(unique_rows)
-
-
-def column_as_set(df: DataFrame, col):
-    return set(row[col] for row in tqdm(df.select(col).distinct().collect()))
-
-
-def columns_as_set(df: DataFrame, *cols):
-    return set(tuple(row[col] for col in cols) for row in tqdm(df.select(*cols).distinct().collect()))
-
-
-def trim_columns(df, *cols) -> DataFrame:
-    """
-    Trims texts in the specified columns.
-    """
-    for col in cols:
-        df = df.withColumn(col, F.trim(F.col(col)))
-    return df
 
 
 def get_most_frequent_map(df, src_col, trg_col, no_tie=True, to_dict=True, use_tqdm=True, display_msg='construction map from {} to {}', verbose=__debug__) -> Union[DataFrame, dict]:
@@ -139,7 +262,7 @@ def get_most_frequent_map(df, src_col, trg_col, no_tie=True, to_dict=True, use_t
     """
     df1, cnt_col_name = group_with_cnt_column(df, src_col, trg_col)
     if no_tie:
-        df2, rank_col_name = group_with_rank_column(df1, group_cols=(src_col,), orderby_cols=(cnt_col_name,), ascending=False)
+        df2, rank_col_name = group_with_rank_column(df1, group_cols=(src_col,), order_cols=(cnt_col_name,), ascending=False)
         df = df2.where(F.col(rank_col_name) == 1).select(src_col, trg_col)
     else:
         df2, mx_col_name = group_with_max_column(df1, cnt_col_name, src_col)
@@ -873,38 +996,6 @@ def rename_by_replace(df, src, trg):
     for col_name in df.columns:
         if src in col_name:
             df = df.withColumnRenamed(col_name, col_name.replace(src, trg))
-    return df
-
-
-def join_on_columns(df1, df2, col_names1, col_names2=None, *args, **kwargs):
-    col_names1 = list(col_names1)
-    if col_names2 is None:
-        return df1.join(df2, col_names1, *args, **kwargs)
-    else:
-        return df1.join(rename(df2, {name2: name1 for name1, name2 in zip(col_names1, col_names2)}), col_names1, *args, **kwargs)
-
-
-def join_multiple_on_columns(dfs, join_key_col_names, col_name_suffix=None, *args, **kwargs):
-    def _add_col_suffix(df, df_idx):
-        if col_name_suffix is True:
-            return rename_by_adding_suffix(df, suffix=str(df_idx), excluded_col_names=join_key_col_names)
-        elif col_name_suffix is not None:
-            return rename_by_adding_suffix(df, suffix=col_name_suffix[df_idx], excluded_col_names=join_key_col_names)
-        else:
-            return df
-
-    if isinstance(join_key_col_names, str):
-        join_key_col_names = [join_key_col_names]
-
-    df = _add_col_suffix(dfs[0], 0)
-
-    if isinstance(join_key_col_names[0], str):
-        for df_idx, df2 in enumerate(dfs[1:]):
-            df = df.join(_add_col_suffix(df2, df_idx + 1), join_key_col_names, *args, **kwargs)
-    else:
-        col_names1 = join_key_col_names[0]
-        for df_idx, (df2, col_names2) in enumerate(zip(dfs[1:], join_key_col_names[1:])):
-            df = join_on_columns(df, _add_col_suffix(df2, df_idx + 1), col_names1, col_names2, *args, **kwargs)
     return df
 
 

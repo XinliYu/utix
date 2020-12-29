@@ -1,34 +1,36 @@
-import os
 import warnings
+from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
-from itertools import islice, product
+from itertools import product
 from os import path
 from random import choice, shuffle, randrange, uniform
 from typing import Dict, List, Callable, Tuple, Union, Iterator, Any, Set, Mapping
-from copy import copy
-import numpy as np
-from sklearn.decomposition import IncrementalPCA
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+
 import joblib
+import numpy as np
+import pandas as pd
 import sklearn.metrics.pairwise as sklearn_pairwise_metrics
+import xgboost as xgb
+from sklearn.decomposition import IncrementalPCA
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_score, recall_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.utils import shuffle
 from tqdm import tqdm
-import xgboost as xgb
+
 import utix.argex as argex
 import utix.csvex as csvex
-import utix.iterex as iterex
 import utix.general as gex
-from utix.dictex import prioritize_keys
-from utix.timex import tic, toc
-from utix.pathex import ensure_dir_existence, get_main_name
+import utix.iterex as iterex
 import utix.msgex as msgex
 import utix.plotex as plotex
-import pandas as pd
+from utix.dictex import prioritize_keys
+from utix.pathex import ensure_dir_existence, get_main_name
+from utix.timex import tic, toc
 
 
 def incremental_pca(feature_iter, batch_size, n_components=10):
@@ -75,15 +77,19 @@ def get_sklearn_models(**kwargs):
 
 
 class XgBoostSklearnWrapper:
-    def __init__(self, params=None, max_rounds=1000, early_stopping_rounds=50, use_gpu=None, model_path=None, **kwargs):
+    def __init__(self, params=None, max_rounds=1000, early_stopping_rounds=50, num_parallel_tree=100, max_depth=10, rank_eval_metric='ndcg@10', gpu=None, model_path=None, **kwargs):
         if isinstance(params, str):
             if params == 'rank':
-                self._params = {'objective': 'rank:pairwise', 'learning_rate': 0.2, 'min_split_loss': 1.0, 'min_child_weight': 0.1, 'max_depth': 10, 'eval_metric': 'ndcg@10'}
+                self._params = {'objective': 'rank:pairwise', 'learning_rate': 0.2, 'min_split_loss': 1.0, 'min_child_weight': 0.1, 'max_depth': max_depth, 'eval_metric': rank_eval_metric}
+            elif params == 'rank_ndcg':
+                self._params = {'objective': 'rank:ndcg', 'learning_rate': 0.2, 'min_split_loss': 1.0, 'min_child_weight': 0.1, 'max_depth': max_depth, 'eval_metric': rank_eval_metric}
+            elif params == 'rank_rf':
+                self._params = {'objective': 'binary:logistic', 'learning_rate': 0.2, 'gamma': 1.5, 'min_child_weight': 1.5, 'max_depth': max_depth, 'num_parallel_tree': num_parallel_tree, 'eval_metric': rank_eval_metric}
         elif params is None:
-            self._params = params if params else {'objective': 'binary:logistic', 'eta': 0.2, 'gamma': 1.5, 'min_child_weight': 1.5, 'max_depth': 5}
+            self._params = params if params else {'objective': 'binary:logistic', 'learning_rate': 0.2, 'gamma': 1.5, 'min_child_weight': 1.5, 'max_depth': max_depth}
 
-        if use_gpu is not None:
-            self._params['gpu_id'] = use_gpu
+        if gpu is not None:
+            self._params['gpu_id'] = gpu
             self._params['tree_method'] = 'gpu_hist'
         if kwargs:
             self._params.update(kwargs)
@@ -336,39 +342,70 @@ def binary_predict_pos_by_below_or_equal_threshold(pos_scores: np.ndarray, thres
 
 # endregion
 
-def get_predefined_model(model_name, **kwargs):
-    if model_name == 'rf' or model_name == 'random_forest':
-        return partial(RandomForestClassifier, n_jobs=70, random_state=0, **kwargs)
-    if model_name == 'rf_entropy' or model_name == 'random_forest':
-        return partial(RandomForestClassifier, n_jobs=70, random_state=0, criterion='entropy', **kwargs)
-    if model_name == 'rf_md03' or model_name == 'random_forest_md03':
-        return partial(RandomForestClassifier, n_jobs=-1, max_depth=3)
-    if model_name == 'rf_md05' or model_name == 'random_forest_md05':
-        return partial(RandomForestClassifier, n_jobs=-1, max_depth=5)
-    if model_name == 'rf_md10' or model_name == 'random_forest_md10':
-        return partial(RandomForestClassifier, n_jobs=-1, max_depth=10)
-    if model_name == 'rf_mss50' or model_name == 'random_forest_mss50':
-        return partial(RandomForestClassifier, n_jobs=-1, min_samples_split=50)
-    if model_name == 'rf_mss100' or model_name == 'random_forest_mss100':
-        return partial(RandomForestClassifier, n_jobs=-1, min_samples_split=100)
-    if model_name == 'dt' or model_name == 'decision_tree':
-        return partial(DecisionTreeClassifier, n_jobs=-1)
-    if model_name == 'dt_md03' or model_name == 'decision_tree_md03':
-        return partial(DecisionTreeClassifier, n_jobs=-1, max_depth=3)
-    if model_name == 'gp' or model_name == 'decision_tree_md03':
-        return partial(GaussianProcessClassifier, n_jobs=-1)
-    if model_name == 'knn':
-        return partial(KNeighborsClassifier, n_jobs=-1)
-    if model_name == 'knn20':
-        return partial(KNeighborsClassifier, n_jobs=-1, n_neighbors=20)
-    if model_name == 'adaboost_md02':
-        return partial(AdaBoostClassifier, base_estimator=DecisionTreeClassifier(max_depth=2))
-    if model_name == 'logistic':
-        return partial(LogisticRegression, n_jobs=-1, max_iter=200, solver='saga')
-    if model_name == 'xgboost':
-        return XgBoostSklearnWrapper
-    if model_name == 'xgb_rank':
-        return partial(XgBoostSklearnWrapper, params='rank', **kwargs)
+def get_predefined_model(model_name, return_callable=True, **kwargs):
+    common_priority = ['n_jobs', 'criterion']
+    xgb_common_priority = ['params', 'gpu', 'objective', 'learning_rate', 'max_depth', 'eval_metric']
+    common_defaults = kwargs
+    common_defaults.setdefault('n_jobs', -1)
+    common_defaults.setdefault('random_state', 0)
+    model_dicts = {
+        'rf': (
+            RandomForestClassifier,
+            ['max_depth', 'min_samples_split', 'criterion'] + common_priority,
+            common_defaults
+        ),
+        'dt': (
+            DecisionTreeClassifier,
+            ['max_depth', 'min_samples_split'] + common_priority,
+            common_defaults
+        ),
+        'gp': (
+            GaussianProcessClassifier,
+            ['warm_start'] + common_priority,
+            common_defaults
+        ),
+        'knn': (
+            KNeighborsClassifier,
+            ['n_neighbors'] + common_priority,
+            common_defaults
+        ),
+        'logistic': (
+            LogisticRegression,
+            ['max_iter', 'solver'] + common_priority,
+            common_defaults
+        ),
+        'xgb': (
+            XgBoostSklearnWrapper,
+            xgb_common_priority,
+            None,
+            ['gpu']
+        ),
+        'xgb_rf': (
+            XgBoostSklearnWrapper,
+            xgb_common_priority,
+            None,
+            ['gpu']
+        ),
+        'xgb_rank_rf': (
+            XgBoostSklearnWrapper,
+            xgb_common_priority,
+            {'params': 'rank_rf'},
+            ['gpu']
+        ),
+        'xgb_rank': (
+            XgBoostSklearnWrapper,  # the model class
+            xgb_common_priority,  # arguments prioritized for short-naming
+            {'params': 'rank'},  # the default argument values
+            ['gpu']  # ignore this argument in returned object name
+        ),
+        'xgb_rank_ndcg': (
+            XgBoostSklearnWrapper,
+            xgb_common_priority,
+            {'params': 'rank_ndcg'},
+            ['gpu']
+        )
+    }
+    return argex.fast_init(model_name, callable_dict=model_dicts, return_callable=return_callable, verbose=True)
 
 
 def get_predefined_eval_funcs(name):
@@ -432,6 +469,10 @@ def bisplit_grouped_data(data: Union[List, Tuple], group_sizes, group_data: Unio
     return data1, data2, gp_data1, gp_data2, group_sizes1, group_sizes2
 
 
+def load_model():
+    pass
+
+
 def build_binary_classification_models(models: dict,
                                        data: Union[Callable, Iterator[Tuple[Dict, Dict]]] = None,
                                        eval_funcs: Dict[str, Callable] = None,
@@ -457,7 +498,8 @@ def build_binary_classification_models(models: dict,
                                        plot_output_path=None,
                                        is_ranking=False,
                                        runtime_evals=None,
-                                       model_loader=None):
+                                       model_loader=None,
+                                       replace_nan=None):
     """
     Trains a set of binary classification models on the provided training sets and then test them on the provided test sets.
     :param data:
@@ -481,6 +523,7 @@ def build_binary_classification_models(models: dict,
     :param model_save_dir: path to the directory to save the trained models.
     :param result_file_path: path to save the evaluation results.
     :param print_out: `True` if some details of the execution of this method should be printed out on the terminal.
+    :param replace_nan: Use one of 'mean', 'median', and 'most_frequent' to replace `np.nan` in the features;
     """
     if not models:
         raise ValueError(msgex.msg_arg_none_or_empty(arg_name='models', extra_msg='no model is specified to build'))
@@ -496,22 +539,37 @@ def build_binary_classification_models(models: dict,
             if _is_ranking:
                 if _group is None:
                     raise ValueError('groups sizes must be provided for ranking')
-                _model_inst.fit(_X, _y, group=_group, evals=_runtime_evals)
+                argex.exec__(
+                    _model_inst.fit, _X, _y,
+                    group=_group, evals=_runtime_evals
+                )
             elif _group is None:
-                _model_inst.fit(_X, _y, evals=_runtime_evals)
+                argex.exec__(
+                    _model_inst.fit, _X, _y,
+                    evals=_runtime_evals
+                )
             else:
                 _is_ranking = True
-                _model_inst.fit(_X, _y, group=_group, evals=_runtime_evals)
+                argex.exec__(
+                    _model_inst.fit, _X, _y,
+                    group=_group, evals=_runtime_evals
+                )
         else:
             if _is_ranking:
                 if _group is None:
                     raise ValueError('groups sizes must be provided for ranking')
-                _model_inst.fit(_X, _y, group=_group)
+                argex.exec__(
+                    _model_inst.fit, _X, _y,
+                    group=_group
+                )
             elif _group is None:
                 _model_inst.fit(_X, _y)
             else:
                 _is_ranking = True
-                _model_inst.fit(_X, _y, group=_group)
+                argex.exec__(
+                    _model_inst.fit, _X, _y,
+                    group=_group
+                )
         return _is_ranking
 
     results, trained_models, data_idx = [], {}, 0
@@ -542,6 +600,16 @@ def build_binary_classification_models(models: dict,
                 else:
                     raise ValueError(f'unexpected train data format for `{train_data_name}`')
 
+                # replaces missing values in the input `X`
+                if replace_nan is not None:
+                    from sklearn.impute import SimpleImputer
+                    if replace_nan in ('mean', 'median', 'most_frequent'):
+                        X = SimpleImputer(missing_values=np.nan, strategy=replace_nan).fit(X).transform(X)
+                    else:
+                        if not isinstance(replace_nan, (float, int)):
+                            warnings.warn('replacing np.nan by a non-numeric value; make sure this is intended')
+                        X = SimpleImputer(missing_values=np.nan, strategy='constant', fill_value=replace_nan).fit(X).transform(X)
+
                 if print_out:
                     gex.hprint_pairs(("train data", train_data_name), ("size", len(train_data_tup[0])))
                 _model_inst = model_inst
@@ -553,7 +621,16 @@ def build_binary_classification_models(models: dict,
                         model_files[(model_name, train_data_name, data_idx)] = model_save_path
                         model_save_path_exists = path.exists(model_save_path)
                         if use_existing_models and model_save_path_exists:
-                            _model_inst = joblib.load(model_save_path) if model_loader is None else model_loader(model_save_path)
+                            if model_loader is not None:
+                                _model_inst = model_loader(model_save_path)
+                            elif hasattr(_model_inst, 'load_model'):
+                                _model_inst.load_model(model_save_path)
+                            else:
+                                try:
+                                    _model_inst = joblib.load(model_save_path)
+                                except Exception as err:
+                                    gex.eprint_message('unable to load model', model_save_path)
+                                    raise err
                         else:
                             if not overwrite and model_save_path_exists:
                                 raise ValueError(
@@ -569,7 +646,7 @@ def build_binary_classification_models(models: dict,
 
                 eval_binary_classification(
                     model=_model_inst,
-                    test_data=eval_data,
+                    eval_data=eval_data,
                     eval_funcs=eval_funcs,
                     score2pred_func=score2pred_func,
                     pos_label=pos_label,
@@ -643,7 +720,7 @@ def _parse_test_data_tupe(test_data_name, test_data_tup):
 
 def eval_binary_classification(
         model,
-        test_data: Dict[str, Tuple],
+        eval_data: Dict[str, Tuple],
         eval_funcs: Dict[str, Callable],
         score2pred_func: Callable = binary_predict_pos_by_above_threshold,
         pos_label: int = 1, neg_label: int = 0,
@@ -658,12 +735,13 @@ def eval_binary_classification(
         group_label_eval_funcs: Dict[str, Callable] = None,
         print_out=True,
         print_ignore=None,
-        is_ranking=False
+        is_ranking=False,
+        score_output_path=None
 ):
     """
     Evaluates a binary classification model on the provided data sets. Supports threshold line search, and grouped evaluation.
     :param model: the binary classification model to evaluate; must have a method `predict_proba` that takes the features as input, and generate scores for each label.
-    :param test_data: a dictionary of test data sets keyed by names; the values are tuples of features and labels, and optionally the group index;
+    :param eval_data: a dictionary of test data sets keyed by names; the values are tuples of features and labels, and optionally the group index;
                         when group index is provided, the evaluation will be also be done on the collection of the top-score predictions from each group.
     :param eval_funcs: provides evaluation functions; each function must take two positional arguments, the first being the labels, and the second being the predictions.
     :param score2pred_func: provides a function that converts scores to a label prediction based given the threshold;
@@ -679,13 +757,14 @@ def eval_binary_classification(
                             if `score_th` is specified as a binary tuple, then it is treated as the beginning and the steps for the line search, with the end being the maximum score;
                             if `score_th` is a value, then it is treated as the beginning of the line search, with the end being the maximum score, and the steps being 6.
     :param test_data_filter: a filter applied on the test set name; returns `False` to skip a test set given its name.
+    :param score_output_path: writes scores of all positive predictions to a file at this path.
     :return: a reference to the `result_output_list` if it provided; or a new result list containing the result items.
     """
     ori_score_th = score_th
     result_output_list = [] if result_output_list is None else result_output_list
     result_item_base = {} if result_item_base is None else result_item_base.copy()
 
-    for test_data_name, test_data_tup in test_data.items():
+    for test_data_name, test_data_tup in eval_data.items():
         if test_data_tup is None:
             gex.hprint_message("test data not set", test_data_name)
             continue
@@ -707,7 +786,18 @@ def eval_binary_classification(
             if is_ranking:
                 if group_sizes is None:
                     raise ValueError('group sizes must be provided for ranking')
-                scores = model.predict_proba(test_features, group=group_sizes) if hasattr(model, 'predict_proba') else model.predict(test_features, group=group_sizes)
+                if hasattr(model, 'predict_proba'):
+                    scores = argex.exec__(
+                        model.predict_proba,
+                        test_features,
+                        group=group_sizes
+                    )
+                else:
+                    scores = argex.exec__(
+                        model.predict,
+                        test_features,
+                        group=group_sizes
+                    )
             else:
                 scores = model.predict_proba(test_features) if hasattr(model, 'predict_proba') else model.predict(test_features)
             if len(scores.shape) > 1:
@@ -884,21 +974,12 @@ def eval_binary_classification_by_score_threshold(scores,
 
     result_item_base = {} if result_item_base is None else result_item_base.copy()
 
-<<<<<<< HEAD
     def _eval_threshold(s_th):
         result_item = result_item_base.copy()
         result_item['threshold_pos'] = s_th
         predictions = score2pred_func(scores=scores, score_th=s_th, pos_label=pos_label, neg_label=neg_label)
         result_item['total'] = len(predictions)
         result_item['trig'] = sum(predictions) / len(predictions)
-=======
-
-    def _eval_threshold(_score_th):
-        result_item = result_item_base.copy()
-        result_item['threshold_pos'] = _score_th
-        predictions = score2pred_func(scores=scores, score_th=_score_th, pos_label=pos_label, neg_label=neg_label)
-        result_item['trigger_rate'] = sum(predictions) / len(predictions)
->>>>>>> 8f8fa16eb2092d37a52745cfca9a932e63ef7f17
         if isinstance(labels, Mapping):
             for label_key, _labels in labels.items():
                 for eval_name, eval_func in eval_funcs[label_key].items():
@@ -949,9 +1030,21 @@ def eval_binary_classification_by_score_threshold(scores,
 class AvgInfo:
     __slots__ = ('sum', 'count')
 
-    def __init__(self, init_value):
-        self.sum = init_value
-        self.count = 1
+    def __init__(self, init_value, weight=None):
+        if weight is None:
+            if isinstance(init_value, AvgInfo):
+                self.sum = init_value.sum
+                self.count = init_value.count
+            else:
+                self.sum = init_value
+                self.count = 1
+        else:
+            if isinstance(init_value, AvgInfo):
+                self.sum = init_value.sum * weight
+                self.count = init_value.count * weight
+            else:
+                self.sum = init_value * weight
+                self.count = weight
 
     def __add__(self, other):
         if isinstance(other, AvgInfo):
@@ -973,6 +1066,20 @@ class AvgInfo:
 
     def __call__(self):
         return self.sum / self.count
+
+    def add_weighted(self, value, weight):
+        if isinstance(value, AvgInfo):
+            self.count += value.count * weight
+            self.sum += value.sum * weight
+        else:
+            self.count += weight
+            self.sum += value * weight
+
+    def __repr__(self):
+        return f'sum: {self.sum}, count: {self.count}, avg: {self()}'
+
+    def __str__(self):
+        return str(self())
 
 
 class AvgTracker(dict):
@@ -1025,7 +1132,9 @@ class AvgTracker(dict):
 
 # region all-in-one stat
 
-class _Stat(dict):
+class _Stat(defaultdict):
+    def __init__(self, default_factory=int):
+        super().__init__(default_factory)
 
     def count(self, stat_name: str, increase: Any = 1):
         if stat_name in self:
@@ -1043,11 +1152,17 @@ class _Stat(dict):
             else:
                 self[stat_name] = increase
 
-    def average(self, stat_name: str, value: Any):
+    def average(self, stat_name: str, value: Any, weight: Any = None):
         if stat_name in self:
-            self[stat_name] += value
+            if weight is None:
+                self[stat_name] += value
+            else:
+                self[stat_name].add_weighted(value, weight)
         else:
-            self[stat_name] = AvgInfo(value)
+            if weight is None:
+                self[stat_name] = AvgInfo(value, 1)
+            else:
+                self[stat_name] = AvgInfo(value, weight)
 
     def aggregate(self, stat_name: str, value: Any):
         if stat_name not in self:
@@ -1085,22 +1200,27 @@ class _Stat(dict):
             self[stat_name] = {}
         d = self[stat_name]
 
-        if increases is None:
-            for value in values:
-                if value in d:
-                    d[value] += increase
+        if isinstance(values, Mapping):
+            for val_key in values.keys():
+                if val_key in d:
+                    d[val_key] += values[val_key]
                 else:
-                    d[value] = increase
+                    d[val_key] = values[val_key]
+        elif increases is None:
+            for val_key in values:
+                if val_key in d:
+                    d[val_key] += increase
+                else:
+                    d[val_key] = increase
         else:
-            for value, increase in zip(values, increases):
-                if value in d:
-                    d[value] += increase
+            for val_key, increase in zip(values, increases):
+                if val_key in d:
+                    d[val_key] += increase
                 else:
-                    d[value] = increase
+                    d[val_key] = increase
 
 
 class _StatTypes:
-
     def __init__(self):
         self._names_for_cnt, self._names_for_avg, self._names_for_agg = set(), set(), {}
 
@@ -1133,7 +1253,7 @@ class Stat(_Stat, _StatTypes):
     """
 
     def __init__(self):
-        _Stat.__init__(self)
+        _Stat.__init__(self, int)
         _StatTypes.__init__(self)
 
     def count(self, stat_name: str, increase: Any = 1) -> None:
@@ -1146,14 +1266,14 @@ class Stat(_Stat, _StatTypes):
         self._names_for_cnt.add(stat_name)
         super().count(stat_name, increase)
 
-    def average(self, stat_name: str, value: Any):
+    def average(self, stat_name: str, value: Any, weight: Any = None):
         """
         Adds the `value` to the average statistic of the specified `stat_name`.
         :param stat_name: provides a name for this statistic.
         :param value: adds this value to the average statistic; works as long as the `+=` operator is well-defined for the type of `value`.
         """
         self._names_for_avg.add(stat_name)
-        super().average(stat_name, value)
+        super().average(stat_name, value, weight)
 
     def aggregate(self, stat_name: str, value: Any, agg_func: Callable[[List], Any] = None):
         """
@@ -1231,6 +1351,53 @@ class Stat(_Stat, _StatTypes):
 
 
 class CategorizedStat(dict, _StatTypes):
+    """
+    A tool for categorized counting; implemented by a two-layer dictionary.
+    """
+
+    def __add__(self, other):
+        if isinstance(other, CategorizedStat):
+            for category, stats in other.items():
+                if category not in self:
+                    self[category] = stats
+                else:
+                    for stat_name, value in stats.items():
+                        if other.is_count(stat_name):
+                            if category == self._overall_count_name:
+                                self.count(category=category, stat_name=stat_name, value=value, overall_only=True, update_overall=True)
+                            else:
+                                self.count(category=category, stat_name=stat_name, value=value, overall_only=False, update_overall=False)
+                        elif other.is_avg(stat_name):
+                            if category == self._overall_count_name:
+                                self.average(category=category, stat_name=stat_name, value=value, overall_only=True, update_overall=True)
+                            else:
+                                self.average(category=category, stat_name=stat_name, value=value, overall_only=False, update_overall=False)
+                        elif other.is_agg(stat_name):
+                            if isinstance(value, list):
+                                if category == self._overall_count_name:
+                                    self.aggregate_many(category=category, stat_name=stat_name, values=value, overall_only=True, update_overall=True)
+                                else:
+                                    self.aggregate_many(category=category, stat_name=stat_name, values=value, overall_only=False, update_overall=False)
+                            elif isinstance(value, set):
+                                if category == self._overall_count_name:
+                                    self.aggregate_unique_many(category=category, stat_name=stat_name, values=value, overall_only=True, update_overall=True)
+                                else:
+                                    self.aggregate_unique_many(category=category, stat_name=stat_name, values=value, overall_only=False, update_overall=False)
+                            elif isinstance(value, dict):
+                                if category == self._overall_count_name:
+                                    self.aggregate_count_many(category=category, stat_name=stat_name, values=value, overall_only=True, update_overall=True)
+                                else:
+                                    self.aggregate_count_many(category=category, stat_name=stat_name, values=value, overall_only=False, update_overall=False)
+        return self
+
+    def is_count(self, stat_name):
+        return stat_name in self._names_for_cnt
+
+    def is_avg(self, stat_name):
+        return stat_name in self._names_for_avg
+
+    def is_agg(self, stat_name):
+        return stat_name in self._names_for_agg
 
     def __init__(self, overall_count_name='all', category_filter=None):
         dict.__init__(self)
@@ -1238,32 +1405,30 @@ class CategorizedStat(dict, _StatTypes):
         self._overall_count_name = overall_count_name
         self._category_filter = category_filter
         if overall_count_name:
-            self[self._overall_count_name] = _Stat()
+            self[self._overall_count_name] = _Stat(int)
 
     def __missing__(self, key):
         if key not in self:
-            self[key] = _Stat()
+            self[key] = _Stat(int)
         return self[key]
 
     def _count(self, category: str, name: str, value: Any):
         if category not in self:
-            d: _Stat = _Stat()
+            d: _Stat = _Stat(int)
             self[category] = d
         else:
             d = self[category]
         d.count(name, value)
 
-    def count(self, category: str, stat_name: str, value: Any = 1, overall_only: bool = False):
+    def count(self, category: str, stat_name: str, value: Any = 1, overall_only: bool = False, update_overall=True):
         self._names_for_cnt.add(stat_name)
-        if (not overall_only) and category != self._overall_count_name and (
-                self._category_filter is None or category in self._category_filter):
+        if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
             self[category].count(stat_name, value)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].count(stat_name, value)
 
-    def count_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1,
-                               overall_only=False):
+    def count_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1, overall_only=False, update_overall=True):
         self._names_for_cnt.add(stat_name)
 
         if isinstance(categories, str):
@@ -1274,21 +1439,19 @@ class CategorizedStat(dict, _StatTypes):
                 if category != self._overall_count_name or self._category_filter is None or category in self._category_filter:
                     self[category].count(stat_name, value)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].count(stat_name, value)
 
-    def average(self, category: str, stat_name: str, value=1, overall_only=False):
+    def average(self, category: str, stat_name: str, value=1, weight=None, overall_only=False, update_overall=True):
         self._names_for_avg.add(stat_name)
 
-        if (not overall_only) and category != self._overall_count_name and (
-                self._category_filter is None or category in self._category_filter):
-            self[category].average(stat_name, value)
+        if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
+            self[category].average(stat_name, value, weight)
 
-        if self._overall_count_name:
-            self[self._overall_count_name].average(stat_name, value)
+        if update_overall and self._overall_count_name:
+            self[self._overall_count_name].average(stat_name, value, weight)
 
-    def average_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1,
-                                 overall_only=False):
+    def average_multi_categories(self, categories: Union[str, Tuple[str, ...], List[str]], stat_name: str, value=1, overall_only=False, update_overall=True):
         self._names_for_avg.add(stat_name)
 
         if isinstance(categories, str):
@@ -1299,41 +1462,65 @@ class CategorizedStat(dict, _StatTypes):
                 if category != self._overall_count_name or self._category_filter is None or category in self._category_filter:
                     self[category].average(stat_name, value)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].average(stat_name, value)
 
-    def aggregate(self, category: str, stat_name: str, value: Any, agg_func: Callable[[List], Any] = None,
-                  overall_only=False):
+    def aggregate(self, category: str, stat_name: str, value: Any, agg_func: Callable[[List], Any] = None, overall_only=False, update_overall=True):
         self._names_for_agg[stat_name] = agg_func
 
-        if (not overall_only) and category != self._overall_count_name and (
-                self._category_filter is None or category in self._category_filter):
+        if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
             self[category].aggregate(stat_name, value)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].aggregate(stat_name, value)
 
-    def aggregate_unique(self, category: str, stat_name: str, value: Any, agg_func: Callable[[Set], Any] = None,
-                         overall_only=False):
+    def aggregate_many(self, category: str, stat_name: str, values: Any, agg_func: Callable[[List], Any] = None, overall_only=False, update_overall=True):
+        self._names_for_agg[stat_name] = agg_func
+
+        if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
+            self[category].aggregate_many(stat_name, values)
+
+        if update_overall and self._overall_count_name:
+            self[self._overall_count_name].aggregate_many(stat_name, values)
+
+    def aggregate_unique(self, category: str, stat_name: str, value: Any, agg_func: Callable[[Set], Any] = None, overall_only=False, update_overall=True):
         self._names_for_agg[stat_name] = agg_func
 
         if (not overall_only) and category != self._overall_count_name and (
                 self._category_filter is None or category in self._category_filter):
             self[category].aggregate_unique(stat_name, value)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].aggregate_unique(stat_name, value)
 
-    def aggregate_count(self, category: str, stat_name: str, value: Any, increase: Any = 1,
-                        agg_func: Callable[[Dict], Any] = None, overall_only=False):
+    def aggregate_unique_many(self, category: str, stat_name: str, values: Any, agg_func: Callable[[Set], Any] = None, overall_only=False, update_overall=True):
+        self._names_for_agg[stat_name] = agg_func
+
+        if (not overall_only) and category != self._overall_count_name and (self._category_filter is None or category in self._category_filter):
+            self[category].aggregate_unique_many(stat_name, values)
+
+        if update_overall and self._overall_count_name:
+            self[self._overall_count_name].aggregate_unique_many(stat_name, values)
+
+    def aggregate_count(self, category: str, stat_name: str, value: Any, increase: Any = 1, agg_func: Callable[[Dict], Any] = None, overall_only=False, update_overall=True):
         self._names_for_agg[stat_name] = agg_func
 
         if (not overall_only) and category != self._overall_count_name and (
                 self._category_filter is None or category in self._category_filter):
             self[category].aggregate_count(stat_name=stat_name, value=value, increase=increase)
 
-        if self._overall_count_name:
+        if update_overall and self._overall_count_name:
             self[self._overall_count_name].aggregate_count(stat_name=stat_name, value=value, increase=increase)
+
+    def aggregate_count_many(self, category: str, stat_name: str, values: Any, increase: Any = 1, increases: Iterator = None, agg_func: Callable[[Dict], Any] = None, overall_only=False, update_overall=True):
+        self._names_for_agg[stat_name] = agg_func
+
+        if (not overall_only) and category != self._overall_count_name and (
+                self._category_filter is None or category in self._category_filter):
+            self[category].aggregate_count_many(stat_name=stat_name, values=values, increase=increase, increases=increases)
+
+        if update_overall and self._overall_count_name:
+            self[self._overall_count_name].aggregate_count_many(stat_name=stat_name, values=values, increase=increase, increases=increases)
 
     def count_unique(self, category: str, name: str, value, overall_only=False):
         self.aggregate_unique(category=category, stat_name=name, value=value, agg_func=len, overall_only=overall_only)
@@ -1387,3 +1574,115 @@ def get_pairwise_metrics(X, Y, metric_names, flatten=False, unpack_single=False,
                 metric_val = np.round(metric_val, decimals=decimals)
             out[metric_name] = metric_val
     return out
+
+
+# region feature generation and management
+
+def get_features(
+        data_item: Any,
+        feature_gen: Callable,
+        feature_key_gen: Callable,
+        label_gen: Callable,
+        flags: Union[List, Tuple, Callable] = None,
+        num_flags=None,
+        num_active_flags=None,
+        feature_deduplication=False,
+        multiple_features=True,
+        label_reference=None,
+        feat_dim_tracking: set = None,
+        label_tracking: set = None,
+        **kwargs):
+    if feature_deduplication is True:
+        feat_key_dd = set()
+    elif isinstance(feature_deduplication, set):
+        feat_key_dd = feature_deduplication
+        feature_deduplication = True
+
+    out = []
+    if multiple_features:
+        feat_iter = feature_gen(data_item, **kwargs)
+    else:
+        feat_iter = (feature_gen(data_item, **kwargs),)
+    for i, (meta_data, feat) in enumerate(feat_iter):
+        if isinstance(meta_data, (list, tuple)):
+            feat_key = feature_key_gen(*meta_data) if feature_key_gen else tuple(meta_data)
+            if feature_deduplication and (feat_key in feat_key_dd):
+                continue
+            label = label_gen(label_reference, *meta_data)
+        else:
+            feat_key = feature_key_gen(meta_data) if feature_key_gen else meta_data
+            if feature_deduplication and (feat_key in feat_key_dd):
+                continue
+            label = label_gen(label_reference, meta_data)
+        if flags is None:
+            if num_flags is not None:
+                _flags = [0] * num_flags
+                if num_active_flags is None:
+                    _flags[i % num_flags] = 1
+                else:
+                    _flags[i % num_active_flags] = 1
+            else:
+                _flags = []
+        elif callable(flags):
+            _flags = flags(i)
+        else:
+            _flags = flags
+        feat = _flags + feat
+        out.append((feat_key, label, feat))
+        if label_tracking is not None:
+            label_tracking.add(label)
+        if feat_dim_tracking is not None:
+            feat_dim_tracking.add(len(feat))
+            if len(feat_dim_tracking) > 1:
+                raise ValueError(f"Got different dimensions '{feat_dim_tracking}'; feature '{feat}' of key {feat_key} has dimension {len(feat)}.")
+    return out
+
+
+def get_grouped_features(
+        data_iter: Iterator,
+        group_key_gen: Callable,
+        label_reference_gen: Callable,
+        feature_iter: Callable,
+        feature_key_gen: Callable,
+        label_gen: Callable,
+        flags: Union[List, Tuple, Callable] = None,
+        num_flags=None,
+        num_active_flags=None,
+        feature_deduplication=False,
+        feat_dim_tracking=True,
+        num_expected_labels=None,
+        in_group_shuffle=False,
+        **kwargs
+):
+    all_feat_tups, keyed_group_sizes = [], []
+    feat_dim_tracking = set() if feat_dim_tracking else None
+    label_tracking = set() if num_expected_labels else None
+    for data_item in data_iter:
+        group_key = group_key_gen(data_item)
+        if isinstance(group_key, (tuple, list)):
+            label_reference = label_reference_gen(*group_key)
+        else:
+            label_reference = label_reference_gen(group_key)
+        feat_tups = get_features(
+            data_item=data_item,
+            feature_gen=feature_iter,
+            feature_key_gen=feature_key_gen,
+            label_gen=label_gen,
+            flags=flags,
+            num_flags=num_flags,
+            num_active_flags=num_active_flags,
+            feature_deduplication=feature_deduplication,
+            label_reference=label_reference,
+            feat_dim_tracking=feat_dim_tracking,
+            label_tracking=label_tracking,
+            **kwargs
+        )
+        keyed_group_sizes.append((group_key, len(feat_tups)))
+        if in_group_shuffle:
+            feat_tups = shuffle(feat_tups)
+        all_feat_tups.extend(feat_tups)
+    if len(label_tracking) != num_expected_labels:
+        raise ValueError(f'expected number of distinct labels must be {num_expected_labels}; got {label_tracking}')
+    return all_feat_tups, keyed_group_sizes
+
+# endregion

@@ -5,7 +5,7 @@ from typing import Callable, Iterator, Mapping
 import numpy as np
 
 from utix.general import import__, has_varkw, iter__
-from utix.ioex import write_all_lines, write_all_lines_to_stream, write_all_json_objs, iter_json_objs
+from utix.ioex import write_all_lines, write_all_lines_to_stream, write_json_objs, iter_json_objs
 from utix.pathex import get_path_tail
 
 _register = {}
@@ -172,7 +172,7 @@ def load(file, **kwargs):
 
 
 def write_keyed_lists(keyed_lists, output_path, **kwargs):
-    write_all_json_objs(({k: v} for k, v in keyed_lists.items()), output_path=output_path, **kwargs)
+    write_json_objs(({k: v} for k, v in keyed_lists.items()), output_path=output_path, **kwargs)
 
 
 def iter_keyed_lists(file_path, apply_on_value=None):

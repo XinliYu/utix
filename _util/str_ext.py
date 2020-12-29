@@ -87,6 +87,8 @@ def cut(s: str, cut_before=None, cut_after=None):
     return s
 
 
+# region split
+
 def split__(s: str, sep: str = None, maxsplit: int = -1, n: int = None, pad=None, remove_empty_split: bool = False, parse: bool = False, lstrip: bool = False, rstrip: bool = False, cut_before=None, cut_after=None):
     """
     String split with rich options.
@@ -148,6 +150,23 @@ def split__(s: str, sep: str = None, maxsplit: int = -1, n: int = None, pad=None
         elif len(splits) > n:
             splits = splits[:n]
     return splits
+
+
+def iter_split_tups(s: str, item_sep='_', kv_sep='@', lstrip_key=True, rstrip_key=True, lstrip_val=True, rstrip_val=True, conversion: Dict[str, Callable] = None, none_strs=('none', 'null')):
+    def _map(item):
+        k, v = bisplit(item, kv_sep)
+        k = strip__(k, lstrip=lstrip_key, rstrip=rstrip_key)
+        if v is not None:
+            v = strip__(v, lstrip=lstrip_val, rstrip=rstrip_val)
+        if v in none_strs:
+            v = None
+        elif conversion is not None and k in conversion:
+            v = conversion[k](v)
+        return k, v
+
+    return map(_map, s.split(item_sep))
+
+    # endregion
 
 
 def strip__(s: str, lstrip: bool, rstrip: bool, chars=None) -> str:

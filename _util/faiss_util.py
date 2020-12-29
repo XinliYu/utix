@@ -159,7 +159,7 @@ def search_index(query_embeds_path, target_labels_path, index_or_index_path, out
             retrieved_scores, retrieved_indices = index.search(query_embeds, top)
             for query, idxes, scores in zip(queries, retrieved_indices, retrieved_scores):
                 yield {'query': query, 'retrievals': [target_labels[idx] for idx in idxes], 'scores': [str(score) for score in scores]}
-    ioex.write_all_json_objs(_jobj_iter(), output_path=output_path, use_tqdm=True)
+    ioex.write_json_objs(_jobj_iter(), output_path=output_path, use_tqdm=True)
 
 
 # def search_index(src_embeds_dir, tgt_embeds_dir, index_dir, eval_output_dir,

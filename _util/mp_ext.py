@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict, Counter
 from functools import partial
 from itertools import islice, chain
@@ -12,7 +13,7 @@ from os import path
 import utix.dictex as dex
 import utix.pathex as paex
 import utix.ioex as ioex
-from utix.general import hprint_pairs, hprint_message, cpu_count
+from utix.general import hprint_pairs, hprint_message, cpu_count, wprint_message
 from utix.iterex import split_iter, slices__, chunk_iter
 from utix.timex import tic, toc
 import uuid
@@ -57,15 +58,17 @@ class MPTarget:
                  '_result_dump_path',
                  '_result_dump_method',
                  '_result_dump_file_pattern',
+                 '_is_target_iter',
+                 '_always_return_results',
                  'name')
 
-    def __init__(self, use_queue=False, target=None, pass_each_data_item=False, pass_pid=True, wait_time=0.5, name='target', unpack_singleton_result=False, common_func=False, data_from_files=False, remove_none=False,
-                 result_dump_path=None, result_dump_file_pattern=None, result_dump_method=ioex.pickle_save):
-        """
+    def __init__(self, use_queue=False, target=None, pass_each=False, pass_pid=True, wait_time=0.5, name='target', unpack_singleton_result=False, common_func=False, data_from_files=False, remove_none=False,
+                 result_dump_dir=None, result_dump_name=None, result_dump_method=ioex.pickle_save, always_return_results=False, is_target_iter=False):
+        """`
 
         :param use_queue: `True` to use queue for passing multi-processing data.
         :param target: the multi-processing target callable.
-        :param pass_each_data_item:
+        :param pass_each: will pass each item from the input (e.g. one file, or one single data item) to the `target` function, rather than passing a list of them to the `target`; in multi-processing, each `target` actually receives a list of assigned items, but very often the `target` is a normal function intented for processing just one single file or one single data item, and in this case we must set this `pass_each` attribute to `True`.
         :param pass_pid:
         :param wait_time:
         :param name:
@@ -73,30 +76,33 @@ class MPTarget:
         :param common_func: a convenience parameter; `True` to indicate `pass_pid` is `False`, `pass_each_data_item` is `True` and `unpack_singleton_result` is `True`.
         :param data_from_files: `True` to indicate the `target` is to process data from files; in this case, if `pass_each_data_item` is also `True`, then each line of the file will be passed to the `target`, or otherwise all lines read from the files will be passed to the `target`.
         :param remove_none: effective only if `pass_each_data_item` is set `True`; set this to `True` if to ignore `None` result produced by the `target`.
-        """
+        `"""
         if common_func:
             pass_pid = False
-            pass_each_data_item = True
+            pass_each = True
             unpack_singleton_result = True
         self.use_queue = use_queue
         self._target = target
-        self._pass_each_data_item = pass_each_data_item
+        self._pass_each_data_item = pass_each
         self._pass_pid = pass_pid
         self._wait_time = wait_time
         self._unpack_singleton_result = unpack_singleton_result
         self._data_from_files = data_from_files
         self._remove_none = remove_none
-        self._result_dump_path = result_dump_path
+        self._result_dump_path = result_dump_dir
         self._result_dump_method = result_dump_method or ioex.pickle_save
-        self._result_dump_file_pattern = result_dump_file_pattern
+        self._result_dump_file_pattern = result_dump_name
+        self._is_target_iter = is_target_iter
+        self._always_return_results = always_return_results
         self.name = name
 
     def target(self, pid, data, *args):
         if self._target is not None:
             if self._pass_pid:
-                return self._target(pid, data, *args)
+                rst = self._target(pid, data, *args)
             else:
-                return self._target(data, *args)
+                rst = self._target(data, *args)
+            return list(rst) if self._is_target_iter else rst
         else:
             raise NotImplementedError
 
@@ -137,6 +143,7 @@ class MPTarget:
                 else:
                     data = tqdm(data, desc=f'pid: {pid}')
                     _data = (self.target(pid, dataitem, *args) for dataitem in data)
+                    # use a fake data type `MPResultTuple` (actually just a tuple) to inform the outside multi-processing method that the output comes from each data item
                     output = MPResultTuple((x for x in _data if x is not None) if self._remove_none else _data)
         elif not self._result_dump_path and self.use_queue:
             iq: Queue = data
@@ -162,9 +169,9 @@ class MPTarget:
             if self._unpack_singleton_result and hasattr(output, '__len__') and hasattr(output, '__getitem__') and len(output) == 1:
                 output = output[0]
         if self._result_dump_path:
-            dump_path = path.join(self._result_dump_path, (ioex.paex.append_timestamp(str(uuid.uuid4())) + '.mpb' if self._result_dump_file_pattern is None else self._result_dump_file_pattern.format(pid)))
+            dump_path = path.join(self._result_dump_path, (ioex.pathex.append_timestamp(str(uuid.uuid4())) + '.mpb' if self._result_dump_file_pattern is None else self._result_dump_file_pattern.format(pid)))
             self._result_dump_method(output, dump_path)
-            return dump_path
+            return dump_path if not self._always_return_results else output
         else:
             return output
 
@@ -182,18 +189,18 @@ def _default_result_merge(results):
     if isinstance(results[0], list):
         if all((isinstance(result, list) for result in results[1:])):
             results = tqdm(results)
-            results.set_description('merging result lists')
+            results.set_description('merging lists')
             return sum(results, [])
     elif isinstance(results[0], tuple):
         if all((isinstance(result, tuple) for result in results[1:])):
             results = tqdm(results)
-            results.set_description('merging result tuples')
+            results.set_description('merging tuples')
             return sum(results, ())
     elif isinstance(results[0], dict):
         if all((isinstance(result, dict) for result in results[1:])):
             output = results[0]
             results = tqdm(results[1:])
-            results.set_description('merging result dicts')
+            results.set_description('merging dicts')
             for d in results:
                 output.update(d)
             return output
@@ -207,7 +214,7 @@ def mp_chunk_file(input_path, output_path, chunk_size, num_p, chunk_file_pattern
         ioex.chunk_file(input_path, output_path=output_path, chunk_size=chunk_size, chunk_file_pattern=chunk_file_pattern, use_uuid=True, use_tqdm=use_tqdm, display_msg=display_msg, verbose=verbose)
     else:
         parallel_process_by_pool(num_p=num_p, data_iter=input_path,
-                                 target=MPTarget(target=ioex.chunk_file, pass_each_data_item=True, pass_pid=False),
+                                 target=MPTarget(target=ioex.chunk_file, pass_each=True, pass_pid=False),
                                  args=(output_path, chunk_size, chunk_file_pattern, True, use_tqdm, display_msg, verbose))
 
 
@@ -279,7 +286,7 @@ def _default_mp_read_lines(files):
     return ioex.read_all_lines_from_all_files(input_path=files, use_tqdm=True)
 
 
-def get_mp_cache_files(num_p, file_paths, sort=True, verbose=__debug__, cache_dir_path=None, chunk_size=100000, sort_use_basename=False):
+def get_mp_cache_files(num_p, file_paths, sort=True, verbose=__debug__, cache_dir_path=None, chunk_size=100000, sort_use_basename=False, rebuild_on_change=True):
     if isinstance(file_paths, str):
         file_paths = [file_paths]
     else:
@@ -297,12 +304,31 @@ def get_mp_cache_files(num_p, file_paths, sort=True, verbose=__debug__, cache_di
         cache_file_ext_name = paex.get_ext_name(file_paths[0])
 
         tic('Constructs multi-processing cache files at path ' + path.join(cache_dir_path, '*' + cache_file_ext_name))
+
         mp_cache_file_paths = None
+        files_id_path = cache_dir_path + '.id'
         if path.exists(cache_dir_path):
-            mp_cache_file_paths = paex.get_files_by_pattern(dir_or_dirs=cache_dir_path, pattern='*' + cache_file_ext_name, full_path=True, recursive=False, sort=sort, sort_use_basename=sort_use_basename)
+            if path.exists(files_id_path):
+                old_files_id = ioex.read_all_text(files_id_path).strip()
+                new_files_id = ioex.get_files_id(file_paths)  # the file paths are already sorted above, so the files_id would be the same for the same files if they are not changed
+                if new_files_id != old_files_id:
+                    hprint_message(f'Files are changed; rebuilding cache at', cache_dir_path)
+                    import shutil, os
+                    shutil.rmtree(cache_dir_path)  # removes file cache
+                    os.remove(files_id_path)  # removes the id file
+                else:
+                    mp_cache_file_paths = paex.get_files_by_pattern(dir_or_dirs=cache_dir_path, pattern='*' + cache_file_ext_name, full_path=True, recursive=False, sort=sort, sort_use_basename=sort_use_basename)
+                    if not mp_cache_file_paths:
+                        wprint_message('Cache directory exists, but nothing there', cache_dir_path)
+            else:
+                hprint_message(f'Files id does not exist; rebuilding cache at', cache_dir_path)
+                import shutil
+                shutil.rmtree(cache_dir_path)  # removes file cache
         if not mp_cache_file_paths:
+            ioex.write_all_text(ioex.get_files_id(file_paths), files_id_path)
             ioex.write_all_lines(iterable=ioex.iter_all_lines_from_all_files(file_paths), output_path=cache_dir_path, create_dir=True, chunk_size=chunk_size, chunked_file_ext_name=cache_file_ext_name)
             mp_cache_file_paths = paex.get_files_by_pattern(dir_or_dirs=cache_dir_path, pattern='*' + cache_file_ext_name, full_path=True, recursive=False, sort=sort, sort_use_basename=sort_use_basename)
+
         if mp_cache_file_paths:
             hprint_message(
                 title='number of multi-processing cache files',
@@ -316,13 +342,13 @@ def get_mp_cache_files(num_p, file_paths, sort=True, verbose=__debug__, cache_di
     return num_p, file_paths
 
 
-def mp_read_from_files(num_p, file_paths, target=None, args=(), sort=True, verbose=__debug__, cache_dir_path=None, chunk_size=100000, sort_use_basename=False, default_result_merge=True):
+def mp_read_from_files(num_p, input_path, target=None, args=(), sort=True, verbose=__debug__, cache_dir_path=None, chunk_size=100000, sort_use_basename=False, result_merge='default'):
     """
-    Read files with multiple processes.
+    Read files with multiple processes. Suitable for faster reading of files that are not frequently changed.
     """
-    num_p, file_paths = get_mp_cache_files(
+    num_p, input_path = get_mp_cache_files(
         num_p=num_p,
-        file_paths=file_paths,
+        file_paths=input_path,
         sort=sort,
         verbose=verbose,
         cache_dir_path=cache_dir_path,
@@ -332,11 +358,13 @@ def mp_read_from_files(num_p, file_paths, target=None, args=(), sort=True, verbo
 
     if target is None:
         target = MPTarget(target=partial(ioex.read_all_lines_from_all_files, use_tqdm=True), pass_pid=False)
-    output = parallel_process_by_pool(num_p=num_p, data_iter=file_paths, target=target, args=args, verbose=verbose)
+    output = parallel_process_by_pool(num_p=num_p, data_iter=input_path, target=target, args=args, verbose=verbose)
     if isinstance(output[0], MPResultTuple):
         output = sum(output, ())
-    if default_result_merge:
+    if result_merge == 'default':
         return _default_result_merge(output)
+    elif result_merge == 'chain':
+        return chain(*output)
     else:
         return output
 
@@ -447,7 +475,9 @@ def parallel_process_by_pool(num_p,
                              merge_output: bool = False,
                              mergers: Union[List, Tuple] = None,
                              debug=False,
-                             return_job_splits=False):
+                             return_job_splits=False,
+                             load_dumped_results=False,
+                             result_dump_load_method=ioex.pickle_load):
     """
     Parallel process data with multiprocessing pool. In comparison to spark, this method is more flexible and efficient to process medium sized data on the local machine.
     :param num_p: the number of processors to use.
@@ -460,6 +490,12 @@ def parallel_process_by_pool(num_p,
     :param debug:
     :return:
     """
+    if num_p == 1:
+        if isinstance(target, MPTarget):
+            return target.target(0, data_iter, *args)
+        else:
+            return target(0, data_iter, *args)
+
     if num_p is None or num_p <= 0:
         num_p = cpu_count()
     if isinstance(target, MPTarget):
@@ -480,8 +516,16 @@ def parallel_process_by_pool(num_p,
             pool.close()
             pool.join()
             raise err
+
         pool.close()
         pool.join()
+
+    if load_dumped_results:
+        if isinstance(rst[0], str) and path.isfile(rst[0]):
+            rst = [result_dump_load_method(file_path) for file_path in rst]
+        else:
+            warnings.warn(f'Expected to load results from dumped files; in this case the returned result from each process must be a file path; got {type(rst[0])}')
+
     if debug == 1:
         raise ValueError('debug is set True or 1, in this case the result merge will not work; change debug to an integer higher than 2')
 

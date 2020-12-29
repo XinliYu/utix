@@ -798,7 +798,7 @@ class XDataset(Dataset):
                         num_p=self._num_workers,
                         data_iter=range(self._size),
                         target=mpex.MPTarget(target=self._get_item,
-                                             pass_each_data_item=True,
+                                             pass_each=True,
                                              pass_pid=False,
                                              unpack_singleton_result=False,
                                              remove_none=True),

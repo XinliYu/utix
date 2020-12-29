@@ -13,7 +13,7 @@ if __name__ == '__main__':
     timex.tic('with mp iter')
     it = mpex.mp_read(data_iter=[src],
                       provider=mpex.MPProvider(create_iterator=partial(ioex.iter_all_lines_from_all_files, use_tqdm=True), chunk_size=1000),
-                      producer=mpex.MPTarget(target=strex.hash_str, pass_each_data_item=True, pass_pid=False), )
+                      producer=mpex.MPTarget(target=strex.hash_str, pass_each=True, pass_pid=False), )
     hashes1 = list(it)
     timex.toc()
 

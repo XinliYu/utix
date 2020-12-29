@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Iterator, Counter, Callable, Tuple, Union
 from itertools import islice
 from utix.general import FieldsRepr, Accumulative, get_fields, JSerializable, nonstr_iterable, iterable_merge
 from tqdm import tqdm
+from utix.general import get__
 
 # region frozen & hybrid dict
 
@@ -1717,12 +1718,6 @@ def first_item(d: Mapping):
     Gets the first key-value pair in the mapping.
     """
     return next(iter(d.items()))
-
-
-def get__(d: Mapping, *keys):
-    for key in keys:
-        if key in d:
-            return d[key]
 
 class XCounter(defaultdict):
     """

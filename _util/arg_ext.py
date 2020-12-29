@@ -10,21 +10,21 @@ import json
 import re
 import sys as _sys
 from argparse import _get_action_name, ArgumentError, SUPPRESS, Namespace, _UNRECOGNIZED_ARGS_ATTR
-from collections import namedtuple
 from copy import copy
 from functools import partial
 from gettext import gettext as _
 from os import path
 from pydoc import locate
 from sys import argv
-from typing import Tuple, Union, List, Callable, Dict, Any, Iterator, Mapping
+from typing import Tuple, Union, List, Callable, Dict, Any, Iterator, Mapping, Iterable
 
 from numpy import iterable
 
 import utix.strex as strex
 from utix.dictex import tup2dict
-from utix.general import is_str, value_type, nonstr_iterable, SlotsTuple, path_import, convert_values
+from utix.general import is_str, value_type, nonstr_iterable, SlotsTuple, path_import, convert_values, tuple__, str2val__, hprint_pairs
 from utix.msgex import ensure_arg_not_empty, ensure_arg_not_none, ensure_key_exist, ensure_valid_python_name
+from utix.pathex import make_file_name
 
 
 # region json obj initialization; ! WORK IN PROGRESS DO NOT USE
@@ -166,27 +166,70 @@ def num_args_from_callable(f: Callable, exclude_optional_args=False) -> Tuple[in
 
 
 def is_arg_none(arg_val: str):
-    return (not arg_val) or (arg_val.lower() == 'none')
+    return (not arg_val) or (isinstance(arg_val, str) and arg_val.lower() == 'none')
 
 
 # endregion
 
 # region fast object init
 
-def fast_init_obj(init_str: str, obj_dict: Dict[str, Callable]):
-    # TODO
-
-    obj_key = strex.first_startswith(init_str, obj_dict.keys())
+def fast_init(run_str: str, callable_dict: Dict[str, Union[Callable, Tuple]], arg_conversion=None, verbose=False, return_callable=False):
+    obj_key = run_str.split('-', maxsplit=1)[0]
     obj_key_len = len(obj_key)
-    f = obj_dict[obj_key]
-    if obj_key_len == len(init_str):
-        return f
+    f = callable_dict[obj_key]
+    if isinstance(f, tuple):
+        f, arg_priority, kwargs, hides_from_name = tuple__(
+            f,
+            defaults=4,
+            raise_err_when_length_exceeds_defaults='must provide a non-empty tuple with four or less items, the first being a callable, '
+                                                   'the second (optional) being the argument names with higher priority for short names, '
+                                                   'the third (optional) being argument default values, '
+                                                   'and the fourth (optional) being short names that should be ignored in the returned object name.'
+        )
+    elif isinstance(f, dict):
+        f, arg_priority, kwargs, hides_from_name = (
+            f.get('callable', None),
+            f.get('arg_priority', None),
+            f.get('kwargs', None),
+            f.get('hides_from_names', None)
+        )
+    else:
+        arg_priority = kwargs = hides_from_name = None
+    if f is None:
+        raise ValueError('must provide a callable')
+    elif not callable(f):
+        raise ValueError('the target must be a callable')
+    if kwargs is None:
+        kwargs = {}
 
-    arg_suffix = init_str[obj_key_len + 1:]
-    if not arg_suffix:
-        return f
+    arg_suffix = run_str[obj_key_len + 1:]
 
-    get_args_from_callable(f=f)
+    if arg_suffix:
+        args, star_arg_name, dstar_arg_name = get_args_from_callable(f=f)
+        short_name_full_name_map = get_short_names(args, priority=arg_priority)
+        obj_name = []
+        for name, value in strex.iter_split_tups(arg_suffix, conversion=arg_conversion):
+            if value is not None:
+                value = arg_conversion(value) if (arg_conversion is not None and name in arg_conversion) else str2val__(value)
+
+            if name in short_name_full_name_map:
+                full_name = short_name_full_name_map[name]
+            else:
+                full_name = name
+            kwargs[full_name] = value
+            if hides_from_name is None or full_name not in hides_from_name:
+                obj_name.append(f"{name}_{make_file_name(str(value), special_chr_rep='_', include_dot_as_special_chr=True)}")
+        obj_name = (obj_key + '-' + '-'.join(obj_name)) if obj_name else obj_key
+    else:
+        obj_name = obj_key
+    if verbose:
+        hprint_pairs(
+            *(
+                (obj_name, f),
+                *kwargs.items()
+            )
+        )
+    return obj_name, (partial(f, **kwargs) if return_callable else f(**kwargs))
 
 
 # endregion
@@ -231,10 +274,27 @@ def get_short_name(full_name: str, current_short_names: set = None, name_parts_s
         try:
             short_name = ''.join(part[0] for part in re.split(name_parts_sep, full_name))
         except:
-            pass
+            return ''
         return solve_name_conflict(name=short_name, current_names=current_short_names, suffix_sep=short_name_suffix_sep, name_suffix_gen=short_name_suffix_gen)
     else:
         return ''
+
+
+def get_short_names(full_names: Iterable[str], current_short_names: set = None, name_parts_sep: str = r'_|\-', short_name_suffix_sep='', short_name_suffix_gen: Iterator = None, priority=None, return_dict=True):
+    if priority is not None:
+        full_names = list(priority) + [name for name in full_names if name not in priority]
+    if current_short_names is None:
+        current_short_names = set()
+    if return_dict:
+        return {
+            get_short_name(full_name=full_name, current_short_names=current_short_names, name_parts_sep=name_parts_sep, short_name_suffix_sep=short_name_suffix_sep, short_name_suffix_gen=short_name_suffix_gen): full_name
+            for full_name in full_names
+        }
+    else:
+        return [
+            get_short_name(full_name=full_name, current_short_names=current_short_names, name_parts_sep=name_parts_sep, short_name_suffix_sep=short_name_suffix_sep, short_name_suffix_gen=short_name_suffix_gen)
+            for full_name in full_names
+        ]
 
 
 def first_not_none(*args):
@@ -342,6 +402,7 @@ def get_obj_from_args(obj_args: Union[Callable, Tuple]):
 
 def dict_to_namespace(d):
     return Namespace(**{k: (dict_to_namespace(v) if isinstance(v, Mapping) else v) for k, v in d.items()})
+
 
 class ArgInfo(SlotsTuple):
     """
@@ -844,18 +905,32 @@ def tuple_arg_parser(arg_or_args, target_class, positional_arg_types: Union[Tupl
 # region specialized arg parsing
 
 
-def parse_score_name(score_name: str, must_be_non_empty=False):
-    if not is_arg_none(score_name):
-        score_name = score_name.strip()
-        score_name_rank_reverse = True
-        if score_name[0] == '-':
-            score_name = score_name[1:]
-            score_name_rank_reverse = False
-        return score_name, score_name_rank_reverse
-    else:
+def _parse_score_name(score_name):
+    score_name = score_name.strip()
+    score_name_rank_reverse = True
+    if score_name[0] == '-':
+        score_name = score_name[1:]
+        score_name_rank_reverse = False
+    return score_name, score_name_rank_reverse
+
+
+def parse_score_name(score_name, must_be_non_empty=False):
+    if is_arg_none(score_name):
         if must_be_non_empty:
             raise ValueError("The score name is empty or 'none'.")
         return None, False
+    elif isinstance(score_name, (tuple, list)):
+        score_names, score_name_rank_reverses = tuple(zip(*(_parse_score_name(_score_name) for _score_name in score_name)))
+        reverse_flags_sum = sum(score_name_rank_reverses)
+        if reverse_flags_sum == 0:
+            return score_names, False
+        elif reverse_flags_sum == len(score_name_rank_reverses):
+            return score_names, True
+        else:
+            return score_names, score_name_rank_reverses
+
+    else:
+        return _parse_score_name(score_name)
 
 
 # endregion
@@ -1152,4 +1227,14 @@ class ArgumentParser(argparse.ArgumentParser):
             err = _sys.exc_info()[1]
             self.error(str(err))
 
+
 # endregion
+
+
+def exec__(func, *args, **kwargs):
+    _args, star_arg_name, dstar_arg_name = get_args_from_callable(func)
+    if not dstar_arg_name:
+        kwargs = {k: v for k, v in kwargs.items() if k in _args}
+        return func(*args, **kwargs)
+    else:
+        return func(*args, **kwargs)
